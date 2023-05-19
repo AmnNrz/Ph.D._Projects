@@ -342,7 +342,7 @@ slprj/
 *.shx
 *.cpg
 
-# *.png
+*.png
 *.psb
 *.psd
 *.tif
