@@ -350,6 +350,7 @@ slprj/
 *.zip
 *.gpkg
 *.lyr
+*.qgz
 
 *.png
 *.psb
@@ -363,3 +364,6 @@ slprj/
 #
 *.pdf
 *.docx
+
+#
+*.h5
