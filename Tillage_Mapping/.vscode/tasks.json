@@ -1,0 +1,11 @@
+{
+  "emeraldwalk.runonsave": {
+    "commands": [
+      {
+        "match": "\\.ipynb$",
+        "cmd": "jupyter nbconvert --to script ${file}",
+        "runIn": "terminal"
+      }
+    ]
+  }
+}
