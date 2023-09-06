@@ -29,7 +29,7 @@ import geopandas as gpd
 import pandas as pd
 
 
-# In[37]:
+# In[ ]:
 
 
 from google.colab import drive
@@ -40,7 +40,7 @@ drive.mount('/content/drive')
 
 # #### Imports
 
-# In[38]:
+# In[ ]:
 
 
 ######## imports #########
@@ -59,7 +59,7 @@ L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 L7T1 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
 
 
-# In[39]:
+# In[ ]:
 
 
 # shapeFile_path = r"G:\My Drive\PhD\Bio_AgTillage\01. Codes\pipeline_tillageClassifier\vsCode Integration\Data\WSDA_checkedForPins.dbf"
@@ -68,14 +68,14 @@ WSDA_featureCol_goepd = gpd.read_file(shapeFile_path, crs='EPSG:4326')
 WSDA_featureCol = geemap.geopandas_to_ee(WSDA_featureCol_goepd)
 
 
-# In[40]:
+# In[ ]:
 
 
 features_geopandasList = [WSDA_featureCol_goepd.loc[i:i] for i in range(WSDA_featureCol_goepd.shape[0])]
 features_geopandasList[0]["pointID"]
 
 
-# In[41]:
+# In[ ]:
 
 
 # emptyData_feature_pointIDList = [int(features_geopandasList[i]["pointID"].values) for i in n]
@@ -85,7 +85,7 @@ features_geopandasList[0]["pointID"]
 
 # #### Functions
 
-# In[42]:
+# In[ ]:
 
 
 #######################     Functions     ######################
@@ -477,7 +477,7 @@ def applyPercentile(collection, percentileList):
   return percentileImage
 
 
-# In[43]:
+# In[ ]:
 
 
 #######################################################################################################
@@ -517,7 +517,7 @@ landSat_7_8 = landSat_7_8.map(addIndices);
 
 # #### Extract season-based features, using main bands and Gray-level Co-occurence Metrics (GLCMs) values
 
-# In[103]:
+# In[ ]:
 
 
 #####################################################################
@@ -595,45 +595,45 @@ for idx, img in enumerate(imageList[:1]):
 # Map
 
 
-# In[100]:
+# In[ ]:
 
 
 print(ee.Geometry.Polygon(geemap.geopandas_to_ee(pol).geometry().getInfo()['coordinates']))
 
 
-# In[97]:
+# In[ ]:
 
 
 pol
 
 
-# In[70]:
+# In[ ]:
 
 
 geojson_geometry = polygons.first().geometry().getInfo()
 geojson_geometry
 
 
-# In[82]:
+# In[ ]:
 
 
 ee_geometry = ee.Geometry.Polygon(geojson_geometry['coordinates'])
 print(ee_geometry)
 
 
-# In[73]:
+# In[ ]:
 
 
 print(region)
 
 
-# In[91]:
+# In[ ]:
 
 
 print(ee.Geometry.Polygon(geemap.geopandas_to_ee(features_geopandasList[0]).geometry().getInfo()['coordinates']))
 
 
-# In[101]:
+# In[ ]:
 
 
 # Sample the image in the given region.
