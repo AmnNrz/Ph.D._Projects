@@ -370,4 +370,4 @@ slprj/
 
 #
 *.code-workspace
-*.vscode
+**/.vscode/
