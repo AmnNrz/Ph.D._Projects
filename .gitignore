@@ -336,11 +336,20 @@ slprj/
 *.xls
 *xlsx
 
+# GIS files
 *.shp
 *.dbf
 *.prj
 *.shx
 *.cpg
+*.sbn
+*.sbx
+*.shp.xml
+*.xml
+*.prj.zip
+*.zip
+*.gpkg
+*.lyr
 
 *.png
 *.psb
