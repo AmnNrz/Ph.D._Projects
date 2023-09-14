@@ -1,9 +1,0 @@
-2010 - 2011 season Crop types: 
-
-    array(['Research Station', 'Developed', 'Christmas Tree', 'Barley',
-       'Wheat Fallow', 'Wheat', 'Chickpea', 'CRP/Conservation',
-       'Pea, Dry', 'Alfalfa Hay', 'Oat', 'Fallow', 'Canola', 'Timothy',
-       'Pasture', 'Grass Hay', 'Alfalfa/Grass Hay', 'Corn, Field',
-       'Barley Hay'], dtype=object)
-
-2011 - 2012 season Crop types: 
