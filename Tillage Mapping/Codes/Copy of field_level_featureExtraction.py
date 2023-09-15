@@ -24,6 +24,7 @@ ee.Initialize()
 # Install geemap
 # !pip install geemap
 # !pip install geopandas
+
 import ee
 import geemap
 import numpy as np

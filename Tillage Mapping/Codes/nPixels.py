@@ -24,6 +24,7 @@ import ee
 
 # Authenticate gee
 ee.Authenticate()
+dfdf
 
 # Initialize the library.
 ee.Initialize()
