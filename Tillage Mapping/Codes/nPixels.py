@@ -8,8 +8,7 @@
 #       format_version: '1.5'
 #       jupytext_version: 1.15.1
 #   kernelspec:
-#     display_name: Python 3 (ipykernel)
-#     language: python
+#     display_name: Python 3
 #     name: python3
 # ---
 
@@ -18,6 +17,7 @@
 # import os
 # os.environ["EE_FORCE_JSON"] = "true"
 # # Your code goes here
+
 # # Initialize GEE python API
 # # !earthengine authenticate
 import ee
@@ -37,14 +37,7 @@ import numpy as np
 import geopandas as gpd
 import pandas as pd
 
-#asdsdfjhd
-
-3333333333333
-33333333333333
-33333333333333
-3333333
-
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 14771, "status": "ok", "timestamp": 1691083229516, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nFzq5DXISHSg" outputId="0423b332-975f-4ebe-c6ee-a8c453d91cc1"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 1728, "status": "ok", "timestamp": 1691187277207, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nFzq5DXISHSg" outputId="9ce6c55b-da97-43f8-b762-767e786199ad"
 from google.colab import drive
 drive.mount('/content/drive')
 
@@ -54,7 +47,7 @@ drive.mount('/content/drive')
 # + [markdown] id="MWRiGjZRHCOf"
 # #### Imports
 
-# + executionInfo={"elapsed": 146, "status": "ok", "timestamp": 1691083232039, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="RkSJ3M7GG_pD"
+# + executionInfo={"elapsed": 2, "status": "ok", "timestamp": 1691187277207, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="RkSJ3M7GG_pD"
 ######## imports #########
 # Import WSDA polygons of surveyed fields
 # consider a polygon that covers the study area (Whitman & Columbia counties)
@@ -70,18 +63,18 @@ WSDA_featureCol = ee.FeatureCollection("projects/ee-bio-ag-tillage/assets/2021_2
 L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 L7T1 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
 
-# + executionInfo={"elapsed": 5772, "status": "ok", "timestamp": 1691083238949, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="K76xDXzHhbWb"
+# + executionInfo={"elapsed": 1919, "status": "ok", "timestamp": 1691187279124, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="K76xDXzHhbWb"
 # shapeFile_path = r"G:\My Drive\PhD\Bio_AgTillage\01. Codes\pipeline_tillageClassifier\vsCode Integration\Data\WSDA_checkedForPins.dbf"
 shapeFile_path = "/content/drive/MyDrive/P.h.D_Projects/Tillage_Mapping/Data/GIS_Data/WSDA_survey/WSDA_checkedForPins.dbf"
 WSDA_featureCol_goepd = gpd.read_file(shapeFile_path, crs='EPSG:4326')
 WSDA_featureCol = geemap.geopandas_to_ee(WSDA_featureCol_goepd)
 
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 2257, "status": "ok", "timestamp": 1691083241196, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-wfrgVd2I9Lt" outputId="4621f698-433c-40b7-dfbc-4ec1852fd952"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 1781, "status": "ok", "timestamp": 1691187280903, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-wfrgVd2I9Lt" outputId="1e1eb731-b7b6-4ae0-b144-d9c612d06ff8"
 features_geopandasList = [WSDA_featureCol_goepd.loc[i:i] for i in range(WSDA_featureCol_goepd.shape[0])]
 features_geopandasList[0]["pointID"]
 
 
-# + executionInfo={"elapsed": 155, "status": "ok", "timestamp": 1691083292654, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="IUyaOcbwKw56"
+# + executionInfo={"elapsed": 3, "status": "ok", "timestamp": 1691187280903, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="IUyaOcbwKw56"
 # emptyData_feature_pointIDList = [int(features_geopandasList[i]["pointID"].values) for i in n]
 # emptyData_feature_pointIDList
 # # int(emptyData_featureList[0].index.values)
@@ -89,7 +82,7 @@ features_geopandasList[0]["pointID"]
 # + [markdown] id="dl5KSrInfIGI"
 # #### Functions
 
-# + executionInfo={"elapsed": 426, "status": "ok", "timestamp": 1691083294539, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="QaaLjXabmhWA"
+# + executionInfo={"elapsed": 2, "status": "ok", "timestamp": 1691187280903, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="QaaLjXabmhWA"
 #######################     Functions     ######################
 
 # ///// Functions to rename Landsat 8, 7 and 5 bands /////
@@ -306,47 +299,61 @@ def pyList_to_eeList(pyList):
     eeList = eeList.add(pyList[i])
   return eeList
 
-# ///// Functions to extract pixel values of each image (season-based composite) and save them to drive.
-# ///// This function loops over each each image and each polygon.
-# For main bands:
-def mainBand_pixelExtractor(imgcollection):
-  imageList = eeList_to_pyList(imgcollection.toList(imgcollection.size()))
-  # Get year of the imageCollection to use for saving names
-  year = imgcollection.first().date().format("YYYY-MM-dd").getInfo().split("-")[0]
-  for idx, img in enumerate(imageList[:1]):
-    # idx = idx + 1
-    imageList_names = []
-    first_BandName = ee.Image(imageList[idx]).bandNames().get(0).getInfo() # Used for saving each composite with it's related name "B_Sx" where x = 0, 1 or more"
-    imageList_names = imageList_names + [first_BandName]
-    print(first_BandName)
-    for idx, f in enumerate(features_geopandasList[:4]):
-      # idx = idx + 726
+# # ///// Functions to extract pixel values of each image (season-based composite) and save them to drive.
+# # ///// This function loops over each each image and each polygon.
+# # For main bands:
+# def mainBand_pixelExtractor(imgcollection):
+#   imageList = eeList_to_pyList(imgcollection.toList(imgcollection.size()))
+#   # Get year of the imageCollection to use for saving names
+#   year = imgcollection.first().date().format("YYYY-MM-dd").getInfo().split("-")[0]
+#   for idx, img in enumerate(imageList[:1]):
+#     # idx = idx + 1
+#     imageList_names = []
+#     first_BandName = ee.Image(imageList[idx]).bandNames().get(0).getInfo() # Used for saving each composite with it's related name "B_Sx" where x = 0, 1 or more"
+#     imageList_names = imageList_names + [first_BandName]
+#     print(first_BandName)
+#     # for idx, f in enumerate(features_geopandasList[:4]):
+#     #   # idx = idx + 726
 
-      # Assuming you have already defined 'img' and 'features_geopandasList[idx]'...
+#     #   # Assuming you have already defined 'img' and 'features_geopandasList[idx]'...
 
-      # Convert the GeoPandas GeoDataFrame to an Earth Engine FeatureCollection
-      featureCollection = geemap.geopandas_to_ee(features_geopandasList[idx]);
+#     #   # Convert the GeoPandas GeoDataFrame to an Earth Engine FeatureCollection
+#     polygons = geemap.geopandas_to_ee(features_geopandasList);
 
-      # Sample pixel values at the locations defined in the feature collection
-      pixel_featureCollection = ee.Image(img).sampleRegions(**{
-        'collection': featureCollection,
-        'scale': 10,
-        'geometries': True,
-        'tileScale': 16
-      })
+#     # Use map function to iterate over all polygons.
+#     pixels = polygons.map(function(polygon) {
+#     return image.sample({
+#       region: polygon.geometry(),
+#       scale: image.projection().nominalScale(), # replace with your preferred scale
+#       numPixels: 100, # This can be replaced with your desired number seed: 0 3 For reproducibility, it's usually good to set a seed for the random sample
+#     }).map(function(feature) {
+#       return feature.set('polygonID', polygon.get('id')); #// Include polygon ID for tracking
+#     });
+#     }).flatten();
 
-      task = ee.batch.Export.table.toDrive(**{
-                                        'collection': pixel_featureCollection,
-                                        'description': year + "_" + str(int(year) + 1) + '_mainBand_' + first_BandName.split("_")[1] + '_polygon' + f'{idx}',
-                                        'folder': '50-pixels Data',
-                                        'fileNamePrefix': year + "_" + str(int(year) + 1) + '_mainBand_' + first_BandName.split("_")[1] + '_polygon' + f'{idx}',
-                                        'fileFormat': 'CSV'})
-      task.start()
-      # import time
-      # while task.active():
-      #   print('Polling for task (id: {}). Still breathing'.format(task.id))
-      #   time.sleep(30)
-  return imageList_names
+#   # At this point, pixels is a feature collection where each feature
+#   # represents a pixel, and the 'polygonID' property indicates the polygon
+#   # from which it was sampled.
+
+#   # To get the data out, you can export it to a CSV:
+#     Export.table.toDrive({
+#       collection: pixels,
+#       description: 'exportTable',
+#       fileFormat: 'CSV'
+#   });
+
+#       task = ee.batch.Export.table.toDrive(**{
+#                                         'collection': pixel_featureCollection,
+#                                         'description': year + "_" + str(int(year) + 1) + '_mainBand_' + first_BandName.split("_")[1] + '_polygon' + f'{idx}',
+#                                         'folder': '50-pixels Data',
+#                                         'fileNamePrefix': year + "_" + str(int(year) + 1) + '_mainBand_' + first_BandName.split("_")[1] + '_polygon' + f'{idx}',
+#                                         'fileFormat': 'CSV'})
+#       task.start()
+#       # import time
+#       # while task.active():
+#       #   print('Polling for task (id: {}). Still breathing'.format(task.id))
+#       #   time.sleep(30)
+#   return imageList_names
 
 
 # For glcm bands:
@@ -473,7 +480,7 @@ def applyPercentile(collection, percentileList):
   return percentileImage
 
 
-# + executionInfo={"elapsed": 147, "status": "ok", "timestamp": 1691083309208, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="4gbQNHXkicpW"
+# + executionInfo={"elapsed": 2, "status": "ok", "timestamp": 1691187280903, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="4gbQNHXkicpW"
 #######################################################################################################
 ###################      Pre-process Landsat 7 and 8 imageCollections      #################
 #######################################################################################################
@@ -517,7 +524,7 @@ landSat_7_8 = landSat_7_8.map(addIndices);
 # + [markdown] id="b_N8FYO9jK5i"
 # #### Extract season-based features, using main bands and Gray-level Co-occurence Metrics (GLCMs) values
 
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 264579, "status": "ok", "timestamp": 1690928932969, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="1OJ1fUM1K-_S" outputId="52799676-3ed8-4a18-faac-078341cad45f"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 63592, "status": "ok", "timestamp": 1691193179279, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="1OJ1fUM1K-_S" outputId="7a60058b-7b46-4ba0-a283-13daeedc3cd8"
 #####################################################################
 ###################      Season-based Features      #################
 #####################################################################
@@ -551,46 +558,34 @@ for idx, img in enumerate(imageList[:1]):
   first_BandName = ee.Image(imageList[idx]).bandNames().get(0).getInfo() # Used for saving each composite with it's related name "B_Sx" where x = 0, 1 or more"
   imageList_names = imageList_names + [first_BandName]
   print(first_BandName)
-  for idx, f in enumerate(features_geopandasList[:5]):
-    # idx = idx + 726
 
-    # Assuming you have already defined 'img' and 'features_geopandasList[idx]'...
+  polygons = WSDA_featureCol;
 
-    # Convert the GeoPandas GeoDataFrame to an Earth Engine FeatureCollection
-    featureCollection = geemap.geopandas_to_ee(features_geopandasList[idx]);
-
-    # Add a random column to the feature collection with a random value for each feature
-    seed = 42  # Set a random seed for reproducibility
-
-    featureCollection = featureCollection.randomColumn('random', seed)
-
-    # Sort by 'random' and take the first 50 features
-    sampledCollection = featureCollection.sort('random').limit(50)
-
-    # Sample pixel values at the locations defined in the feature collection
-    pixel_featureCollection = ee.Image(img).sampleRegions(**{
-      'collection': sampledCollection,
-      'scale': 10,
-      'geometries': True,
-      'tileScale': 16
-    })
+  # Use map function to iterate over all polygons.
+  pixels = polygons.map(lambda polygon:
+  pixels = ee.Image(img).sample({
+    'region': ee.Geometry.Polygon(polygon.geometry().getInfo()['coordinates']),
+    'scale': 10, # replace with your preferred scale
+    'numPixels': 80, # This can be replaced with your desired number seed: 0 3 For reproducibility, it's usually good to set a seed for the random sample
+  }).map(lambda feature: feature.set('polygonID', polygon.get('id'))) #// Include polygon ID for tracking
+  ).flatten();
 
 
 
-    task = ee.batch.Export.table.toDrive(**{
-                                      'collection': pixel_featureCollection,
-                                      'description': year + "_" + str(int(year) + 1) + \
-                                      '_mainBand_' + first_BandName.split("_")[1] + \
-                                      '_polygon' + f'{idx}',
-                                      'folder': '50-pixels Data',
-                                      'fileNamePrefix': year + "_" + str(int(year) + 1) + '_mainBand_' + \
-                                      first_BandName.split("_")[1] + '_polygon' + \
-                                      f'{idx}', 'fileFormat': 'CSV'})
-    task.start()
-    import time
-    while task.active():
-      print('Polling for task (id: {}). Still breathing'.format(task.id))
-      time.sleep(30)
+    # task = ee.batch.Export.table.toDrive(**{
+    #                                   'collection': pixel_featureCollection,
+    #                                   'description': year + "_" + str(int(year) + 1) + \
+    #                                   '_mainBand_' + first_BandName.split("_")[1] + \
+    #                                   '_polygon' + f'{idx}',
+    #                                   'folder': '50-pixels Data',
+    #                                   'fileNamePrefix': year + "_" + str(int(year) + 1) + '_mainBand_' + \
+    #                                   first_BandName.split("_")[1] + '_polygon' + \
+    #                                   f'{idx}', 'fileFormat': 'CSV'})
+    # task.start()
+    # import time
+    # while task.active():
+    #   print('Polling for task (id: {}). Still breathing'.format(task.id))
+    #   time.sleep(30)
 #   # return imageList_names
 
 # # Store each year's collection (composite) containing image pixel values in drive
@@ -604,14 +599,37 @@ for idx, img in enumerate(imageList[:1]):
 # Map.addLayer(ee.Image(clippedCollectionList[0].toList(clippedCollectionList[0].size()).get(1)), {'bands': ['B4_S1', 'B3_S1', 'B2_S1'], max: 0.5, 'gamma': 2}, 'L8')
 # Map
 
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 14688, "status": "ok", "timestamp": 1690927443868, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="Asl72S06RTyA" outputId="0c3b590f-0c49-4513-ead2-a40dce9a277e"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 2507, "status": "ok", "timestamp": 1691192964596, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="UkS3Ey0R8ZKd" outputId="caf0b037-506c-4986-9c9f-11c721460aac"
+print(ee.Geometry.Polygon(geemap.geopandas_to_ee(pol).geometry().getInfo()['coordinates']))
 
+# + colab={"base_uri": "https://localhost:8080/", "height": 214} executionInfo={"elapsed": 495, "status": "ok", "timestamp": 1691192824586, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-hcA-LHx8mH1" outputId="1ff2ef40-f603-44c0-a81a-3d0a278c4f21"
+pol
 
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 17368, "status": "ok", "timestamp": 1691190296284, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nH2tM5CvMmrM" outputId="a71ac0ff-1211-449e-d05d-e997f7a4055f"
+geojson_geometry = polygons.first().geometry().getInfo()
+geojson_geometry
+
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 210, "status": "ok", "timestamp": 1691190595395, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="PapF1aG8yvSb" outputId="03766d8d-a0ae-4941-ab12-47a1ff3e6120"
+ee_geometry = ee.Geometry.Polygon(geojson_geometry['coordinates'])
+print(ee_geometry)
+
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 218, "status": "ok", "timestamp": 1691190460684, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="GcVYYl8gxmoC" outputId="70e8b291-3ea9-4f62-8550-f84257e55bd6"
+print(region)
+
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 1471, "status": "ok", "timestamp": 1691192380830, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="Zzbe4xMK6epZ" outputId="9547c792-9e95-4bcf-c463-11062e4a45f0"
+print(ee.Geometry.Polygon(geemap.geopandas_to_ee(features_geopandasList[0]).geometry().getInfo()['coordinates']))
+
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 18891, "status": "ok", "timestamp": 1691193020880, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="OZ4VJMaSzejU" outputId="f595a833-3a3d-49aa-94b9-03cef5d4f482"
+# Sample the image in the given region.
+sample = ee.Image(imageList[0]).sample(region=ee.Geometry.Polygon(geemap.geopandas_to_ee(pol).geometry().getInfo()['coordinates']), scale=30, numPixels=8, seed=42, geometries=True)
+
+# Print the first 100 features of the sample.
+print(sample.getInfo()['features'][:6])
 
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
 
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 7017868, "status": "ok", "timestamp": 1680820453396, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="vrRY7E6NLhul" outputId="e33ff085-5da9-433d-c322-0e3df08c4589"
+# + executionInfo={"elapsed": 4, "status": "aborted", "timestamp": 1691187345612, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="vrRY7E6NLhul"
 ###########################################################################
 ###################      Distribution-based Features      #################
 ###########################################################################
