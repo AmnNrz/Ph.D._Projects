@@ -17,11 +17,6 @@
 from google.colab import drive
 drive.mount('/content/drive')
 
-<<<<<<<=======
-####
-
-# + executionInfo={"elapsed": 4647, "status": "ok", "timestamp": 1680979734685, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="szS71fJ-K5lp"
->>>>>>> origin/main
 import sys
 sys.path.append('/content/drive/MyDrive/github/Ph.D._Projects/Tillage_Mapping/Codes')
 
@@ -33,13 +28,8 @@ import matplotlib.dates as mdates
 import time
 import NASA_core as nc
 
-=======
-
 # + colab={"base_uri": "https://localhost:8080/", "height": 56} executionInfo={"elapsed": 195, "status": "ok", "timestamp": 1680979763361, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-fo4_yhZM2aC" outputId="7267e292-f909-409d-9198-c80954e36097"
 np.__version__
-
-# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 6, "status": "ok", "timestamp": 1680918618572, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="PWBWV9OqjFey" outputId="564d8c5b-648e-455e-bf52-88223226a182"
->>>>>>> origin/main
 print(pd.__version__)
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 38677, "status": "ok", "timestamp": 1680797096751, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="xAKga-kEK5lr" outputId="f90d5f8d-3e42-46b9-eb28-125fc5064e0d"
