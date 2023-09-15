@@ -21,6 +21,7 @@ import numpy as np
 
 import geemap
 import geopandas as gpd
+#
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 303, "status": "ok", "timestamp": 1680801215795, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="_Ff18vB8VrTJ" outputId="46f007b1-c185-412d-fed5-631bcf736497"
 print(pd.__version__)
