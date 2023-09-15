@@ -33,11 +33,6 @@ import matplotlib.dates as mdates
 import time
 import NASA_core as nc
 
-<<<<<<< HEAD
-# + id="-fo4_yhZM2aC" executionInfo={"status": "ok", "timestamp": 1680979763361, "user_tz": 420, "elapsed": 195, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}} outputId="7267e292-f909-409d-9198-c80954e36097" colab={"base_uri": "https://localhost:8080/", "height": 56}
-np.__version__
-
-# + colab={"base_uri": "https://localhost:8080/"} id="PWBWV9OqjFey" executionInfo={"status": "ok", "timestamp": 1680918618572, "user_tz": 420, "elapsed": 6, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}} outputId="564d8c5b-648e-455e-bf52-88223226a182"
 =======
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 56} executionInfo={"elapsed": 195, "status": "ok", "timestamp": 1680979763361, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-fo4_yhZM2aC" outputId="7267e292-f909-409d-9198-c80954e36097"
