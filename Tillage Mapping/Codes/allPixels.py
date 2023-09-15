@@ -50,6 +50,7 @@ drive.mount('/content/drive')
 
 #########
 #########
+defdffdsfdfs
 
 # + [markdown] id="zNHfo5P4FUfQ"
 # # Download raw and derived indices data for residue and crop-type classification from GEE imagery data:
