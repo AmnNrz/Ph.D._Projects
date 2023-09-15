@@ -43,9 +43,6 @@ import pandas as pd
 #######################
 #######################
 
-asdfhasdfjadsfasfdf fdskfj
-asdfkjdfl
-
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 14771, "status": "ok", "timestamp": 1691083229516, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nFzq5DXISHSg" outputId="0423b332-975f-4ebe-c6ee-a8c453d91cc1"
 from google.colab import drive
@@ -608,6 +605,7 @@ for idx, img in enumerate(imageList[:1]):
 # Map
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 14688, "status": "ok", "timestamp": 1690927443868, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="Asl72S06RTyA" outputId="0c3b590f-0c49-4513-ead2-a40dce9a277e"
+
 
 
 # + [markdown] id="DUhdHR8xIrUE"
