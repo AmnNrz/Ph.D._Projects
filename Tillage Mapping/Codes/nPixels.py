@@ -24,7 +24,6 @@ import ee
 
 # Authenticate gee
 ee.Authenticate()
-dfdf
 
 # Initialize the library.
 ee.Initialize()
@@ -37,6 +36,7 @@ import geemap
 import numpy as np
 import geopandas as gpd
 import pandas as pd
+
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 1728, "status": "ok", "timestamp": 1691187277207, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nFzq5DXISHSg" outputId="9ce6c55b-da97-43f8-b762-767e786199ad"
 from google.colab import drive

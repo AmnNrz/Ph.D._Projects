@@ -21,7 +21,8 @@
 # # Initialize GEE python API
 # # !earthengine authenticate
 import ee
-
+############
+#######################################################
 # Authenticate gee
 ee.Authenticate()
 
