@@ -21,12 +21,8 @@
 # # Initialize GEE python API
 # # !earthengine authenticate
 import ee
-<<<<<<< HEAD
-
-=======
 ############
 #######################################################
->>>>>>> origin/main
 # Authenticate gee
 ee.Authenticate()
 
@@ -42,21 +38,12 @@ import numpy as np
 import geopandas as gpd
 import pandas as pd
 
-<<<<<<< HEAD
-#asdsdfjhd
-
-3333333333333
-33333333333333
-33333333333333
-3333333
-=======
 #######################
 #######################
 #######################
 #######################
 #######################
 
->>>>>>> origin/main
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 14771, "status": "ok", "timestamp": 1691083229516, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="nFzq5DXISHSg" outputId="0423b332-975f-4ebe-c6ee-a8c453d91cc1"
 from google.colab import drive
