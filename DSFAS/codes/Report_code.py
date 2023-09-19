@@ -19,12 +19,19 @@ import statsmodels.api as sm
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import StandardScaler
 import seaborn as sns
+import geopandas as gpd
+import matplotlib.colors as mcolors
+
 
 # +
 # Read data
-path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-                "PhD/Projects/DSFAS/Data/")
+# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+#                 "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+#                 "PhD/Projects/DSFAS/Data/")
+
+path_to_data = ("/home/amnnrz/GoogleDrive - "
+                "msaminnorouzi/PhD/Projects/DSFAS/Data/")
+
 df = pd.read_csv(path_to_data + "Carbon&satellite_data_joined_v1.csv")
 
 # Convert year to integer
@@ -34,8 +41,7 @@ df['YearSample'] = df['YearSample'].astype(int)
 df.drop(columns='index', axis=1, inplace=True)
 # -
 
-dt= pd.read_csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/DSFAS/Data/EWA_carbon_subset.csv")
-dt['DepthSampled_inches'].value_counts()
+df
 
 # check 0_6 -- 0_12 samples' year
 sampleYear_6_12 = df.loc[df['DepthSampl'] ==
@@ -61,12 +67,14 @@ df = df.loc[~df.SampleID.duplicated()]
 df.loc[df.SampleID.isin(averaged_C.SampleID),
         'TotalC'] = averaged_C['TotalC'].values
 df.loc[df.SampleID.isin(averaged_C.SampleID), 'TotalC']
-df.loc[df['DepthSampl'] == '0_6', 'DepthSampl'] = '0-12'
+df.loc[df['DepthSampl'] == '0_6', 'DepthSampl'] = '0_12'
 df
+
+df.columns
 
 # +
 # Normalize band values
-largeValue_idx = (df.iloc[:, 8:].describe().loc["min"] < -2) | \
+largeValue_idx = (df.iloc[:, 11:].describe().loc["min"] < -2) | \
     (df.iloc[:, 8:].describe().loc["max"] > 2)
 largeValue_cols = largeValue_idx[largeValue_idx].index
 
@@ -83,7 +91,7 @@ df.describe()
 
 # Convert Total_C_% to g/cm2
 # "total_c_%" /100 * height * A * 2.54 (inch to cm) * BD
-df["Total_C (g/cm2)"] = df["TotalC"]/100 * 12 * 2.54 * 1 * df["BD_g_cm3"]
+df.loc[:, "Total_C (g/cm2)"] = df["TotalC"]/100 * 12 * 2.54 * 1 * df["BD_g_cm3"]
 df["Total_C (g/cm2)"].describe()
 
 
@@ -135,7 +143,94 @@ plt.legend()
 
 # Show the plot
 plt.show()
+# -
 
+
+# # Create map of data
+
+# +
+# Load dry_irrigated dataframe 
+allSamples_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+
+# Convert dataframes to GeoDataFrames
+dry_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude))
+allSamples_df = gpd.GeoDataFrame(allSamples_df, geometry=gpd.points_from_xy(allSamples_df.Longitude, allSamples_df.Latitude))
+
+# Remove reduntant columns
+allSamples_df = allSamples_df.loc[:, 'TotalC':].copy()
+dry_df = dry_df.loc[:, 'TotalC':].copy()
+
+dry_df.reset_index(drop = True, inplace=True)
+allSamples_df.reset_index(drop = True, inplace=True)
+
+# merge two dataframes
+allSamples_df.sort_values(by='DepthSampl', inplace=True)
+unique_locations_df = allSamples_df.loc[~(allSamples_df['geometry'].duplicated(keep='last'))].copy()
+irrigated_df = unique_locations_df.loc[~(unique_locations_df['geometry'].isin(dry_df['geometry']))].copy()
+
+# add irrigation column
+irrigated_df['Irrigation'] = 'Irrigated'
+dry_df['Irrigation'] = 'Dryland'
+
+df = pd.concat([dry_df, irrigated_df])
+# df
+# -
+
+colors_from_viridis[0]
+
+# +
+# Load U.S. states shapefiles (You can download from U.S. Census Bureau or other sources)
+path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
+
+us_states = gpd.read_file(path_to_shpfiles + "cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
+us_counties = gpd.read_file(path_to_shpfiles + "cb_2022_us_county_500k/cb_2022_us_county_500k.shp")
+
+# Filter for just Washington state
+wa_state = us_states[us_states['NAME'] == 'Washington'].copy()
+wa_counties = us_counties[us_counties['STATE_NAME'] == 'Washington']
+wa_counties
+
+# extract two colors from the 'viridis' colormap
+color_map_values = [0, 0.5]  # Start and end of the colormap
+colors_from_viridis = plt.cm.viridis(color_map_values)
+
+# Convert to hexadecimal
+colors_hex = [mcolors.to_hex(c) for c in colors_from_viridis]
+
+
+# Plot Washington state
+# Create a color map dictionary
+color_map_dict = {'Dryland': colors_hex[0], 'Irrigated': colors_hex[1]}
+
+# Map the colors to the DataFrame
+df['color'] = df['Irrigation'].map(color_map_dict)
+
+ax = wa_state.boundary.plot(figsize=(40, 20), linewidth=2)
+wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
+wa_counties.apply(lambda x: ax.annotate(text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=16, color='black'), axis=1)
+
+# Plot the points with the specified colors
+for color in color_map_dict.values():
+    subset = df[df['color'] == color]
+    subset.plot(ax=ax, marker='o', color=color, markersize=300, label=subset['Irrigation'].unique()[0])
+
+# Add a legend
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles, labels, title='Irrigation Status')
+
+# Add title and axis labels
+plt.title("Washington State with County Boundaries and Points", fontsize=22)
+plt.xlabel("Longitude", fontsize=14)
+plt.ylabel("Latitude", fontsize=14)
+
+# Show the plot
+plt.figure(dpi=300)
+plt.show()
+
+
+# -
+
+colors_hex[0], colors_hex[1]
 
 # +
 import pandas as pd

@@ -42,7 +42,7 @@ import pandas as pd
 
 #######   On Ubuntu  ########
 
-path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/Sentinel2_data/dry_2/"
+path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/Sentinel2_data/dry_irgted/"
 
 firstimg_2020 = pd.read_csv(path_to_data + "firstImg_2020.csv")
 secondimg_2020 = pd.read_csv(path_to_data + "secondImg_2020.csv")
@@ -182,17 +182,15 @@ df_second.reset_index(inplace=True)
 df_third.reset_index(inplace=True)
 # -
 
-df_second.iloc[:, 9:]
+df_second.iloc[:, 11:]
 
 df_first.shape, df_second.shape, df_third.shape
 
-df.columns
-
 print(df_first.shape, df_second.shape, df_third.shape)
 n_row = min(df_first.shape[0], df_second.shape[0], df_third.shape[0])
-df = pd.concat([df_first, df_second.iloc[:, 9:], df_third.iloc[:, 9:]], axis=1)
+df = pd.concat([df_first, df_second.iloc[:, 11:], df_third.iloc[:, 11:]], axis=1)
 df = df.iloc[:n_row, :]
 df
 
 # Save final df
-df.to_csv(path_to_data + "Carbon&satellite_data_joined_v1")
+df.to_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
