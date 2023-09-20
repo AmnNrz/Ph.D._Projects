@@ -84,11 +84,11 @@ for (crp in sort(crops)) {
       test1_NDTI[[colname]] <- test1_NDTI$NDTI.x * (1 - i) + test1_NDTI$NDTI.y * i
     }
     
-    test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
+    test2_NDTI <- dplyr::filter(test1_NDTI, Crop.y == crp)
     
     test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
+    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.y")
     
     
     for (i in fractions){

@@ -33,7 +33,7 @@ library(ggplot2)
 ##################################################################
 ##################################################################
 setwd("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO")
-path_to_save = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/index_org_trsfed_crp_sl/estAFTER_EPO"
+path_to_save = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/index_org_trsfed_crp_sl"
 ## creating some empty dataframes
 Soil_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/Soil_Transformed.csv")
 Residue_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/Residue_Transformed.csv")
@@ -49,15 +49,8 @@ CAI <- CAI[, desired_colOrder]
 crops = unique(CAI[CAI$Sample == "Residue", ]$Crop)
 soils = unique(CAI[CAI$Sample == "Soil", ]$Crop)
 
-fraction_list <- list()
-
-for (crp in sort(crops)) {
-  for (sl in sort(soils)) {
-    
-    fractions <- runif(20, min = 0, max = 1)
-    fraction_name = paste0('fraction_', crp,' ', sl)
-    fraction_list[[fraction_name]] <- fractions
-    
+for (crp in crops) {
+  for (sl in soils) {
     a <- data.frame()
     b <- data.frame()
     c <- data.frame()
@@ -77,25 +70,36 @@ for (crp in sort(crops)) {
       f <- rbind(f, e)
       }
     
+    
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+    
     test1_NDTI <- f
     
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_NDTI[[colname]] <- test1_NDTI$NDTI.x * (1 - i) + test1_NDTI$NDTI.y * i
-    }
+    test1_NDTI$CAI_conven_lower <- test1_NDTI$NDTI.x * (1 - conven_lower) + test1_NDTI$NDTI.y * (conven_lower)
+    test1_NDTI$CAI_conven_upper <- test1_NDTI$NDTI.x * (1 - conven_upper) + test1_NDTI$NDTI.y * (conven_upper)
+    test1_NDTI$CAI_med_lower <- test1_NDTI$NDTI.x * (1 - med_lower) + test1_NDTI$NDTI.y * (med_lower)
+    test1_NDTI$CAI_med_upper <- test1_NDTI$NDTI.x * (1 - med_upper) + test1_NDTI$NDTI.y * (med_upper)
+    test1_NDTI$CAI_conser_lower <- test1_NDTI$NDTI.x * (1 - conser_lower) + test1_NDTI$NDTI.y * (conser_lower)
+    test1_NDTI$CAI_conser_upper <- test1_NDTI$NDTI.x * (1 - conser_upper) + test1_NDTI$NDTI.y * (conser_upper)
     
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
     
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(4,38:43)] ## select the conven,med,conser colums
     
     test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
     
-    
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_NDTI$variable <- gsub(pattern, i, test3_NDTI$variable)
-      # test3_NDTI$variable <- as.numeric(test3_NDTI$variable)
-    }
+    test3_NDTI$variable <- gsub("CAI_conven_lower", conven_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conven_upper", conven_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_med_lower", med_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_med_upper", med_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conser_lower", conser_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conser_upper", conser_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- as.numeric(test3_NDTI$variable)
     
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
@@ -135,25 +139,36 @@ for (crp in sort(crops)) {
       f <- rbind(f, e)
     }
     
+    
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+    
     test1_CAI <- f
     
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_CAI[[colname]] <- test1_CAI$CAI.x * (1 - i) + test1_CAI$CAI.y * i
-    }
-  
+    test1_CAI$CAI_conven_lower <- test1_CAI$CAI.x * (1 - conven_lower) + test1_CAI$CAI.y * (conven_lower)
+    test1_CAI$CAI_conven_upper <- test1_CAI$CAI.x * (1 - conven_upper) + test1_CAI$CAI.y * (conven_upper)
+    test1_CAI$CAI_med_lower <- test1_CAI$CAI.x * (1 - med_lower) + test1_CAI$CAI.y * (med_lower)
+    test1_CAI$CAI_med_upper <- test1_CAI$CAI.x * (1 - med_upper) + test1_CAI$CAI.y * (med_upper)
+    test1_CAI$CAI_conser_lower <- test1_CAI$CAI.x * (1 - conser_lower) + test1_CAI$CAI.y * (conser_lower)
+    test1_CAI$CAI_conser_upper <- test1_CAI$CAI.x * (1 - conser_upper) + test1_CAI$CAI.y * (conser_upper)
+    
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
     
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(4,38:43)] ## select the conven,med,conser colums
     
     test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
     
-    
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_CAI$variable <- gsub(pattern, i, test3_CAI$variable)
-      # test3_CAI$variable <- as.numeric(test3_CAI$variable)
-    }
+    test3_CAI$variable <- gsub("CAI_conven_lower", conven_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conven_upper", conven_upper, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_med_lower", med_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_med_upper", med_upper, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conser_lower", conser_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conser_upper", conser_upper, test3_CAI$variable)
+    test3_CAI$variable <- as.numeric(test3_CAI$variable)
     
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
@@ -193,24 +208,36 @@ for (crp in sort(crops)) {
       f <- rbind(f, e)
     }
     
+    
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+    
     test1_SINDRI <- f
     
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i) + test1_SINDRI$SINDRI.y * i
-    }
+    test1_SINDRI$CAI_conven_lower <- test1_SINDRI$SINDRI.x * (1 - conven_lower) + test1_SINDRI$SINDRI.y * (conven_lower)
+    test1_SINDRI$CAI_conven_upper <- test1_SINDRI$SINDRI.x * (1 - conven_upper) + test1_SINDRI$SINDRI.y * (conven_upper)
+    test1_SINDRI$CAI_med_lower <- test1_SINDRI$SINDRI.x * (1 - med_lower) + test1_SINDRI$SINDRI.y * (med_lower)
+    test1_SINDRI$CAI_med_upper <- test1_SINDRI$SINDRI.x * (1 - med_upper) + test1_SINDRI$SINDRI.y * (med_upper)
+    test1_SINDRI$CAI_conser_lower <- test1_SINDRI$SINDRI.x * (1 - conser_lower) + test1_SINDRI$SINDRI.y * (conser_lower)
+    test1_SINDRI$CAI_conser_upper <- test1_SINDRI$SINDRI.x * (1 - conser_upper) + test1_SINDRI$SINDRI.y * (conser_upper)
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
-  
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    
+    test3_SINDRI <- test2_SINDRI[c(4,38:43)] ## select the conven,med,conser colums
     
     test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
     
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_SINDRI$variable <- gsub(pattern, i, test3_SINDRI$variable)
-      # test3_SINDRI$variable <- as.numeric(test3_SINDRI$variable)
-    }
+    test3_SINDRI$variable <- gsub("CAI_conven_lower", conven_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conven_upper", conven_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_med_lower", med_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_med_upper", med_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conser_lower", conser_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conser_upper", conser_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- as.numeric(test3_SINDRI$variable)
     
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
@@ -239,27 +266,22 @@ for (crp in sort(crops)) {
   ##################################################################
   ##################################################################
 
-setwd('/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main')
-## creating some empty dataframes
-Soil_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Soil_08_18.csv")
-Residue_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Crop_Residue.csv")
-Residue_Median$Sample <- gsub("Crop Residue", "Residue", Residue_Median$Sample)
+  setwd('/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main')
+  ## creating some empty dataframes
+  Soil_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Soil_08_18.csv")
+  Residue_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Residue_08_18.csv")
 
-## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
-CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/CAI_Combined.csv")
-CAI$Sample <- gsub("Crop Residue", "Residue", CAI$Sample)
+  ## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
+  CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/CAI_Combined.csv")
 
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
-                      "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
-# Reorder the columns
-CAI <- CAI[, desired_colOrder]
-
-for (crp in sort(crops)) {
-  for (sl in sort(soils)) {
-    
-    fractions <- fraction_list[[paste0('fraction_', crp,' ', sl)]]
-      
+  desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
+                        "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+  # Reorder the columns
+  CAI <- CAI[, desired_colOrder]
+  
+for (crp in crops) {
+  for (sl in soils) {
     a <- data.frame()
     b <- data.frame()
     c <- data.frame()
@@ -278,25 +300,37 @@ for (crp in sort(crops)) {
       }
       f <- rbind(f, e)
     }
-    
+  
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+  
     test1_NDTI <- f
-    
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_NDTI[[colname]] <- test1_NDTI$NDTI.x * (1 - i) + test1_NDTI$NDTI.y * i
-    }
+  
+    test1_NDTI$CAI_conven_lower <- test1_NDTI$NDTI.x * (1 - conven_lower) + test1_NDTI$NDTI.y * (conven_lower)
+    test1_NDTI$CAI_conven_upper <- test1_NDTI$NDTI.x * (1 - conven_upper) + test1_NDTI$NDTI.y * (conven_upper)
+    test1_NDTI$CAI_med_lower <- test1_NDTI$NDTI.x * (1 - med_lower) + test1_NDTI$NDTI.y * (med_lower)
+    test1_NDTI$CAI_med_upper <- test1_NDTI$NDTI.x * (1 - med_upper) + test1_NDTI$NDTI.y * (med_upper)
+    test1_NDTI$CAI_conser_lower <- test1_NDTI$NDTI.x * (1 - conser_lower) + test1_NDTI$NDTI.y * (conser_lower)
+    test1_NDTI$CAI_conser_upper <- test1_NDTI$NDTI.x * (1 - conser_upper) + test1_NDTI$NDTI.y * (conser_upper)
   
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
   
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(4,38:43)] ## select the conven,med,conser colums
   
     test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
   
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_NDTI$variable <- gsub(pattern, i, test3_NDTI$variable)
-      # test3_NDTI$variable <- as.numeric(test3_NDTI$variable)
-    }
+    test3_NDTI$variable <- gsub("CAI_conven_lower", conven_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conven_upper", conven_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_med_lower", med_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_med_upper", med_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conser_lower", conser_lower, test3_NDTI$variable)
+    test3_NDTI$variable <- gsub("CAI_conser_upper", conser_upper, test3_NDTI$variable)
+    test3_NDTI$variable <- as.numeric(test3_NDTI$variable)
+  
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
   
@@ -334,27 +368,38 @@ for (crp in sort(crops)) {
       }
       f <- rbind(f, e)
     }
-    
+  
+  
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+  
     test1_CAI <- f
   
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_CAI[[colname]] <- test1_CAI$CAI.x * (1 - i) + test1_CAI$CAI.y * i
-    }
-    
-    
+    test1_CAI$CAI_conven_lower <- test1_CAI$CAI.x * (1 - conven_lower) + test1_CAI$CAI.y * (conven_lower)
+    test1_CAI$CAI_conven_upper <- test1_CAI$CAI.x * (1 - conven_upper) + test1_CAI$CAI.y * (conven_upper)
+    test1_CAI$CAI_med_lower <- test1_CAI$CAI.x * (1 - med_lower) + test1_CAI$CAI.y * (med_lower)
+    test1_CAI$CAI_med_upper <- test1_CAI$CAI.x * (1 - med_upper) + test1_CAI$CAI.y * (med_upper)
+    test1_CAI$CAI_conser_lower <- test1_CAI$CAI.x * (1 - conser_lower) + test1_CAI$CAI.y * (conser_lower)
+    test1_CAI$CAI_conser_upper <- test1_CAI$CAI.x * (1 - conser_upper) + test1_CAI$CAI.y * (conser_upper)
+  
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
   
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(4,38:43)] ## select the conven,med,conser colums
   
     test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
   
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_CAI$variable <- gsub(pattern, i, test3_CAI$variable)
-      # test3_CAI$variable <- as.numeric(test3_CAI$variable)
-    }
-    
+    test3_CAI$variable <- gsub("CAI_conven_lower", conven_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conven_upper", conven_upper, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_med_lower", med_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_med_upper", med_upper, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conser_lower", conser_lower, test3_CAI$variable)
+    test3_CAI$variable <- gsub("CAI_conser_upper", conser_upper, test3_CAI$variable)
+    test3_CAI$variable <- as.numeric(test3_CAI$variable)
+  
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
   
@@ -392,27 +437,38 @@ for (crp in sort(crops)) {
       }
       f <- rbind(f, e)
     }
-    
+  
+  
+    conven_lower <- 0.05 ## 0-15% residue cover
+    conven_upper <- 0.10
+    med_lower <- 0.17 ## 15-30 % residue cover 22% mean
+    med_upper <- 0.25 ## 15-30 % residue cover 22% mean
+    conser_lower <- 0.40 ## 30-100 % residue cover 65% mean
+    conser_upper <- 0.65 ## 30-100 % residue cover 65% mean
+  
     test1_SINDRI <- f
   
-    
-    for (i in fractions){
-      colname <-  paste0("CAI_", i)
-      test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i) + test1_SINDRI$SINDRI.y * i
-    }
-    
+    test1_SINDRI$CAI_conven_lower <- test1_SINDRI$SINDRI.x * (1 - conven_lower) + test1_SINDRI$SINDRI.y * (conven_lower)
+    test1_SINDRI$CAI_conven_upper <- test1_SINDRI$SINDRI.x * (1 - conven_upper) + test1_SINDRI$SINDRI.y * (conven_upper)
+    test1_SINDRI$CAI_med_lower <- test1_SINDRI$SINDRI.x * (1 - med_lower) + test1_SINDRI$SINDRI.y * (med_lower)
+    test1_SINDRI$CAI_med_upper <- test1_SINDRI$SINDRI.x * (1 - med_upper) + test1_SINDRI$SINDRI.y * (med_upper)
+    test1_SINDRI$CAI_conser_lower <- test1_SINDRI$SINDRI.x * (1 - conser_lower) + test1_SINDRI$SINDRI.y * (conser_lower)
+    test1_SINDRI$CAI_conser_upper <- test1_SINDRI$SINDRI.x * (1 - conser_upper) + test1_SINDRI$SINDRI.y * (conser_upper)
+  
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(4,38:43)] ## select the conven,med,conser colums
   
     test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
   
-    for (i in fractions){
-      pattern <- paste0("CAI_", i)
-      test3_SINDRI$variable <- gsub(pattern, i, test3_SINDRI$variable)
-      # test3_SINDRI$variable <- as.numeric(test3_SINDRI$variable)
-    }
-    
+    test3_SINDRI$variable <- gsub("CAI_conven_lower", conven_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conven_upper", conven_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_med_lower", med_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_med_upper", med_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conser_lower", conser_lower, test3_SINDRI$variable)
+    test3_SINDRI$variable <- gsub("CAI_conser_upper", conser_upper, test3_SINDRI$variable)
+    test3_SINDRI$variable <- as.numeric(test3_SINDRI$variable)
+  
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
   

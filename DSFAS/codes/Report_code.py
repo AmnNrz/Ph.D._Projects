@@ -25,12 +25,12 @@ import matplotlib.colors as mcolors
 
 # +
 # Read data
-# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                 "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-#                 "PhD/Projects/DSFAS/Data/")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+                "PhD/Projects/DSFAS/Data/")
 
-path_to_data = ("/home/amnnrz/GoogleDrive - "
-                "msaminnorouzi/PhD/Projects/DSFAS/Data/")
+# path_to_data = ("/home/amnnrz/GoogleDrive - "
+#                 "msaminnorouzi/PhD/Projects/DSFAS/Data/")
 
 df = pd.read_csv(path_to_data + "Carbon&satellite_data_joined_v1.csv")
 
@@ -176,11 +176,15 @@ df = pd.concat([dry_df, irrigated_df])
 # df
 # -
 
-colors_from_viridis[0]
+irrigated_df.shape, dry_df.shape, df.shape
 
 # +
 # Load U.S. states shapefiles (You can download from U.S. Census Bureau or other sources)
-path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
+# path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
+from matplotlib.patches import FancyArrowPatch
+path_to_shpfiles = ("/Users/aminnorouzi/Library/CloudStorage/"
+                    "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+                    "PhD/Projects/DSFAS/Data/GIS_Data/")
 
 us_states = gpd.read_file(path_to_shpfiles + "cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
 us_counties = gpd.read_file(path_to_shpfiles + "cb_2022_us_county_500k/cb_2022_us_county_500k.shp")
@@ -207,7 +211,7 @@ df['color'] = df['Irrigation'].map(color_map_dict)
 
 ax = wa_state.boundary.plot(figsize=(40, 20), linewidth=2)
 wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
-wa_counties.apply(lambda x: ax.annotate(text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=16, color='black'), axis=1)
+wa_counties.apply(lambda x: ax.annotate(text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
 
 # Plot the points with the specified colors
 for color in color_map_dict.values():
@@ -216,12 +220,15 @@ for color in color_map_dict.values():
 
 # Add a legend
 handles, labels = ax.get_legend_handles_labels()
-ax.legend(handles, labels, title='Irrigation Status')
+ax.legend(handles, labels, title='Irrigation Status', fontsize=22, title_fontsize=22)
+
+# Change tick label sizes
+ax.tick_params(axis='both', which='major', labelsize=16)
 
 # Add title and axis labels
-plt.title("Washington State with County Boundaries and Points", fontsize=22)
-plt.xlabel("Longitude", fontsize=14)
-plt.ylabel("Latitude", fontsize=14)
+plt.title("Washington State with County Boundaries and Points", fontsize=32)
+plt.xlabel("Longitude", fontsize=24)
+plt.ylabel("Latitude", fontsize=24)
 
 # Show the plot
 plt.figure(dpi=300)
