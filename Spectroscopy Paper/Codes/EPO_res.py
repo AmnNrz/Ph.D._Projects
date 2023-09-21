@@ -17,8 +17,10 @@ import pandas as pd
 import numpy as np
 
 # +
-residue_df = pd.read_csv(
-    "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/Residue_08_18.csv")
+# path_to_data = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/"
+path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
+
+residue_df = pd.read_csv(path_to_data + "Residue_08_18.csv")
 
 colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
 residue_df.columns = colnames
@@ -296,6 +298,10 @@ for r in residue_df['Type_Name'].unique():
     X_transformed.columns = X_wet.columns
     X_transformed
 
+    # add driest column
+    X_transformed[min(X.columns)] = X[min(X.columns)]
+    X_transformed.sort_index(axis=1, inplace=True)
+
     # Create a copy of X_wd to avoid modifying the original DataFrame
     X_transformed_copy = X_transformed.copy()
 
@@ -338,7 +344,9 @@ for r in residue_df['Type_Name'].unique():
 # Display the resulting DataFrame (df_original)
 Residue_transformed
 
-Residue_transformed.to_csv("Residue_Transformed.csv", index=False)
+X_transformed
+
+Residue_transformed.to_csv(path_to_data + "Residue_Transformed.csv", index=False)
 
 # +
 # Combine the Soil and Residue 

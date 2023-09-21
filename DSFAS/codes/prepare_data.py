@@ -42,7 +42,7 @@ import pandas as pd
 
 #######   On Ubuntu  ########
 
-path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/Sentinel2_data/dry_irgted/"
+path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/Sentinel2_data/dry_2/"
 
 firstimg_2020 = pd.read_csv(path_to_data + "firstImg_2020.csv")
 secondimg_2020 = pd.read_csv(path_to_data + "secondImg_2020.csv")
@@ -193,4 +193,4 @@ df = df.iloc[:n_row, :]
 df
 
 # Save final df
-df.to_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+df.to_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
