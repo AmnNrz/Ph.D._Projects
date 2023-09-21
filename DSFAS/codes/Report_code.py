@@ -125,7 +125,7 @@ plt.show()
 
 
 # +
-# TOTAL C DENSITY DISTRIBUTION PLOTS GROUPED BY YEARS
+######=====    Density Distribution of Total C grouped by year  =====#######
 # Set the style and size of the plot
 sns.set(style="whitegrid")
 plt.figure(figsize=(10, 6))
@@ -179,6 +179,7 @@ df = pd.concat([dry_df, irrigated_df])
 irrigated_df.shape, dry_df.shape, df.shape
 
 # +
+######=====  Sample points grouped by irrigation type  =====#########
 # Load U.S. states shapefiles (You can download from U.S. Census Bureau or other sources)
 # path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
 from matplotlib.patches import FancyArrowPatch
@@ -235,9 +236,77 @@ plt.figure(dpi=300)
 plt.show()
 
 
+# +
+######=====     Distribution of Total C map grouped by year  =====#######
+######=====  Sample points grouped by irrigation type  =====#########
+# Load U.S. states shapefiles (You can download from U.S. Census Bureau or other sources)
+# path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
+from matplotlib.patches import FancyArrowPatch
+path_to_shpfiles = ("/Users/aminnorouzi/Library/CloudStorage/"
+                    "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+                    "PhD/Projects/DSFAS/Data/GIS_Data/")
+
+us_states = gpd.read_file(
+    path_to_shpfiles + "cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
+us_counties = gpd.read_file(
+    path_to_shpfiles + "cb_2022_us_county_500k/cb_2022_us_county_500k.shp")
+
+# Filter for just Washington state
+wa_state = us_states[us_states['NAME'] == 'Washington'].copy()
+wa_counties = us_counties[us_counties['STATE_NAME'] == 'Washington']
+wa_counties
+
+# extract two colors from the 'viridis' colormap
+color_map_values = [0, 0.5, 0.8]  # Start and end of the colormap
+colors_from_viridis = plt.cm.viridis(color_map_values)
+
+# Convert to hexadecimal
+colors_hex = [mcolors.to_hex(c) for c in colors_from_viridis]
+
+
+# Plot Washington state
+# Create a color map dictionary
+color_map_dict = {'2020': colors_hex[0],
+                  '2021': colors_hex[1], '2022': colors_hex[2]}
+
+# Map the colors to the DataFrame
+df['Yearcolor'] = df['YearSample'].map(color_map_dict)
+
+ax = wa_state.boundary.plot(figsize=(40, 20), linewidth=2)
+wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
+wa_counties.apply(lambda x: ax.annotate(
+    text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
+
+# Plot the points with the specified colors
+for color in color_map_dict.values():
+    subset = df[df['Yearcolor'] == color]
+    subset.plot(ax=ax, marker='o', color=color, markersize=300,
+                label=subset['YearSample'].unique()[0])
+
+# Add a legend
+handles, labels = ax.get_legend_handles_labels()
+ax.legend(handles, labels, title='Irrigation Status',
+          fontsize=22, title_fontsize=22)
+
+# Change tick label sizes
+ax.tick_params(axis='both', which='major', labelsize=16)
+
+# Add title and axis labels
+plt.title("Washington State with County Boundaries and Points", fontsize=32)
+plt.xlabel("Longitude", fontsize=24)
+plt.ylabel("Latitude", fontsize=24)
+
+# Show the plot
+plt.figure(dpi=300)
+plt.show()
+
 # -
 
-colors_hex[0], colors_hex[1]
+df['YearSample']
+
+
+df[df['color'] == color]
+
 
 # +
 import pandas as pd
