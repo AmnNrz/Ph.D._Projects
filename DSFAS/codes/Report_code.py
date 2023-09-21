@@ -26,12 +26,12 @@ from matplotlib.patches import FancyArrowPatch
 
 # +
 # Read data
-# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                 "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-#                 "PhD/Projects/DSFAS/Data/")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+                "PhD/Projects/DSFAS/Data/")
 
-path_to_data = ("/home/amnnrz/GoogleDrive - "
-                "msaminnorouzi/PhD/Projects/DSFAS/Data/")
+# path_to_data = ("/home/amnnrz/GoogleDrive - "
+#                 "msaminnorouzi/PhD/Projects/DSFAS/Data/")
 
 df = pd.read_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
 
@@ -179,19 +179,11 @@ dry_df['Irrigation'] = 'Dryland'
 
 df = pd.concat([dry_df, irrigated_df])
 # df
-# -
-
-df
-
 
 # +
 ######=====  Sample points grouped by irrigation type  =====#########
 # Load U.S. states shapefiles (You can download from U.S. Census Bureau or other sources)
-path_to_shpfiles = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/GIS_Data/"
-
-# path_to_shpfiles = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                     "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-#                     "PhD/Projects/DSFAS/Data/GIS_Data/")
+path_to_shpfiles = path_to_data + "GIS_Data/"
 
 us_states = gpd.read_file(path_to_shpfiles + "cb_2022_us_state_500k/cb_2022_us_state_500k.shp")
 us_counties = gpd.read_file(path_to_shpfiles + "cb_2022_us_county_500k/cb_2022_us_county_500k.shp")
@@ -290,13 +282,6 @@ plt.ylabel("Latitude", fontsize=24)
 plt.figure(dpi=300)
 plt.show()
 
-# -
-
-y_var = "Total_C (g/cm2)"
-df[y_var].min()
-bottom_tercile = np.percentile(df[y_var], 33.33)
-top_tercile = np.percentile(df[y_var], 66.66)
-bottom_tercile, top_tercile
 
 # +
 ######=====     Distribution of Total C grouped by terciles =====#######
@@ -363,7 +348,6 @@ import pandas as pd
 import numpy as np
 import seaborn as sns
 
-# Load your data into a Pandas DataFrame
 df = df[selected_cols].copy()
 
 # Drop columns with just one value
