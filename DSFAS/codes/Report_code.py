@@ -26,33 +26,36 @@ from matplotlib.patches import FancyArrowPatch
 
 # +
 # Read data
-path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-                "PhD/Projects/DSFAS/Data/")
+# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+#                 "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+#                 "PhD/Projects/DSFAS/Data/")
 
-# path_to_data = ("/home/amnnrz/GoogleDrive - "
-#                 "msaminnorouzi/PhD/Projects/DSFAS/Data/")
+path_to_data = ("/home/amnnrz/GoogleDrive - "
+                "msaminnorouzi/PhD/Projects/DSFAS/Data/")
 
-df = pd.read_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
+path_to_plots = ("/home/amnnrz/GoogleDrive - msaminnorouzi/"
+                 "PhD/Projects/DSFAS/Plots/")
+
+dry_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
 
 # Convert year to integer
-df['YearSample'] = df['YearSample'].astype(int)
+dry_df['YearSample'] = dry_df['YearSample'].astype(int)
 
 # remove old index column
-df.drop(columns='index', axis=1, inplace=True)
+dry_df.drop(columns='index', axis=1, inplace=True)
 # -
 
-df
+allSamples_df["WDVI_first"]
 
 # check 0_6 -- 0_12 samples' year
-sampleYear_6_12 = df.loc[df['DepthSampl'] ==
+sampleYear_6_12 = dry_df.loc[dry_df['DepthSampl'] ==
                          '0_6', 'YearSample'].values[0]
 print('Two-depth samples are for:', f'{sampleYear_6_12}')
 
 
 # +
 # Get average of total_C over 0-6 and 6-12 inches samples 
-dup_df = df.loc[df.SampleID.duplicated(keep=False)]
+dup_df = dry_df.loc[dry_df.SampleID.duplicated(keep=False)]
 dup_df
 
 averaged_C = pd.DataFrame([])
@@ -64,29 +67,29 @@ for id in dup_df.SampleID.unique():
 averaged_C.head(5)
 # -
 
-df = df.loc[~df.SampleID.duplicated()]
-df.loc[df.SampleID.isin(averaged_C.SampleID),
+dry_df = dry_df.loc[~dry_df.SampleID.duplicated()]
+dry_df.loc[dry_df.SampleID.isin(averaged_C.SampleID),
         'TotalC'] = averaged_C['TotalC'].values
-df.loc[df.SampleID.isin(averaged_C.SampleID), 'TotalC']
-df.loc[df['DepthSampl'] == '0_6', 'DepthSampl'] = '0_12'
-df
+dry_df.loc[dry_df.SampleID.isin(averaged_C.SampleID), 'TotalC']
+dry_df.loc[dry_df['DepthSampl'] == '0_6', 'DepthSampl'] = '0_12'
+dry_df
 
 df.columns
 
 # +
 # Normalize band values
-largeValue_idx = (df.iloc[:, 11:].describe().loc["min"] < -2) | \
-    (df.iloc[:, 8:].describe().loc["max"] > 2)
+largeValue_idx = (dry_df.iloc[:, 11:].describe().loc["min"] < -2) | \
+    (dry_df.iloc[:, 8:].describe().loc["max"] > 2)
 largeValue_cols = largeValue_idx[largeValue_idx].index
 
 scaler = StandardScaler()
 
 # fit the scaler on the selected columns
-scaler.fit(df[largeValue_cols].copy())
+scaler.fit(dry_df[largeValue_cols].copy())
 
 # transform the selected columns to have zero mean and unit variance
-df.loc[:, largeValue_cols] = scaler.transform(df[largeValue_cols].copy())
-df.describe()
+dry_df.loc[:, largeValue_cols] = scaler.transform(dry_df[largeValue_cols].copy())
+dry_df.describe()
 
 # -
 
@@ -95,7 +98,7 @@ df.describe()
 def tCarbon_to_gcm2(df):
     df.loc[:, "Total_C (g/cm2)"] = df["TotalC"]/100 * 12 * 2.54 * 1 * df["BD_g_cm3"]
     return df
-tCarbon_to_gcm2(df)
+tCarbon_to_gcm2(dry_df)
 
 
 df
@@ -109,14 +112,14 @@ plt.rcParams.update({'font.size': 12})
 plt.figure(figsize=(12, 8), dpi=300)
 
 # Plot the density distribution of column 'Total_C_g/cm2'
-df['Total_C (g/cm2)'].plot(kind='density')
+dry_df['Total_C (g/cm2)'].plot(kind='density')
 
 # Set x-axis label
 plt.xlabel('Total C (g/cm$^2$)', fontsize=14)
 
 # Mark actual values on the curve
-min_value = df['Total_C (g/cm2)'].min()
-max_value = df['Total_C (g/cm2)'].max()
+min_value = dry_df['Total_C (g/cm2)'].min()
+max_value = dry_df['Total_C (g/cm2)'].max()
 
 # Plotting the actual values on the curve
 plt.axvline(x=min_value, color='red', linestyle='--', label='Min')
@@ -136,8 +139,8 @@ sns.set(style="whitegrid")
 plt.figure(figsize=(10, 6))
 
 # Loop through each year and plot the density distribution
-for year in df['YearSample'].unique():
-    subset = df[df['YearSample'] == year]
+for year in dry_df['YearSample'].unique():
+    subset = dry_df[dry_df['YearSample'] == year]
     sns.kdeplot(subset['Total_C (g/cm2)'], label=f'Year {year}', fill=True)
 
 # Add labels and title
@@ -158,7 +161,7 @@ plt.show()
 allSamples_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
 
 # Convert dataframes to GeoDataFrames
-dry_df = gpd.GeoDataFrame(df, geometry=gpd.points_from_xy(df.Longitude, df.Latitude))
+dry_df = gpd.GeoDataFrame(dry_df, geometry=gpd.points_from_xy(dry_df.Longitude, dry_df.Latitude))
 allSamples_df = gpd.GeoDataFrame(allSamples_df, geometry=gpd.points_from_xy(allSamples_df.Longitude, allSamples_df.Latitude))
 
 # Remove reduntant columns
@@ -341,35 +344,49 @@ plt.ylabel("Latitude", fontsize=24)
 plt.figure(dpi=300)
 plt.show()
 
+# -
 
+
+replacement_dict = {
+    'bottom':'bottom',
+    'top':'top'
+}
+topBottom_df['tercile'] = topBottom_df['tercile'].replace(replacement_dict)
+topBottom_df['tercile'].unique()
 
 # +
-import pandas as pd
-import numpy as np
-import seaborn as sns
+#####=====   plot the distribution of terciles   =====#######
 
-df = df[selected_cols].copy()
+dataset = dry_df.loc[:, "NDVI_first":"Total_C (g/cm2)"].copy()
+dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third"], inplace=True)
 
 # Drop columns with just one value
-# df.drop(columns= df.nunique()[df.nunique() == 1].index[0], inplace=True )
+# dataset.drop(columns= df.nunique()[df.nunique() == 1].index[0], inplace=True )
 
 # Set the name of your y-variable
-y_var = 'Total_C_g/cm2'
+y_var = 'Total_C (g/cm2)'
 
 # Set the terciles to use for separating the data
-bottom_tercile = np.percentile(df[y_var], 33.33)
-top_tercile = np.percentile(df[y_var], 66.66)
+bottom_tercile = dataset[y_var].quantile(1/3)
+top_tercile = dataset[y_var].quantile(2/3)
 
 # Create a new column in the DataFrame to indicate whether each row is in the top, middle, or bottom tercile
-df['tercile'] = pd.cut(df[y_var], bins=[df[y_var].min(
-), bottom_tercile, top_tercile, df[y_var].max()], labels=['bottom', 'middle', 'top'])
+dataset['tercile'] = pd.cut(dataset[y_var], bins=[dataset[y_var].min(
+), bottom_tercile, top_tercile, dataset[y_var].max()], labels=['bottom', 'middle', 'top'], include_lowest=True)
+
+# filter for just top and bottom tercils
+topBottom_df = dataset.loc[dataset['tercile'] != 'middle'].copy()
+topBottom_df['tercile'] = topBottom_df['tercile'].cat.remove_unused_categories()
 
 # Loop through each x-variable and create a density distribution plot for the top, middle, and bottom terciles
-for x_var in df.columns.drop([y_var, 'tercile']):
-    g = sns.FacetGrid(df[df['tercile'] != 'middle'], hue='tercile', height=4, aspect=1.2)
-    g.map(sns.kdeplot, x_var, shade=True)
+for x_var in topBottom_df.columns.drop([y_var, 'tercile']):
+    g = sns.FacetGrid(topBottom_df, hue='tercile', height=4, aspect=1.2)
+    g.map(sns.kdeplot, x_var, fill=True)
     g.add_legend()
-
+    
+    plot_name = path_to_plots + f"{x_var}_distribution_plot.png"
+    # Save the plot with customized size and resolution
+    g.fig.savefig(plot_name, dpi=300, bbox_inches='tight') 
 # -
 
 df1.loc[df['tercile'] == 'top']['Total_C_g/cm2'].describe()
