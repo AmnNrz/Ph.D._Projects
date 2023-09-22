@@ -368,6 +368,3 @@ slprj/
 #
 *.h5
 
-#
-*.code-workspace
-**/.vscode/
