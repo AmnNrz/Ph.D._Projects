@@ -21,28 +21,12 @@ import pandas as pd
 
 #######   On Mac  ########
 
-# firstimg_2020 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\firstImg_2020.csv")
-# secondimg_2020 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\secondImg_2020.csv")
-# thirdimg_2020 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\thirdImg_2020.csv")
-# firstimg_2021 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\firstImg_2021.csv")
-# secondimg_2021 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\secondImg_2021.csv")
-# thirdimg_2021 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\thirdImg_2021.csv")
-# firstimg_2022 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\firstImg_2022.csv")
-# secondimg_2022 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\secondImg_2022.csv")
-# thirdimg_2022 = pd.read_csv(
-#     r"G:\My Drive\PhD\Projects\DSFAS\Sentinel2_data\dry_2\thirdImg_2022.csv")
 
-#######   On Ubuntu  ########
 
 path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/DSFAS/Data/Sentinel2_data/dry_2/"
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/",
+                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/",
+                "PhD/Projects/DSFAS/Data/Sentinel2_data/dry_irgted/")
 
 firstimg_2020 = pd.read_csv(path_to_data + "firstImg_2020.csv")
 secondimg_2020 = pd.read_csv(path_to_data + "secondImg_2020.csv")

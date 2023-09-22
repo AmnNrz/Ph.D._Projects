@@ -22,21 +22,29 @@ import seaborn as sns
 import geopandas as gpd
 import matplotlib.colors as mcolors
 from matplotlib.patches import FancyArrowPatch
+from sklearn.metrics import confusion_matrix
+
 
 
 # +
 # Read data
-# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                 "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-#                 "PhD/Projects/DSFAS/Data/")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
+                "PhD/Projects/DSFAS/Data/")
 
-path_to_data = ("/home/amnnrz/GoogleDrive - "
-                "msaminnorouzi/PhD/Projects/DSFAS/Data/")
-
-path_to_plots = ("/home/amnnrz/GoogleDrive - msaminnorouzi/"
+path_to_plots = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
                  "PhD/Projects/DSFAS/Plots/")
 
+# path_to_data = ("/home/amnnrz/GoogleDrive - "
+#                 "msaminnorouzi/PhD/Projects/DSFAS/Data/")
+
+# path_to_plots = ("/home/amnnrz/GoogleDrive - msaminnorouzi/"
+#                  "PhD/Projects/DSFAS/Plots/")
+
 dry_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
+# dry_irig_df = pd.read_csv(
+#     path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
 
 # Convert year to integer
 dry_df['YearSample'] = dry_df['YearSample'].astype(int)
@@ -44,8 +52,6 @@ dry_df['YearSample'] = dry_df['YearSample'].astype(int)
 # remove old index column
 dry_df.drop(columns='index', axis=1, inplace=True)
 # -
-
-allSamples_df["WDVI_first"]
 
 # check 0_6 -- 0_12 samples' year
 sampleYear_6_12 = dry_df.loc[dry_df['DepthSampl'] ==
@@ -182,6 +188,9 @@ dry_df['Irrigation'] = 'Dryland'
 
 df = pd.concat([dry_df, irrigated_df])
 # df
+# -
+
+df.shape
 
 # +
 ######=====  Sample points grouped by irrigation type  =====#########
@@ -344,15 +353,7 @@ plt.ylabel("Latitude", fontsize=24)
 plt.figure(dpi=300)
 plt.show()
 
-# -
 
-
-replacement_dict = {
-    'bottom':'bottom',
-    'top':'top'
-}
-topBottom_df['tercile'] = topBottom_df['tercile'].replace(replacement_dict)
-topBottom_df['tercile'].unique()
 
 # +
 #####=====   plot the distribution of terciles   =====#######
@@ -385,108 +386,165 @@ for x_var in topBottom_df.columns.drop([y_var, 'tercile']):
     g.add_legend()
     
     plot_name = path_to_plots + f"{x_var}_distribution_plot.png"
-    # Save the plot with customized size and resolution
-    g.fig.savefig(plot_name, dpi=300, bbox_inches='tight') 
-# -
-
-df1.loc[df['tercile'] == 'top']['Total_C_g/cm2'].describe()
+    # # Save the plot with customized size and resolution
+    # g.fig.savefig(plot_name, dpi=300, bbox_inches='tight') 
 
 # +
-Y = df1['Total_C_g/cm2']
-X = df1[['NDVI_first', 'tvi_first',
-       'savi_first', 'MSI_first', 'GNDVI_first', 'GRVI_first', 'LSWI_first',
-       'MSAVI2_first', 'WDVI_first', 'BI_first', 'BI2_first', 'RI_first',
-       'CI_first', 'B1_first', 'B2_first', 'B3_first', 'B4_first', 'B8_first',
-       'B11_first', 'B12_first', 'NDVI_second', 'tvi_second', 'savi_second',
-       'MSI_second', 'GNDVI_second', 'GRVI_second', 'LSWI_second',
-       'MSAVI2_second', 'WDVI_second', 'BI_second', 'BI2_second', 'RI_second',
-       'CI_second', 'B1_second', 'B2_second', 'B3_second', 'B4_second',
-       'B8_second', 'B11_second', 'B12_second']]
-# X = df_second[['B12_second']]
+###### ======   Density Distribution of features for top and bottom terciles =====######
+# Renaming columns
+topBottom_df.columns = topBottom_df.columns.str.replace('_first', '_MAM')
+topBottom_df.columns = topBottom_df.columns.str.replace('_second', '_JJA')
+topBottom_df.columns = topBottom_df.columns.str.replace('_third', '_SON')
+# Get list of columns to be plotted
+x_vars = topBottom_df.columns.drop([y_var, 'tercile'])
 
-X = sm.add_constant(X)
+# Create separate figures for every 20 variables
+num_plots_per_fig = 20
+num_figs = -(-len(x_vars) // num_plots_per_fig)  # Ceiling division
 
-model = sm.OLS(Y, X).fit()
-print(model.summary())
+for fig_num in range(num_figs):
+    fig, axes = plt.subplots(4, 5, figsize=(
+        20, 16))  # Adjust figsize as needed
+    axes = axes.ravel()  # Flatten the axes for easier indexing
+
+    for ax_num, x_var in enumerate(x_vars[fig_num*num_plots_per_fig: (fig_num+1)*num_plots_per_fig]):
+        # Choose your own colors
+        for tercile, color in zip(['bottom', 'top'], ['#440154', '#21918c']):
+            subset = topBottom_df[topBottom_df['tercile'] == tercile]
+            sns.kdeplot(ax=axes[ax_num], data=subset, x=x_var,
+                        color=color, label=tercile, fill=True)
+
+        # axes[ax_num].set_title(x_var)
+        # Set font size for x and y labels
+        axes[ax_num].set_xlabel(x_var, fontsize=15)  # Adjust this value as needed
+        # Adjust this value as needed
+        axes[ax_num].set_ylabel('Density', fontsize=15)
+    # Adjust vertical spacing between subplots
+    plt.subplots_adjust(hspace=0.5, wspace=0.5)
+    
+    
+    # Handle any unused axes
+    for ax_num in range(ax_num+1, 20):
+        axes[ax_num].axis('off')
+    
+    # Add a legend to the figure (not to each individual plot)
+    handles, labels = axes[0].get_legend_handles_labels()
+    fig.legend(handles, labels, title='tercile',
+               loc='upper right', bbox_to_anchor=(1, 0.5),
+               prop={'size': 15}, title_fontsize='20')
+
+
+    plot_name = path_to_plots + f"figure_{fig_num + 1}.png"
+    fig.savefig(plot_name, dpi=300, bbox_inches='tight')
+    # plt.close(fig)  # Close the current figure to free up memory
+
 
 # +
-import seaborn as sns
+### ==== build OLS ====###
 
-# calculate the correlation matrix
-corr_matrix = df[['NDVI_first', 'tvi_first',
-       'savi_first', 'MSI_first', 'GNDVI_first', 'GRVI_first', 'LSWI_first',
-       'MSAVI2_first', 'WDVI_first', 'BI_first', 'BI2_first', 'RI_first',
-       'CI_first', 'B1_first', 'B2_first', 'B3_first', 'B4_first', 'B8_first',
-       'B11_first', 'B12_first', 'NDVI_second', 'tvi_second', 'savi_second',
-       'MSI_second', 'GNDVI_second', 'GRVI_second', 'LSWI_second',
-       'MSAVI2_second', 'WDVI_second', 'BI_second', 'BI2_second', 'RI_second',
-       'CI_second', 'B1_second', 'B2_second', 'B3_second', 'B4_second',
-       'B8_second', 'B11_second', 'B12_second']].corr()
+dataset = dry_df.loc[:, "NDVI_first":"geometry"].copy()
+
+# Split the data into dependent and independent variables
+X = dataset.drop(columns=['Total_C (g/cm2)', 'geometry'])
+X = sm.add_constant(X)  # Adding a constant term to the predictor
+y = dataset['Total_C (g/cm2)']
+
+# Ordinary Least Squares (OLS) regression
+model = sm.OLS(y, X).fit()
+
+# Predict using the OLS model
+y_pred = model.predict(X)
+
+# Model Evaluation
+# Calculate residuals
+residuals = y - y_pred
+
+# Mean Absolute Error (MAE)
+mae = np.mean(np.abs(residuals))
+
+# R-squared (R^2)
+r2 = model.rsquared
+
+# Root Mean Squared Error (RMSE)
+rmse = np.sqrt(np.mean(residuals**2))
+
+print(f"Mean Absolute Error (MAE): {mae}")
+print(f"R-squared (R^2): {r2}")
+print(f"Root Mean Squared Error (RMSE): {rmse}")
+
+# Distribution of Percentage Error
+percentage_error = (residuals / y) * 100
+
+# Calculate percetage error with non-zero y
+percentage_error = (np.abs(y[(y != 0)] - y_pred[(y != 0)]) / np.abs(y[(y != 0)]))
+# Replace infinities with NaNs
+percentage_error.replace([np.inf, -np.inf], np.nan, inplace=True)
 
 
-# plot the correlation matrix as a heatmap
-plt.figure(figsize=(12, 10))
-sns.heatmap(corr_matrix, cmap='coolwarm', annot=True)
+# Get coefficients
+coefficients = model.params
 
-# show the plot
+# Drop the constant term
+coefficients = coefficients.drop("const")
+
+# Sort coefficients by magnitude for better interpretation
+sorted_coefficients = coefficients.abs().sort_values(ascending=False)
+
+# Print each feature and its corresponding coefficient
+for feature, coeff in sorted_coefficients.items():
+    print(f"Feature: {feature}, Coefficient: {coeff}")
+
+
+# plot histograms or other plots to visualize the distribution
+# of the percentage errors
+plt.hist(percentage_error, bins=10)  # Drop NaNs before plotting
+plt.title("Distribution of Percentage Error")
+plt.xlabel("Percentage Error")
+plt.ylabel("Frequency")
+plt.savefig(path_to_plots + "%_err-Dist.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+
+#################    Spatial Distribution of Percentage Error #######
+dataset['percentage_error'] = percentage_error
+# Define the size and axis for the plot
+fig, ax = plt.subplots(figsize=(40, 20))
+wa_state.boundary.plot(ax=ax, linewidth=2)
+wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
+wa_counties.apply(lambda x: ax.annotate(
+    text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
+dataset.plot(column='percentage_error', legend=False, ax=ax, markersize=500, alpha=0.7)
+plt.title("Spatial Distribution of Percentage Error", fontsize=32)
+# Adjust the font size of tick labels for longitude and latitude
+ax.tick_params(axis='x', labelsize=18)
+ax.tick_params(axis='y', labelsize=18)
+
+# Create the legend based on the plotted data's colormap
+norm = plt.Normalize(vmin=dataset['percentage_error'].min(
+), vmax=dataset['percentage_error'].max())
+cbar = plt.colorbar(mappable=plt.cm.ScalarMappable(
+    norm=norm, cmap='viridis'), ax=ax, shrink=0.5, pad=0.005)
+cbar.ax.tick_params(labelsize=20)
+
+plt.savefig(path_to_plots + "%_err_map.png", dpi=300, bbox_inches='tight')
+plt.show()
+
+
+# Scatter plot of y and y_pred
+plt.figure(figsize=(8, 8))
+plt.scatter(y, y_pred, alpha=0.5)
+plt.plot([min(y), max(y)], [min(y), max(y)], color='red')  # line of equality
+plt.title("Observed vs Predicted Values", fontsize=16)
+plt.xlabel("Actual Total C", fontsize=16)
+plt.ylabel("Predicted Predicted Total C", fontsize=16)
+plt.grid(True)
+plt.savefig(path_to_plots + "y_ypred.png", dpi=300)
 plt.show()
 
 # -
 
-selected_cols = ['NDVI_first', 'tvi_first',
-       'savi_first', 'MSI_first', 'GNDVI_first', 'GRVI_first', 'LSWI_first',
-       'MSAVI2_first', 'WDVI_first', 'BI_first', 'BI2_first', 'RI_first',
-       'CI_first', 'B1_first', 'B2_first', 'B3_first', 'B4_first', 'B8_first',
-       'B11_first', 'B12_first', 'NDVI_second', 'tvi_second', 'savi_second',
-       'MSI_second', 'GNDVI_second', 'GRVI_second', 'LSWI_second',
-       'MSAVI2_second', 'WDVI_second', 'BI_second', 'BI2_second', 'RI_second',
-       'CI_second', 'B1_second', 'B2_second', 'B3_second', 'B4_second',
-       'B8_second', 'B11_second', 'B12_second', 'Total_C_g/cm2']
+X_terciles
 
-df = df1[selected_cols]
-df.reset_index(inplace=True)
-
-# +
-import pandas as pd
-import numpy as np
-import seaborn as sns
-
-# Load your data into a Pandas DataFrame
-df = df1[selected_cols]
-
-# # Drop columns with just one value
-# df.drop(columns= df.nunique()[df.nunique() == 1].index[0], inplace=True )
-
-# Set the name of your y-variable
-y_var = 'Total_C_g/cm2'
-
-# Set the terciles to use for separating the data
-bottom_tercile = np.percentile(df[y_var], 33.33)
-top_tercile = np.percentile(df[y_var], 66.66)
-
-# Create a new column in the DataFrame to indicate whether each row is in the top, middle, or bottom tercile
-df['tercile'] = pd.cut(df[y_var], bins=[df[y_var].min(
-), bottom_tercile, top_tercile, df[y_var].max()], labels=['bottom', 'middle', 'top'])
-
-# Loop through each x-variable and create a density distribution plot for the top, middle, and bottom terciles
-for x_var in df.columns.drop([y_var, 'tercile']):
-    g = sns.FacetGrid(df[df['tercile'] != 'middle'], hue='tercile', height=4, aspect=1.2)
-    g.map(sns.kdeplot, x_var, shade=True)
-    g.add_legend()
-
-# +
-Y = df_second['Total_C_g/cm2']
-X = df_second[['NDVI_second', 'tvi_second',
-               'savi_second', 'MSI_second', 'GNDVI_second', 'GRVI_second', 'LSWI_second',
-               'MSAVI2_second', 'BI_second', 'BI2_second', 'RI_second',
-               'CI_second',
-               'B2_second', 'B3_second', 'B4_second', 'B8_second', 'B11_second',
-               'B12_second']]
-
-X = sm.add_constant(X)
-
-model = sm.OLS(Y, X).fit()
-print(model.summary())
 
 # +
 import pandas as pd
@@ -495,47 +553,33 @@ from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 
-# Load your data into a Pandas DataFrame
-df = df1[selected_cols]
+dataset = dry_df.loc[:, "NDVI_first":"geometry"].copy()
+dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third"], inplace=True)
 
-# Set the name of your y-variable
-y_var = 'Total_C_g/cm2'
 
 # Set the terciles to use for separating the data
-bottom_tercile = np.percentile(df[y_var], 33.33)
-top_tercile = np.percentile(df[y_var], 66.66)
+bottom_tercile = dataset[y_var].quantile(1/3)
+top_tercile = dataset[y_var].quantile(2/3)
 
-# Subset the DataFrame to include only top and bottom tercile rows
-df_terciles = df[(df[y_var] <= bottom_tercile) |
-                 (df[y_var] >= top_tercile)].copy()
+# Create a new column in the DataFrame to indicate whether each row is in the top, middle, or bottom tercile
+dataset['tercile'] = pd.cut(dataset[y_var], bins=[dataset[y_var].min(
+), bottom_tercile, top_tercile, dataset[y_var].max()], labels=['bottom', 'middle', 'top'], include_lowest=True)
 
-# Create a new column for the target variable ('high' or 'low') based on tercile membership
-df_terciles['target'] = np.where(
-    df_terciles[y_var] >= top_tercile, 'high', 'low')
+# filter for just top and bottom tercils
+topBottom_df = dataset.loc[dataset['tercile'] != 'middle'].copy()
+topBottom_df['tercile'] = topBottom_df['tercile'].cat.remove_unused_categories()
+#############
 
-# Select only the X variables of interest
-# Replace with the actual X variable names
-X_terciles = df_terciles[['NDVI_first', 'tvi_first',
-       'savi_first', 'MSI_first', 'GNDVI_first', 'GRVI_first', 'LSWI_first',
-       'MSAVI2_first', 'WDVI_first', 'BI_first', 'BI2_first', 'RI_first',
-       'CI_first', 'B1_first', 'B2_first', 'B3_first', 'B4_first', 'B8_first',
-       'B11_first', 'B12_first', 'NDVI_second', 'tvi_second', 'savi_second',
-       'MSI_second', 'GNDVI_second', 'GRVI_second', 'LSWI_second',
-       'MSAVI2_second', 'WDVI_second', 'BI_second', 'BI2_second', 'RI_second',
-       'CI_second', 'B1_second', 'B2_second', 'B3_second', 'B4_second',
-       'B8_second', 'B11_second', 'B12_second']]
-y_terciles = df_terciles['target']
 
-# from sklearn.model_selection import train_test_split
-
-# # Split the data into training and testing sets
-# X_train, X_test, y_train, y_test = train_test_split(
-#     X_terciles, y_terciles, test_size=0.25, random_state=42)
+# Split the data into dependent and independent variables
+X_terciles = topBottom_df.drop(
+    columns=['tercile', 'geometry', 'Total_C (g/cm2)'])
+y_terciles = topBottom_df['tercile']
 
 from sklearn.linear_model import LogisticRegression
 
 # Initialize the classifier
-classifier = LogisticRegression()
+classifier = LogisticRegression(max_iter=1000)
 
 # Perform cross-validation
 cv_scores = cross_val_score(classifier, X_terciles, y_terciles, cv=5)
@@ -550,10 +594,43 @@ classifier.fit(X_terciles, y_terciles)
 # Make predictions on the testing data
 y_pred = classifier.predict(X_terciles)
 
+
 # Generate a contingency table
 contingency_table = pd.crosstab(y_terciles, y_pred, rownames=['Actual'], colnames=['Predicted'])
 
 print(contingency_table)
+
+# Get coefficients from the logistic regression model
+coefficients = classifier.coef_[0]
+
+# Get feature names
+feature_names = X_terciles.columns
+
+# Combine feature names and coefficients into a dictionary
+feature_dict = dict(zip(feature_names, coefficients))
+
+# Sort features by the absolute value of their coefficient
+sorted_features = sorted(feature_dict.items(
+), key=lambda item: abs(item[1]), reverse=True)
+
+# Print sorted features
+for feature, coeff in sorted_features:
+    print(f"Feature: {feature}, Coefficient: {coeff}")
+
+# Generate the confusion matrix
+cm = confusion_matrix(y_terciles, y_pred, labels=['bottom', 'top'])
+
+# Plotting using matplotlib and seaborn
+fig, ax = plt.subplots(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', ax=ax)
+ax.set_xlabel('Predicted Total C')
+ax.set_ylabel('Atcutal Total C')
+ax.set_title('Confusion Matrix of bottom and top terciles')
+ax.xaxis.set_ticklabels(['bottom', 'top'])
+ax.yaxis.set_ticklabels(['bottom', 'top'])
+plt.savefig(path_to_plots + "CM_bottom_top.png", dpi=300)
+plt.show()
+
 
 # +
 import pandas as pd
