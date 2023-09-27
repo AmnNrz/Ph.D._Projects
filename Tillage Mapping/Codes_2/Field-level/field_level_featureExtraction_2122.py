@@ -42,6 +42,7 @@ import pandas as pd
 # + colab={"background_save": true} id="RkSJ3M7GG_pD"
 ######## imports #########
 # Import WSDA polygons of surveyed fields
+
 # consider a polygon that covers the study area (Whitman & Columbia counties)
 geometry = ee.Geometry.Polygon(
         [[[-118.61039904725511, 47.40441980731236],
@@ -49,7 +50,7 @@ geometry = ee.Geometry.Polygon(
           [-116.80864123475511, 45.934467488469],
           [-116.80864123475511, 47.40441980731236]]], None, False)
 geometry2 = ee.Geometry.Point([-117.10053796709163, 46.94957951590986]),
-WSDA_featureCol = ee.FeatureCollection("projects/ee-bio-ag-tillage/assets/2021_2022_pols")
+WSDA_featureCol = ee.FeatureCollection('projects/ee-bio-ag-tillage/assets/final_shp_2122')
 
 #import USGS Landsat 8 Level 2, Collection 2, Tier 1
 L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
@@ -354,9 +355,12 @@ def eefeatureColl_to_Pandas(yearlyList, bandNames, important_columns_names):
       df_yi = pd.concat([df_yi, df_j], axis=1)
     df_yi = df_yi.loc[:,~df_yi.columns.duplicated()]   # Drop repeated 'pointID' columns
 
+    # reorder columns
+    df_yi = df_yi[important_columns]
+    
     # Move pointID column to first position
-    pointIDColumn = df_yi.pop("fid")
-    df_yi.insert(0, "fid", pointIDColumn)
+    pointIDColumn = df_yi.pop("pointID")
+    df_yi.insert(0, "pointID", pointIDColumn)
     dataList = dataList + [df_yi]
   return dataList
 
@@ -469,11 +473,21 @@ reducedList_mainBands = list(map(collectionReducer, clipped_mainBands_Collection
 reducedList_glcmBands = list(map(collectionReducer, clipped_GLCM_collectionList))
 
 # Convert each year's composites to a single dataframe and put all the dataframes in a list
-important_columns_names = ['fid', 'CurrentCro', 'DateTime', 'GreennessP', 'Notes', 'Observatio', 'PriorCropT', 'ResidueCov', 'Shape_Area', 'Tillage', 'WhereInRan']
+important_columns_names = ['pointID', 'CurrentCro', 'DateTime', 'PriorCropT', 'ResidueCov', 'Tillage', 'WhereInRan']
 seasonBased_dataframeList_mainBands = eefeatureColl_to_Pandas(reducedList_mainBands, mainBands, important_columns_names)
 seasonBased_dataframeList_glcm = eefeatureColl_to_Pandas(reducedList_glcmBands, glcmBands, important_columns_names)
 print(seasonBased_dataframeList_mainBands[0].shape)
 print(seasonBased_dataframeList_glcm[0].shape)
+
+# Merge main and glcm bands
+main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_mainBands[0], 
+                                 seasonBased_dataframeList_glcm[0].drop(columns= 'pointID')], axis=1)
+# Remove duplicated columns
+duplicated_cols_idx = main_glcm_seasonBased_joined_df_2223.columns.duplicated()
+main_glcm_seasonBased_joined_df_2223 = main_glcm_seasonBased_joined_df_2223.iloc[:, duplicated_cols_idx]
+
+# Save the season-based dataframe 
+main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv')
 
 
 # Display on Map
@@ -481,14 +495,6 @@ print(seasonBased_dataframeList_glcm[0].shape)
 # Map.setCenter(-117.100, 46.94, 7)
 # Map.addLayer(ee.Image(clippedCollectionList[0].toList(clippedCollectionList[0].size()).get(1)), {'bands': ['B4_S1', 'B3_S1', 'B2_S1'], max: 0.5, 'gamma': 2}, 'L8')
 # Map
-# -
-
-seasonBased_dataframeList_glcm[0]
-
-main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_mainBands[0], 
-                                 seasonBased_dataframeList_glcm[0].drop(columns= 'fid')], axis=1)
-main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/2223/field_level_main_glcm_seasonBased_joined_2122.csv')
-
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
 

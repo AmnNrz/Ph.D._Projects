@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -231,10 +231,6 @@ def groupImages(year, orgCollection):
     .map(addDOY)\
     .map(lambda img: img.select(bands).rename(new_bandS0))
 
-
-
-    # .map(lambda img: img.set('system:time_start', ee.Date.fromYMD(year, 9, 1).millis()))
-
   collection_2 = orgCollection\
     .filterDate(
       ee.Date.fromYMD(ee.Number(year).add(ee.Number(1)), 1, 1),
@@ -354,6 +350,9 @@ def eefeatureColl_to_Pandas(yearlyList, bandNames, important_columns_names):
       df_yi = pd.concat([df_yi, df_j], axis=1)
     df_yi = df_yi.loc[:,~df_yi.columns.duplicated()]   # Drop repeated 'pointID' columns
 
+    # reorder columns
+    df_yi = df_yi[important_columns]
+
     # Move pointID column to first position
     pointIDColumn = df_yi.pop("fid")
     df_yi.insert(0, "fid", pointIDColumn)
@@ -469,25 +468,27 @@ reducedList_mainBands = list(map(collectionReducer, clipped_mainBands_Collection
 reducedList_glcmBands = list(map(collectionReducer, clipped_GLCM_collectionList))
 
 # Convert each year's composites to a single dataframe and put all the dataframes in a list
-important_columns_names = ['fid', 'CurrentCro', 'DateTime', 'GreennessP', 'Notes', 'Observatio', 'PriorCropT', 'ResidueCov', 'Shape_Area', 'Tillage', 'WhereInRan']
+important_columns_names = ['fid', 'CurrentCro', 'DateTime', 'PriorCropT', 'ResidueCov', 'Tillage', 'WhereInRan']
 seasonBased_dataframeList_mainBands = eefeatureColl_to_Pandas(reducedList_mainBands, mainBands, important_columns_names)
 seasonBased_dataframeList_glcm = eefeatureColl_to_Pandas(reducedList_glcmBands, glcmBands, important_columns_names)
 print(seasonBased_dataframeList_mainBands[0].shape)
 print(seasonBased_dataframeList_glcm[0].shape)
 
+# Merge main and glcm bands
+main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_mainBands[0], 
+                                 seasonBased_dataframeList_glcm[0].drop(columns= 'fid')], axis=1)
+# Remove duplicated columns
+duplicated_cols_idx = main_glcm_seasonBased_joined_df_2223.columns.duplicated()
+main_glcm_seasonBased_joined_df_2223 = main_glcm_seasonBased_joined_df_2223.iloc[:, duplicated_cols_idx]
+
+# Save the season-based dataframe 
+main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2223.csv')
 
 # Display on Map
 # Map = geemap.Map()
 # Map.setCenter(-117.100, 46.94, 7)
 # Map.addLayer(ee.Image(clippedCollectionList[0].toList(clippedCollectionList[0].size()).get(1)), {'bands': ['B4_S1', 'B3_S1', 'B2_S1'], max: 0.5, 'gamma': 2}, 'L8')
 # Map
-# -
-
-seasonBased_dataframeList_glcm[0]
-
-main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_mainBands[0], 
-                                 seasonBased_dataframeList_glcm[0].drop(columns= 'fid')], axis=1)
-main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/2223/field_level_main_glcm_seasonBased_joined_2223.csv')
 
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
