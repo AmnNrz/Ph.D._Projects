@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: base
 #     language: python
@@ -112,7 +112,10 @@ L_8_7_raw = L_8_7_raw.loc[L_8_7_raw["TotalAcres"]>=10]
 ###############################################################################
 
 
+# -
 
+
+#
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 491} executionInfo={"elapsed": 6, "status": "ok", "timestamp": 1680797096752, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="HRNyazbHKNF-" outputId="20490297-3914-4cb2-db09-64c7c277d17e"
 L87raw = L_8_7_raw.sort_values(by="system_start_time").copy()

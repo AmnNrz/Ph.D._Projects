@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: tillenv
 #     language: python
@@ -235,6 +235,89 @@ last_df2.rename(columns={'most_frequent_class': 'Croptype'}, inplace=True)
 last_df2
 
 # +
+# Load your dataframe with categorical features
+df = pd.read_csv('/Users/aminnorouzi/Library/CloudStorage/OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/test_df.csv')
+
+# Perform one-hot encoding for the categorical features
+df = pd.get_dummies(df, columns=['Croptype', 'ResidueCov'])
+
+# Split features and target variable
+X = df.drop(['Tillage', 'pointID', 'Unnamed: 0'], axis=1)
+y = df['Tillage']
+
+# Impute missing values with the median
+X = X.fillna(X.median())
+
+# -
+
+X
+
+# +
+df = pd.read_csv('/Users/aminnorouzi/Library/CloudStorage/OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/test_df.csv')
+
+df.loc[df["Croptype"] == "grain"] = "Grain"
+df.loc[df["Croptype"] == "legume"] = "Legume"
+df.loc[df["Croptype"] == "canola"] = "Canola"
+
+df['Croptype'].value_counts()
+
+
+# +
+plt.figure(figsize=(8, 6))
+plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
+plt.title('Confusion Matrix')
+plt.colorbar()
+
+tick_marks = np.arange(len(labels))
+plt.xticks(tick_marks, labels, rotation=45)
+plt.yticks(tick_marks, labels)
+
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+
+# Displaying the values in the cells
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        plt.text(j, i, format(cm[i, j], 'd'),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > cm.max() / 2 else "black")
+
+plt.tight_layout()
+plt.show()
+
+# -
+
+class CustomRFC(BaseEstimator, ClassifierMixin):
+    def __init__(self, a=1, n_estimators=10, max_depth=None):
+        self.a = a
+        self.n_estimators = n_estimators
+        self.max_depth = max_depth
+        self.rfc = RandomForestClassifier(
+            n_estimators=self.n_estimators, max_depth=self.max_depth)
+
+    def fit(self, X, y, sample_weight=None):
+        X, y = check_X_y(X, y)
+        self.classes_ = unique_labels(y)
+
+        target_weights_dict = calculate_custom_weights(y, self.a)
+        if sample_weight is not None:
+            adjusted_sample_weight = sample_weight * \
+                np.array([target_weights_dict[cls] for cls in y])
+        else:
+            adjusted_sample_weight = np.array(
+                [target_weights_dict[cls] for cls in y])
+
+        self.rfc.fit(X, y, sample_weight=adjusted_sample_weight)
+        return self
+
+    def predict(self, X):
+        check_is_fitted(self)
+        return self.rfc.predict(X)
+
+
+
+# +
+import numpy as np
 import pandas as pd
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import GridSearchCV, cross_val_score, train_test_split
@@ -245,14 +328,22 @@ import matplotlib.pyplot as plt
 from collections import Counter
 
 # Load your dataframe with categorical features
-df = last_df2
+df = pd.read_csv('/Users/aminnorouzi/Library/CloudStorage/OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/test_df.csv')
 
 # Perform one-hot encoding for the categorical features
-df_encoded = pd.get_dummies(df, columns=['Croptype', 'ResidueCov'])
+df = pd.get_dummies(df, columns=['Croptype', 'ResidueCov'])
 
 # Split features and target variable
-X = df_encoded.drop(['Tillage', 'pointID'], axis=1)
-y = df_encoded['Tillage']
+X = df.drop(['Tillage', 'pointID', 'Unnamed: 0'], axis=1)
+y = df['Tillage']
+
+# Impute missing values with the median
+X = X.fillna(X.median())
+
+# Verify that all missing values have been imputed
+print(X.isnull().sum())
+
+
 
 # Split the data into training and test sets
 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
@@ -277,7 +368,7 @@ def calculate_custom_weights(y, a):
 
 
 # Calculate weights for the target variable
-a = 10
+
 target_weights_dict = calculate_custom_weights(y_train, a)
 target_weights = np.array([target_weights_dict[cls] for cls in y_train])
 
@@ -296,7 +387,8 @@ sample_weights = target_weights * feature_weights
 # Define the parameter grid for hyperparameter tuning
 param_grid = {
     'n_estimators': [20, 25, 30, 40, 50, 100],
-    'max_depth': [5, 10, 20, 30, 35]
+    'max_depth': [5, 10, 20, 30, 35],
+    'a' : [0.5, 1, 3, 10] 
 }
 
 # Perform cross-validation for 20 times and calculate accuracies
@@ -308,9 +400,10 @@ feature_counter = Counter()  # Counter to keep track of feature occurrences
 # Initialize a list to store mean test scores for each hyperparameter combination
 mean_test_scores = []
 
-for _ in range(20):
+for _ in range(4):
     print(_)
-    grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, return_train_score=False)
+    grid_search = GridSearchCV(
+        CustomRFC(), param_grid, cv=5, return_train_score=False)
     grid_search.fit(df_resampled.drop('Tillage', axis=1),
                     df_resampled['Tillage'], sample_weight=sample_weights)
 
@@ -352,12 +445,29 @@ cm = confusion_matrix(y_test, y_pred_best)
 
 # Plot the confusion matrix
 labels = ['ConventionalTill', 'MinimumTill', 'NoTill-DirectSeed']
+# labels = ['MinimumTill', 'NoTill-DirectSeed']
 plt.figure(figsize=(8, 6))
-sns.heatmap(cm, annot=True, fmt='d', cmap='Blues', xticklabels=labels, yticklabels=labels)
-plt.xlabel('Predicted')
-plt.ylabel('True')
+plt.imshow(cm, interpolation='nearest', cmap=plt.cm.Blues)
 plt.title('Confusion Matrix')
+plt.colorbar()
+
+tick_marks = np.arange(len(labels))
+plt.xticks(tick_marks, labels, rotation=45)
+plt.yticks(tick_marks, labels)
+
+plt.ylabel('True label')
+plt.xlabel('Predicted label')
+
+# Displaying the values in the cells
+for i in range(cm.shape[0]):
+    for j in range(cm.shape[1]):
+        plt.text(j, i, format(cm[i, j], 'd'),
+                 horizontalalignment="center",
+                 color="white" if cm[i, j] > cm.max() / 2 else "black")
+
+plt.tight_layout()
 plt.show()
+
 
 # Print the features that appeared most frequently in the top 20 important features
 most_common_features = feature_counter.most_common()
@@ -382,6 +492,25 @@ plt.boxplot(mean_test_scores, vert=False)
 plt.xlabel('Mean Cross-Validated Accuracy')
 plt.ylabel('Hyperparameter Combination')
 plt.title('Boxplot of Validation Accuracies for each Hyperparameter Combination')
+plt.show()
+# -
+
+
+y_test
+
+# +
+y_pred_best = best_model.predict(X_test)
+cm = confusion_matrix(y_test, y_pred_best)
+
+# Plot the confusion matrix
+# labels = ['ConventionalTill', 'MinimumTill', 'NoTill-DirectSeed']
+labels = ['NoTill-DirectSeed']
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=labels, yticklabels=labels)
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix')
 plt.show()
 
 
