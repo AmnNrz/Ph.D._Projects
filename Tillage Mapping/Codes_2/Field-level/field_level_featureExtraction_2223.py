@@ -500,8 +500,8 @@ from functools import reduce
 
 # Create metric composites
 # Specify time period
-startSeq= 2021
-endSeq= 2022
+startSeq= 2022
+endSeq= 2023
 years = list(range(startSeq, endSeq));
 
 # Create a list of lists of imageCollections. Each year would have n number of imageCollection corresponding to the time periods specified
