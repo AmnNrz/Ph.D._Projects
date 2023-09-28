@@ -14,6 +14,12 @@
 
             "problemMatcher": []
 
+        },
+        {
+            "label": "Pull and Sync/Create Notebook Pairs",
+            "type": "shell",
+            "command": "pull_sync_notebooks.sh",
+            "problemMatcher": []
         }
 
     ]
