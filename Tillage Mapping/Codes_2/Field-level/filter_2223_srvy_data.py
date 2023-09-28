@@ -13,6 +13,13 @@
 #     name: python3
 # ---
 
+"""
+This code filters 2022-2023 survey data for:
+Tillage: noTill/minimum
+ResidueType: Canola/ Legumes 
+
+"""
+
 import pandas as pd
 
 # +
