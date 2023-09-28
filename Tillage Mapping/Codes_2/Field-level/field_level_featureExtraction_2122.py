@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -42,7 +42,6 @@ import pandas as pd
 # + colab={"background_save": true} id="RkSJ3M7GG_pD"
 ######## imports #########
 # Import WSDA polygons of surveyed fields
-
 # consider a polygon that covers the study area (Whitman & Columbia counties)
 geometry = ee.Geometry.Polygon(
         [[[-118.61039904725511, 47.40441980731236],
@@ -55,9 +54,10 @@ WSDA_featureCol = ee.FeatureCollection('projects/ee-bio-ag-tillage/assets/final_
 #import USGS Landsat 8 Level 2, Collection 2, Tier 1
 L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 L7T1 =ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
-# -
 
-WSDA_featureCol
+path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
+                'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
+                'Projects/Tillage_Mapping/Data/')
 
 
 # + [markdown] id="dl5KSrInfIGI"
@@ -480,14 +480,16 @@ print(seasonBased_dataframeList_mainBands[0].shape)
 print(seasonBased_dataframeList_glcm[0].shape)
 
 # Merge main and glcm bands
-main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_mainBands[0], 
+main_glcm_seasonBased_joined_df_2122 = pd.concat([seasonBased_dataframeList_mainBands[0], 
                                  seasonBased_dataframeList_glcm[0].drop(columns= 'pointID')], axis=1)
 # Remove duplicated columns
-duplicated_cols_idx = main_glcm_seasonBased_joined_df_2223.columns.duplicated()
-main_glcm_seasonBased_joined_df_2223 = main_glcm_seasonBased_joined_df_2223.iloc[:, duplicated_cols_idx]
+duplicated_cols_idx = main_glcm_seasonBased_joined_df_2122.columns.duplicated()
+main_glcm_seasonBased_joined_df_2122 = main_glcm_seasonBased_joined_df_2122.iloc[
+    :, ~duplicated_cols_idx]
 
-# Save the season-based dataframe 
-main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv')
+# # Save the season-based dataframe 
+# main_glcm_seasonBased_joined_df_2122.to_csv(
+#     '/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv')
 
 
 # Display on Map
@@ -497,6 +499,10 @@ main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzika
 # Map
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
+# -
+
+main_glcm_seasonBased_joined_df_2122.to_csv(path_to_data + 'field_level_data/field_leve_main_glcm_seasonBased_joined_2122.csv')
+
 
 # + colab={"background_save": true} id="vrRY7E6NLhul"
 from functools import reduce

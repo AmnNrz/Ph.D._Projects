@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -54,6 +54,11 @@ WSDA_featureCol = ee.FeatureCollection("projects/ee-bio-ag-tillage/assets/final_
 #import USGS Landsat 8 Level 2, Collection 2, Tier 1
 L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 L7T1 =ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
+
+path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
+                'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
+                'Projects/Tillage_Mapping/Data/')
+
 # -
 
 WSDA_featureCol
@@ -376,8 +381,8 @@ def applyGLCM(coll):
 #####################################################################
 ###################      Season-based Features      #################
 #####################################################################
-startYear = 2021
-endYear = 2022
+startYear = 2022
+endYear = 2023
 
 L8_2122 = L8T1\
   .filter(ee.Filter.calendarRange(startYear, endYear, 'year'))\
@@ -411,7 +416,7 @@ landSat_7_8 = landSat_7_8.map(cloudMaskL8)
 # Mask prercipitation > 3mm two days prior
 # import Gridmet collection
 GridMet = ee.ImageCollection("IDAHO_EPSCOR/GRIDMET")\
-                                  .filter(ee.Filter.date('2021-1-1','2022-12-30'))\
+                                  .filter(ee.Filter.date(f'{startYear}-1-1',f'{endYear}-12-30'))\
                                   .filterBounds(geometry);
 landSat_7_8 = landSat_7_8.map(lambda image: MoistMask(image, GridMet))
 
@@ -430,8 +435,8 @@ landSat_7_8 = landSat_7_8.map(lambda image: image.addBands(dem)) \
 
 # Create season-based composites
 # Specify time period
-startSeq= 2021
-endSeq= 2022
+startSeq= 2022
+endSeq= 2023
 years = list(range(startSeq, endSeq));
 
 # Create season-based composites for each year and put them in a list
@@ -479,16 +484,26 @@ main_glcm_seasonBased_joined_df_2223 = pd.concat([seasonBased_dataframeList_main
                                  seasonBased_dataframeList_glcm[0].drop(columns= 'fid')], axis=1)
 # Remove duplicated columns
 duplicated_cols_idx = main_glcm_seasonBased_joined_df_2223.columns.duplicated()
-main_glcm_seasonBased_joined_df_2223 = main_glcm_seasonBased_joined_df_2223.iloc[:, duplicated_cols_idx]
+main_glcm_seasonBased_joined_df_2223 = main_glcm_seasonBased_joined_df_2223.iloc[:,
+                                                                  ~duplicated_cols_idx]
 
-# Save the season-based dataframe 
-main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2223.csv')
+# # Save the season-based dataframe 
+# main_glcm_seasonBased_joined_df_2223.to_csv('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2223.csv')
 
 # Display on Map
 # Map = geemap.Map()
 # Map.setCenter(-117.100, 46.94, 7)
 # Map.addLayer(ee.Image(clippedCollectionList[0].toList(clippedCollectionList[0].size()).get(1)), {'bands': ['B4_S1', 'B3_S1', 'B2_S1'], max: 0.5, 'gamma': 2}, 'L8')
 # Map
+# -
+
+main_glcm_seasonBased_joined_df_2223.rename({
+    "fid":"pointID"     
+}, axis=1, inplace=True)
+main_glcm_seasonBased_joined_df_2223
+# Save the season-based dataframe
+main_glcm_seasonBased_joined_df_2223.to_csv(path_to_data + 'field_level_data/field_level_main_glcm_seasonBased_joined_2223.csv')
+
 
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
