@@ -1,3 +1,15 @@
+# ---
+# jupyter:
+#   jupytext:
+#     cell_metadata_filter: -all
+#     formats: ipynb,py:light
+#     text_representation:
+#       extension: .py
+#       format_name: light
+#       format_version: '1.5'
+#       jupytext_version: 1.15.1
+# ---
+
 import numpy as np
 import pandas as pd
 # import geopandas as gpd
@@ -19,14 +31,14 @@ import os, os.path
 import math
 import sys
 
-###
-### These will be more generalized functions of remote_sensing_core.py
-### Hence, less hard coding, which implies column/variavle wise we
-### will be minimalistic. e.g. column: lastSurveydate should not be included
-### here.
-###
+# ##
+# ## These will be more generalized functions of remote_sensing_core.py
+# ## Hence, less hard coding, which implies column/variavle wise we
+# ## will be minimalistic. e.g. column: lastSurveydate should not be included
+# ## here.
+# ##
 
-###########################################################
+# ##########################################################
 
 def regularize_a_field_annual_basis(a_df, V_idks="NDVI", interval_size=10, start_year=2008, end_year=2021):
     """

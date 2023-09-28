@@ -18,7 +18,7 @@
         {
             "label": "Pull and Sync/Create Notebook Pairs",
             "type": "shell",
-            "command": "pull_sync_notebooks.sh",
+            "command": "/home/amnnrz/bin/pull_sync_notebooks.sh",
             "problemMatcher": []
         }
 
