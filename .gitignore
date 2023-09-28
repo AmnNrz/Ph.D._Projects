@@ -368,4 +368,4 @@ slprj/
 #
 *.h5
 
-*.json
+*.vscode/*.json
