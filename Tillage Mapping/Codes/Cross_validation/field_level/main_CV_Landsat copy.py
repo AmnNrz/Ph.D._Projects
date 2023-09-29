@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -28,7 +28,7 @@ cdl_data = pd.read_csv(
 
 # -
 
-final_df_withTillage
+cdl_data
 
 cdl_data.most_frequent_class.value_counts().index
 

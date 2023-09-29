@@ -55,9 +55,13 @@ WSDA_featureCol = ee.FeatureCollection('projects/ee-bio-ag-tillage/assets/final_
 L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
 L7T1 =ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
 
-path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
-                'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
-                'Projects/Tillage_Mapping/Data/')
+# path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
+#                 'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
+#                 'Projects/Tillage_Mapping/Data/')
+path_to_data = (
+    '/Users/aminnorouzi/Library/CloudStorage/'
+    'OneDrive-WashingtonStateUniversity(email.wsu.edu)/'
+    'Ph.D/Projects/Tillage_Mapping/Data')
 
 
 # + [markdown] id="dl5KSrInfIGI"
