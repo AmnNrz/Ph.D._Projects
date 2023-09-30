@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: tillenv
 #     language: python
@@ -18,18 +18,23 @@ import numpy as np
 
 # +
 # path_to_data = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/"
-path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
+path_to_data = ("/home/amnnrz/OneDrive - a.norouzikandelati/"
+                "Ph.D/Projects/Spectroscopy_Paper/Data/")
 
-residue_df = pd.read_csv(path_to_data + "Residue_08_18.csv")
+residue_df = pd.read_csv(path_to_data + "Updated_data_2_10nm_res/Residue.csv", index_col=0)
 
-colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
-residue_df.columns = colnames
-residue_df["Type_Name"].unique()
-# residue_df = pd.read_csv(
-    # "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Residue_08_18.csv")
-# soil_df = pd.read_csv(r"G:\My Drive\PhD\Projects\Spectroscopy paper\Spectrometry-main\Soil_08_18.csv")
-# soil_df = pd.read_csv(
-    # "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Soil_08_18.csv")
+rename_dict = {
+    'Soil':'Type_Name'
+}
+residue_df.rename(columns=rename_dict, inplace=True)
+residue_df
+colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC', 'EPO_Reflect']
+residue_df = residue_df[colnames]
+
+# Check number of scans for each residue
+# residue_df.groupby(['Type_Name', 'Scan']).count()
+residue_df.groupby(['Type_Name','Scan']).count()
+residue_df.loc[residue_df['Type_Name'] == 'Canola'][]
 
 
 # +
