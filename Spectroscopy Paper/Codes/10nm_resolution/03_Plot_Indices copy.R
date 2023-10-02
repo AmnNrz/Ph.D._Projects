@@ -30,12 +30,14 @@ path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
                         'Ph.D/Projects/Spectroscopy_Paper/Plots/')
 
-Residue_Median <- read.csv(paste0(path_to_data, "Updated_data_2_10nm_res/residue_original.csv"), header = TRUE, row.names = NULL)
+Residue_Median <- read.csv(paste0(path_to_data, 
+                                  "Updated_data_2_10nm_res/fresh_res_org.csv"),
+                           header = TRUE, row.names = NULL)
 
-# Residue_Median$Sample <- gsub("Crop Residue", "Residue", Residue_Median$Sample)
-# Residue_Median <- dplyr::rename(Residue_Median, Type_Name = Crop)
 
-Soil_Median <- read.csv(paste0(path_to_data, "Updated_data_2_10nm_res/soil_original.csv"))
+Soil_Median <- read.csv(paste0(path_to_data,
+                               "Updated_data_2_10nm_res/soil_original.csv"),
+                        header = TRUE, row.names = NULL)
 
 Residue_Median <- Residue_Median[Residue_Median$Wvl > 1400, ]
 Soil_Median <- Soil_Median[Soil_Median$Wvl > 1400, ]
@@ -51,7 +53,8 @@ colnames(Soil_Median)[colnames(Soil_Median) == "Type_Name"] <- "Crop"
 colnames(Residue_Median)[3] <- "Reflectance"
 
 CAI <- Residue_Median %>%
-  dplyr::filter(Wvl == 2200 | Wvl == 2000 | Wvl == 2100 | Wvl == 2260 | Wvl == 1660 |Wvl == 1600 | Wvl == 2330)
+  dplyr::filter(Wvl == 2200 | Wvl == 2000 | Wvl == 2100 | Wvl == 2260 |
+                  Wvl == 1660 |Wvl == 1600 | Wvl == 2330)
 
 CAI <- CAI %>%
   spread(Wvl, Reflectance) %>%
@@ -72,23 +75,9 @@ CAI$R1620 <- CAI$`1600`/CAI$`2000`
 CAI$RSWIR <- CAI$`1660`/CAI$`2260`
 CAI$ROLI <- CAI$`1660`/CAI$`2330`
 
-write.csv(CAI, file = paste0(path_to_data, "Updated_data_2_10nm_res/CAI_Residue.csv"), row.names = FALSE)
+write.csv(CAI, file = paste0(path_to_data,
+                             "Updated_data_2_10nm_res/CAI_Residue.csv"), row.names = FALSE)
 
-
-# ggplot(CAI, aes(x = Scan, y = CAI, group = Crop, color = Crop)) +
-#   geom_point() +
-#   geom_line()
-# facet_wrap(~Crop, ncol = 2)
-# 
-# ggplot(CAI, aes(x = Scan, y = SINDRI, group = Crop, color = Crop)) +
-#   geom_point() +
-#   geom_line()
-# facet_wrap(~Crop, ncol = 2)
-# 
-# ggplot(CAI, aes(x = Scan, y = NDTI, group = Crop, color = Crop)) +
-#   geom_point() +
-#   geom_line()
-# facet_wrap(~Crop, ncol = 2)
 
 colnames(Soil_Median)[3] <- "Reflectance"
 CAI1 <- Soil_Median %>%
@@ -112,7 +101,8 @@ CAI1$R1620 <- CAI1$`1600`/CAI1$`2200`
 CAI1$RSWIR <- CAI1$`1660`/CAI1$`2260`
 CAI1$ROLI <- CAI1$`1600`/CAI1$`2200`
 
-write.csv(CAI1, file = paste0(path_to_data, "Updated_data_2_10nm_res/CAI_Soil.csv"), row.names = FALSE)
+write.csv(CAI1, file = paste0(path_to_data,
+                              "Updated_data_2_10nm_res/CAI_Soil.csv"), row.names = FALSE)
 
 CAI$Sample <- 'Residue'
 CAI1$Sample <- 'Soil'
@@ -123,60 +113,9 @@ CAI1$Crop <- 'All Soils'
 CAI <- rbind(CAI1, CAI)
 CAI$Scan <- gsub(" ", "", CAI$Scan)
 
-write.csv(CAI, file = paste0(path_to_data, "Updated_data_2_10nm_res/CAI_Combined.csv"), row.names = FALSE)
+write.csv(CAI, file = paste0(path_to_data,
+                             "Updated_data_2_10nm_res/CAI_Combined.csv"), row.names = FALSE)
 
-
-# ggplot(CAI, aes(x = Scan, y = CAI, group = Crop, color = Sample)) +
-#   geom_point() +
-#   geom_line(size = 1) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
-#   labs(x = "Scan", y = "CAI") +
-#   theme(text = element_text(size = 20))
-# 
-# scale_x_discrete(limits = rev(levels(as.factor(CAI$Scan))), guide = guide_axis(angle = 90))
-# 
-# ggplot(CAI, aes(x = Scan, y = R2220, group = Sample, color = Sample)) +
-#   geom_point() +
-#   geom_smooth(method = "loess",se=FALSE,span = TRUE, fullrange = TRUE) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
-#   labs(x = "Scan", y = "R2.2/R2.0") +
-#   theme(text = element_text(size = 20))+
-#   coord_flip()
-# 
-# ggplot(CAI, aes(x = Scan, y = R2220, color = Sample)) +
-#   geom_point() +
-#   geom_smooth(method = "loess",se=FALSE,span = TRUE, fullrange = TRUE) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-#   scale_y_continuous(limits = c(0.8, 2), breaks = seq(0.8, 2, by = 0.2)) +
-#   labs(x = "Scan", y = "R2.2/R2.0") +
-#   theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-#         legend.title=element_blank(),
-#         legend.margin=margin(c(1,5,5,5)))+
-#   coord_flip()
-# 
-# ggplot(CAI, aes(x = Scan, y = R1620, group = Sample, color = Sample)) +
-#   geom_point() +
-#   geom_smooth(method = "loess",se=FALSE,span = TRUE, fullrange = TRUE) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
-#   labs(x = "Scan", y = "R1.6/R2.0") +
-#   theme(text = element_text(size = 20))+
-#   coord_flip()
-# 
-# ggplot(CAI, aes(x = Scan, y = RSWIR, group = Sample, color = Sample)) +
-#   geom_point() +
-#   geom_smooth(method = "loess",se=FALSE,span = TRUE, fullrange = TRUE) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
-#   labs(x = "Scan", y = "SWIR3/SWIR6") +
-#   theme(text = element_text(size = 20))+
-#   coord_flip()
-# 
-# ggplot(CAI, aes(x = Scan, y = ROLI, group = Sample, color = Sample)) +
-#   geom_point() +
-#   geom_smooth(method = "loess",se=FALSE,span = TRUE, fullrange = TRUE) +
-#   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
-#   labs(x = "Scan", y = "OLI6/OLI7") +
-#   theme(text = element_text(size = 20))+
-#   coord_flip()
 
 ##########################################################
 ##########################################################
@@ -207,8 +146,10 @@ CAI$ScanNumeric <- as.numeric(fct_rev(as.factor(CAI$Scan)))
 p3 <- ggplot(CAI, aes(x = ScanNumeric, y = R2220, shape = Sample, color = Sample)) + 
   # scale_shape_manual(values = seq_along(unique(CAI$color_var))) +
   geom_point(aes(fill = Sample, x = ScanNumeric), size = 2) +
-  geom_smooth(aes(x = ScanNumeric), method = "loess", se = FALSE, span = 0.75, fullrange = TRUE, size = 0.4) +
-  scale_x_continuous(breaks = unique(CAI$ScanNumeric), labels = unique(CAI$Scan)) + # Adjust x-axis labels
+  geom_smooth(aes(x = ScanNumeric), method = "loess",
+              se = FALSE, span = 0.75, fullrange = TRUE, size = 0.4) +
+  scale_x_continuous(breaks = unique(CAI$ScanNumeric),
+                     labels = unique(CAI$Scan)) + # Adjust x-axis labels
   scale_y_continuous(limits = c(0.6, 2), breaks = seq(0.8, 2, by = 0.2)) +
   scale_color_manual(values = manual_colors) +  # Use scale_color_manual with manual colors
   labs(x = "Scan", y = "R2.2/R2.0", color = "Sample", shape = "Sample") +
@@ -285,7 +226,7 @@ combined_plot <- (p3 + p4 + p5 + p6) + plot_layout(ncol=2, guides='collect')
 print(combined_plot)
 
 ggsave(filename = paste0(path_to_plots,
-                         "All_crops_soils_merged/spectraRatio ~ Scan (updated data 2).png"),
+                         "freshRes_allSoils/spectraRatio ~ Scan (updated data 2).png"),
        plot = combined_plot, width = 8.3, height = 5.8, dpi = 200)
 
 
@@ -364,7 +305,9 @@ my_plot <- ggplot(tidy_data, aes(x = ScanNumeric, y = value, color = Sample)) +
   ) +
   labs(shape = "Sample", color = "Sample")
 
-ggsave(filename = paste0(path_to_plots, "All_crops_soils_merged/Index ~ Scan (updated data 2).png"), plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
+ggsave(filename = paste0(path_to_plots,
+                         "freshRes_allSoils/Index ~ Scan (updated data 2).png"), 
+       plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
 
 
 ##########################################################
@@ -527,7 +470,7 @@ for (soil in unique(df_Soil$Crop)) {
     combined_plot <- (p1 + p2 + p3) + plot_layout(ncol=1)
     print(combined_plot)
     
-    ggsave(filename = paste0(path_to_plots, "All_crops_soils_merged/", soil,"_", crp, ".png"), plot = combined_plot, width = 5, height = 8, dpi = 300)
+    ggsave(filename = paste0(path_to_plots, "freshRes_allSoils/", soil,"_", crp, ".png"), plot = combined_plot, width = 5, height = 8, dpi = 300)
   }
 }
 

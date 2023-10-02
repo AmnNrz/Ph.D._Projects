@@ -32,17 +32,26 @@ library(ggplot2)
 ##################################################################
 ##################################################################
 ##################################################################
-setwd("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO")
-path_to_save = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/index_org_trsfed_crp_sl/estAFTER_EPO"
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                                      'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                                      '/Ph.D/Projects/Spectroscopy_Paper/Data/')
 ## creating some empty dataframes
-Soil_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/Soil_Transformed.csv")
-Residue_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/Residue_Transformed.csv")
+Soil_Median <- Residue_Median <- read.csv(paste0(path_to_data, 
+                                                 "Updated_data_2_10nm_res/allSoils_EPO.csv"),
+                                          header = TRUE, row.names = NULL)
+Residue_Median <- read.csv(paste0(path_to_data, 
+                                  "Updated_data_2_10nm_res/fresh_res_EPO.csv"), header = TRUE,
+                           row.names = NULL)
 
 ## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
-CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/CAI_transformed_Combined.csv")
+CAI <- read.csv(paste0(path_to_data,
+                       "Updated_data_2_10nm_res/CAI_transformed_Combined.csv"), header = TRUE, 
+                                  row.names = NULL)
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
-"X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+desired_colOrder <- c("Sample", "Scan", "Crop", "X1600",
+                      "X1660", "X2000", "X2100", "X2200","X2260",
+                      "X2330", "CAI", "SINDRI", "NDTI", "R2220",
+                      "R1620", "RSWIR", "ROLI")
 # Reorder the columns
 CAI <- CAI[, desired_colOrder]
 
@@ -86,9 +95,9 @@ for (crp in sort(crops)) {
     
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
     
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
+    test3_NDTI <- reshape2::melt(test3_NDTI, id = "Scan")
     
     
     for (i in fractions){
@@ -100,17 +109,11 @@ for (crp in sort(crops)) {
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
     
-    write.csv(test3_NDTI, paste0(path_to_save,"/","NDTI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_NDTI, paste0(path_to_data,
+                                 "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/"
+                                 ,"NDTI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"),
+              row.names = FALSE)
     
-    ##Fig5
-    ggplot(test3_NDTI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "NDTI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
     
     ##################################################################
     ##################################################################
@@ -144,9 +147,9 @@ for (crp in sort(crops)) {
   
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
     
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
+    test3_CAI <- reshape2::melt(test3_CAI, id = "Scan")
     
     
     for (i in fractions){
@@ -158,17 +161,11 @@ for (crp in sort(crops)) {
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
     
-    write.csv(test3_CAI, paste0(path_to_save, "/", "CAI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_CAI, paste0(path_to_data, 
+                                "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/",
+                                "CAI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), 
+              row.names = FALSE)
     
-    ##Fig5
-    ggplot(test3_CAI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "CAI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
     
     ##################################################################
     ##################################################################
@@ -197,14 +194,15 @@ for (crp in sort(crops)) {
     
     for (i in fractions){
       colname <-  paste0("CAI_", i)
-      test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i) + test1_SINDRI$SINDRI.y * i
+      test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i)
+      + test1_SINDRI$SINDRI.y * i
     }
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
+    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "Scan")
     
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -215,17 +213,11 @@ for (crp in sort(crops)) {
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
     
-    write.csv(test3_SINDRI, paste0(path_to_save, "/", "SINDRI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
-    
-    ##Fig5
-    ggplot(test3_SINDRI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "SINDRI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
+    write.csv(test3_SINDRI, paste0(path_to_data,
+                                   "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/",
+                                   "SINDRI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"),
+              row.names = FALSE)
+
     
   }
 }
@@ -239,19 +231,29 @@ for (crp in sort(crops)) {
   ##################################################################
   ##################################################################
 
-setwd('/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main')
 ## creating some empty dataframes
-Soil_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Soil_08_18.csv")
-Residue_Median <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Crop_Residue.csv")
-Residue_Median$Sample <- gsub("Crop Residue", "Residue", Residue_Median$Sample)
-
-## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
-CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/CAI_Combined.csv")
-CAI$Sample <- gsub("Crop Residue", "Residue", CAI$Sample)
+Residue_Median <- read.csv(paste0(path_to_data, 
+                                  "Updated_data_2_10nm_res/fresh_res_org.csv"),
+                           header = TRUE, row.names = NULL)
 
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
-                      "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+Soil_Median <- read.csv(paste0(path_to_data,
+                               "Updated_data_2_10nm_res/soil_original.csv"),
+                        header = TRUE, row.names = NULL)
+
+Residue_Median$Sample <- 'Residue'
+
+
+CAI <- read.csv(paste0(path_to_data,
+                       "Updated_data_2_10nm_res/CAI_Combined.csv"),
+                header = TRUE, row.names = NULL)
+
+
+desired_colOrder <- c("Sample", "Scan", "Crop", "X1600", 
+                      "X1660", "X2000", "X2100", "X2200",
+                      "X2260", "X2330", "CAI", "SINDRI", 
+                      "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+
 # Reorder the columns
 CAI <- CAI[, desired_colOrder]
 
@@ -288,9 +290,9 @@ for (crp in sort(crops)) {
   
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
   
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
+    test3_NDTI <- reshape2::melt(test3_NDTI, id = "Scan")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -300,17 +302,10 @@ for (crp in sort(crops)) {
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
   
-    write.csv(test3_NDTI, paste0(path_to_save, "/", "NDTI_Original_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
-  
-    ##Fig5
-    ggplot(test3_NDTI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "NDTI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
+    write.csv(test3_NDTI, paste0(path_to_data,
+                                 "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/",
+                                 "NDTI_Original_", crp, "_", gsub("_", " ", sl), ".csv"),
+              row.names = FALSE)
   
     ##################################################################
     ##################################################################
@@ -345,9 +340,9 @@ for (crp in sort(crops)) {
     
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
   
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
+    test3_CAI <- reshape2::melt(test3_CAI, id = "Scan")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -358,17 +353,10 @@ for (crp in sort(crops)) {
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
   
-    write.csv(test3_CAI, paste0(path_to_save, "/", "CAI_Original_" , crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
-  
-    ##Fig5
-    ggplot(test3_CAI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "CAI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
+    write.csv(test3_CAI, paste0(path_to_data,
+                                "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/",
+                                "CAI_Original_" , crp, "_", gsub("_", " ", sl), ".csv"),
+              row.names = FALSE)
   
     ##################################################################
     ##################################################################
@@ -403,9 +391,9 @@ for (crp in sort(crops)) {
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(1,34:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
+    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "Scan")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -416,17 +404,11 @@ for (crp in sort(crops)) {
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
   
-    write.csv(test3_SINDRI, paste0(path_to_save, "/", "SINDRI_Original_", crp, "_", gsub("_", " ", sl),  ".csv"), row.names = FALSE)
-  
-    ##Fig5
-    ggplot(test3_SINDRI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-      geom_line(aes(color = factor(RWC.x))) +
-      geom_point(aes(shape = factor(RWC.x)))+
-      labs(y = "Fraction Residue Cover", x = "SINDRI") +
-      scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
-      theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
-            legend.title=element_blank(),
-            legend.margin=margin(c(1,5,5,5)))
+    write.csv(test3_SINDRI, paste0(path_to_data,
+                                   "Updated_data_2_10nm_res/index_org_trsfed_crp_sl_all/",
+                                   "SINDRI_Original_", crp, "_", gsub("_", " ", sl),  ".csv"),
+              row.names = FALSE)
+
   }
 }
   
