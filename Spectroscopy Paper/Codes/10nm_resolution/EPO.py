@@ -28,10 +28,10 @@ def epo(df):
     #== Apply EPO ==#
     X = X_wd/100
 
-    print(min(X.columns), "min(X.columns)")
-    X_wet = X.drop(min(X.columns), axis=1)
+    print(max(X.columns), "max(X.columns)")
+    X_wet = X.drop(max(X.columns), axis=1)
     X_wet
-    D = X_wet.sub(X[min(X.columns)], axis='index')
+    D = X_wet.sub(X[max(X.columns)], axis='index')
     D = -D
     # print(D.shape)
     # Perform a singular value decompostion on D(D.T)
@@ -54,7 +54,7 @@ def epo(df):
     X_transformed
 
     # add driest column
-    X_transformed[min(X.columns)] = X[min(X.columns)]
+    X_transformed[max(X.columns)] = X[max(X.columns)]
     X_transformed.sort_index(axis=1, inplace=True)
 
     # Create a copy of X_wd to avoid modifying the original DataFrame

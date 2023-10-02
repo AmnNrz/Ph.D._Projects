@@ -79,22 +79,25 @@ melted_df_Haly_epo = pd.melt(pivoted_df_Haly_epo, id_vars=['Scan'], value_vars=p
                              var_name='Wvl', value_name='EPO_Reflect')
 melted_df_Haly_epo
 
-
 # Apply EPO
 df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframes   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/allCrops_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/allCrops_EPO.csv', index=False)
 
-residue_df.drop(columns='EPO_Reflect').to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/residue_original.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/residue_original.csv', index=False)
 
+# -
+
+
+melted_df_original
 
 
 # +
 #== Plot reflectance vs Wvl  ==#  
-df = melted_df_Haly_epo
+df = melted_df_original
 
 # List of unique RWC levels
 rwc_levels = df['Scan'].unique()
@@ -108,7 +111,7 @@ for rwc_level in rwc_levels:
     rwc_df = df.loc[df['Scan'] == rwc_level]
     
     # Plot Reflect vs Wvl for the current RWC level
-    ax.plot(rwc_df['Wvl'], rwc_df['EPO_Reflect'], label=f'{rwc_level}')
+    ax.plot(rwc_df['Wvl'], rwc_df['Reflect'], label=f'{rwc_level}')
     
 # Set labels and title
 ax.set_xlabel('Wavelength')
@@ -163,10 +166,10 @@ df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframes   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/allSoils_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/allSoils_EPO.csv', index=False)
 
-soil_df.drop(columns='EPO_Reflect').to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/soil_original.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/soil_original.csv', index=False)
 
 # -
 
@@ -200,9 +203,10 @@ df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframe   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/fresh_res_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/fresh_res_EPO.csv', index=False)
 
-fresh_df.to_csv(path_to_data + 'Updated_data_2_10nm_res/fresh_res_org.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/fresh_res_org.csv', index=False)
 
 # -
 
@@ -236,9 +240,10 @@ df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframe   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/weathrd_res_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/weathrd_res_EPO.csv', index=False)
 
-weathrd_df.to_csv(path_to_data + 'Updated_data_2_10nm_res/weathrd_res_org.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/weathrd_res_org.csv', index=False)
 
 # -
 
@@ -274,10 +279,10 @@ df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframe   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/lightest_soil_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/lightest_soil_EPO.csv', index=False)
 
-Lightest_soils_df.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/lightest_soil_org.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/lightest_soil_org.csv', index=False)
 
 # -
 
@@ -313,8 +318,8 @@ df_transformed = EPO.epo(melted_df_original)
 
 ##   Save transformed and original dataframe   ##
 df_transformed.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/Darkest_soil_EPO.csv')
+    path_to_data + 'Updated_data_2_10nm_res/Darkest_soil_EPO.csv', index=False)
 
-Darkest_soils_df.to_csv(
-    path_to_data + 'Updated_data_2_10nm_res/Darkest_soil_org.csv')
+melted_df_original.to_csv(
+    path_to_data + 'Updated_data_2_10nm_res/Darkest_soil_org.csv', index=False)
 
