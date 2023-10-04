@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: tillmap
 #     language: python
@@ -17,12 +17,12 @@
 import pandas as pd
 
 # Read data
-# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                 "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
-#                 "Tillage_Mapping/Data/")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
+                "Tillage_Mapping/Data/")
 
-path_to_data = ("/home/amnnrz/OneDrive - "
-                "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
+# path_to_data = ("/home/amnnrz/OneDrive - "
+#                 "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
 
 df_2122 = pd.read_csv(
     path_to_data + 'field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv',
@@ -83,16 +83,6 @@ df1 = pd.concat([df_2122, df_2223])
 
 df1
 
-# -
-df_2223['PriorCropT'].value_counts()
-
-#
-
-y_train.value_counts(
-)
-
-calculate_custom_weights(y_train, a = 2)
-
 # +
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.ensemble import RandomForestClassifier
@@ -141,16 +131,6 @@ class CustomWeightedRF(BaseEstimator, ClassifierMixin):
     def feature_importances_(self):
         return self.rf.feature_importances_
 
-
-# -
-
-df_encoded['Tillage'].value_counts()
-
-df1['PriorCropT'].value_counts()
-
-df1['Tillage']
-
-df_ordered['Tillage']
 
 # +
 import numpy as np
@@ -203,13 +183,12 @@ X = X.fillna(X.median())
 
 
 # Split the data into training and test sets
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
 param_grid = {
     'n_estimators': [20, 30, 40, 50, 100, 300],
     'max_depth': [5, 10, 20, 30, 45],
-    # 'a' : [0.5, 10, 100]
-    'a': [0.1]
+    'a': [0, 0.2, 0.4, 0.6, 1, 3, 10]
 }
 
 # Perform cross-validation for 20 times and calculate accuracies
@@ -221,11 +200,22 @@ feature_counter = Counter()  # Counter to keep track of feature occurrences
 # Initialize a list to store mean test scores for each hyperparameter combination
 mean_test_scores = []
 
-for _ in range(1):
-    
+for _ in range(5):
+
+    if _ == 3:  # After the first three loops
+        top_20_features = [feature[0]
+            for feature in feature_counter.most_common(20)]
+        selected_features = top_20_features
+        # Adjust training and test sets to include only these 20 features
+        X_train = X_train[selected_features]
+        X_test = X_test[selected_features]
+
     grid_search = GridSearchCV(
         CustomWeightedRF(), param_grid, cv=5, return_train_score=False)
     grid_search.fit(X_train, y_train)
+
+    print(grid_search.cv_results_['mean_test_score'].shape)
+
 
     # Store mean test scores in the list
     mean_test_scores.append(grid_search.cv_results_['mean_test_score'])
@@ -314,3 +304,144 @@ plt.xlabel('Mean Cross-Validated Accuracy')
 plt.ylabel('Hyperparameter Combination')
 plt.title('Boxplot of Validation Accuracies for each Hyperparameter Combination')
 plt.show()
+
+# +
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# Set aesthetic styles for the plot
+plt.style.use('ggplot')
+
+# Compute the zero-one loss for each sample in the test set
+y_pred_best = best_model.predict(X_test)
+zero_one_loss = np.where(y_test != y_pred_best, 1, 0)
+
+# Combine the zero-one loss and original features into a new DataFrame
+loss_df = pd.DataFrame({'loss': zero_one_loss, 'pointID': X_test.index})
+loss_df = pd.merge(
+    loss_df, df[['pointID', 'PriorCropT']], on='pointID', how='left')
+
+# Define a color for each Croptype, using colorblind-friendly and harmonious colors
+croptype_colors = {'legume': '#5ec962',
+                   'canola': '#fde725', 'grain': '#b5de2b'}
+
+# Prepare data for stacked histogram and collect sample counts
+croptypes = ['legume', 'canola', 'grain']
+data = [loss_df[loss_df['PriorCropT'] == croptype]
+        ['loss'].values for croptype in croptypes]
+sample_counts = [len(d) for d in data]
+
+# Create labels with sample counts for the legend
+labels_with_counts = [f"{croptype} (n = {count})" for croptype, count in zip(
+    croptypes, sample_counts)]
+
+# Plot stacked histogram
+fig, ax = plt.subplots()
+n, bins, patches = ax.hist(data, bins=[-0.5, 0.5, 1.5], stacked=True,
+                           color=[croptype_colors[c] for c in croptypes],
+                           edgecolor='white', linewidth=1)
+
+cumulative_heights = np.zeros(len(bins) - 1)  # Initialize cumulative heights
+
+
+for i, bars in enumerate(patches):
+    for j, bar in enumerate(bars):
+        bar_height = bar.get_height()
+        bar_center_x = bar.get_x() + bar.get_width() / \
+            2.0  # Center the text within the bar
+
+        # Get the bottom of the current bar. If it's the first set of bars, bottom is 0.
+        bar_bottom = 0 if i == 0 else patches[i-1][j].get_height()
+
+        # Only label the bar if its height is greater than 0
+        if bar_height > 0:
+            # adjust "- 0.5" if needed for better positioning
+            text_y_position = bar_bottom + bar_height - 0.5
+            ax.text(bar_center_x, text_y_position, int(bar_height),
+                    ha='center', va='center', color='black')
+
+# Existing code for customization
+plt.xlabel('Zero-One Loss', fontsize=14)
+plt.ylabel('Frequency', fontsize=14)
+plt.xticks([0, 1], fontsize=12)
+plt.yticks(fontsize=12)
+plt.legend(title='Croptype', labels=labels_with_counts,
+           title_fontsize='13', fontsize='12')
+plt.title('Histogram of Loss Across Each Croptype', fontsize=16)
+plt.grid(axis='y', linestyle='--', linewidth=0.7, alpha=0.7)
+
+plt.tight_layout()
+plt.show()
+
+# -
+
+grid_search.cv_results_['mean_test_score']
+
+
+# +
+# scores_matrix = grid_search.cv_results_['mean_test_score'][4].reshape(
+#     len(param_grid['max_depth']),
+#     len(param_grid['n_estimators'])
+# )
+# plt.figure(figsize=(12, 6))
+# annot_kws = {"size": 10}
+
+# sns.heatmap(scores_matrix, annot=False,
+#             xticklabels=param_grid['n_estimators'],
+#             yticklabels=param_grid['max_depth'], cmap="YlGnBu")
+# plt.xlabel('Number of Estimators (n_estimators)')
+# plt.ylabel('Maximum Depth (max_depth)')
+# plt.title('Mean Test Scores for Hyperparameter Combinations')
+# plt.show()
+
+
+# +
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+param_grid = {
+    'n_estimators': [20, 30, 40, 50, 100, 300],
+    'max_depth': [5, 10, 20, 30, 45],
+    'a': [0, 0.2, 0.4, 0.6, 1, 3, 10]
+}
+
+# Set up the colormap
+cmap = plt.get_cmap('viridis')
+norm = mpl.colors.Normalize(vmin=0, vmax=len(param_grid['max_depth']) - 1)
+
+# Create a subplot for each value of 'a' in 2-column layout
+fig, axes = plt.subplots(nrows=4, ncols=2, figsize=(15, 4 * 4))
+axes = axes.ravel()  # Flatten axes to easily iterate
+
+# Remove the last unused ax
+fig.delaxes(axes[-1])
+
+# Create custom legend handles
+legend_handles = [mpl.patches.Patch(color=cmap(norm(i)), label=f"max_depth={depth}")
+                  for i, depth in enumerate(param_grid['max_depth'])]
+
+for ax, a_val in zip(axes, param_grid['a']):
+    for i, depth in enumerate(param_grid['max_depth']):
+        start_index = (param_grid['a'].index(a_val) * len(param_grid['max_depth']) * len(param_grid['n_estimators'])) + \
+                      (i * len(param_grid['n_estimators']))
+        end_index = start_index + len(param_grid['n_estimators'])
+        scores_for_depth = mean_test_scores[4][start_index:end_index]
+
+        # Get color for this depth from the colormap
+        color = cmap(norm(i))
+
+        ax.plot(param_grid['n_estimators'], scores_for_depth,
+                marker='o', linestyle='-', color=color)
+        ax.set_title(f'a = {a_val}')
+        ax.set_xlabel('n_estimators')
+        ax.set_ylabel('Validation Accuracy')
+
+# Create a common legend for max_depth using the custom handles
+fig.subplots_adjust(right=0.8, hspace=0.4, wspace=0.3)
+axes[-1].legend(handles=legend_handles, loc="lower right", title="max_depth")
+
+plt.tight_layout()
+plt.show()
+
