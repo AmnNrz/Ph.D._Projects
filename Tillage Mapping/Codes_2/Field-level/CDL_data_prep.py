@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: gis_env
 #     language: python
@@ -17,6 +17,7 @@ import pandas as pd
 
 cdl_2223 = pd.read_csv('/Users/aminnorouzi/Library/CloudStorage/OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/Tillage_Mapping/Data/CDL crop data/most_frequent_cdl_classes_survey_polygons_2223.csv')
 cdl_2223['most_frequent_class'].unique()
+
 
 to_replace ={
     23: 'Grain', 

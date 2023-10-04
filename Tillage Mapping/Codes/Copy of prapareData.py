@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: base
 #     language: python
@@ -22,11 +22,16 @@ sys.path.append('/content/drive/MyDrive/github/Ph.D._Projects/Tillage_Mapping/Co
 
 
 import pandas as pd 
+k
+
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
 import time
 import NASA_core as nc
+# -
+
+
 
 # + colab={"base_uri": "https://localhost:8080/", "height": 56} executionInfo={"elapsed": 195, "status": "ok", "timestamp": 1680979763361, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="-fo4_yhZM2aC" outputId="7267e292-f909-409d-9198-c80954e36097"
 np.__version__
@@ -301,7 +306,7 @@ regular_dfs
 regular_dfs
 
 <<<<<<< HEAD
-# + colab={"base_uri": "https://localhost:8080/"} id="G0fFoAavZRX1" executionInfo={"status": "ok", "timestamp": 1680748176134, "user_tz": 420, "elapsed": 236, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}} outputId="57912ab2-76f2-4a3c-d654-3fa6ef569240"
+# + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 236, "status": "ok", "timestamp": 1680748176134, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="G0fFoAavZRX1" outputId="57912ab2-76f2-4a3c-d654-3fa6ef569240"
 =======
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 236, "status": "ok", "timestamp": 1680748176134, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="G0fFoAavZRX1" outputId="57912ab2-76f2-4a3c-d654-3fa6ef569240"
 >>>>>>> origin/main

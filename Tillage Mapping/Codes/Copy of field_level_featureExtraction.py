@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -23,16 +23,20 @@ ee.Initialize()
  
 # Install geemap
 # !pip install geemap
+
 # !pip install geopandas
 import ee
 import geemap
 import numpy as np
 import geopandas as gpd
 import pandas as pd
+# -
+
+
 
 # + colab={"base_uri": "https://localhost:8080/"} executionInfo={"elapsed": 265673, "status": "ok", "timestamp": 1680670893747, "user": {"displayName": "Amin Norouzi Kandelati", "userId": "14243952765795155999"}, "user_tz": 420} id="aYGl9T8OQZrA" outputId="9b25cbc2-5f6d-4062-b4ab-5fd537570773"
 # Mount google drive
-from google.colab import drive
+from google.colab import drive                          
 drive.mount('/content/drive')
 
 # + [markdown] id="zNHfo5P4FUfQ"

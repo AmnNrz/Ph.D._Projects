@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -498,9 +498,9 @@ main_glcm_seasonBased_joined_df_2122 = main_glcm_seasonBased_joined_df_2122.iloc
 # Map
 # + [markdown] id="DUhdHR8xIrUE"
 # #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
-# -
 
-main_glcm_seasonBased_joined_df_2122.to_csv(path_to_data + 'field_level_data/field_leve_main_glcm_seasonBased_joined_2122.csv')
+# +
+# main_glcm_seasonBased_joined_df_2122.to_csv(path_to_data + 'field_level_data/field_leve_main_glcm_seasonBased_joined_2122.csv')
 
 
 # + colab={"background_save": true} id="vrRY7E6NLhul"
