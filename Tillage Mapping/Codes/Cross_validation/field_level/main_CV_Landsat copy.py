@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -287,7 +287,8 @@ mean_test_scores = []
 
 for _ in range(20):
     print(_)
-    grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, return_train_score=False)
+    grid_search = GridSearchCV(RandomForestClassifier(), param_grid, cv=5, 
+                               return_train_score=False)
     grid_search.fit(df_resampled.drop('Tillage', axis=1), df_resampled['Tillage'])
 
     # Store mean test scores in the list

@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -491,11 +491,6 @@ duplicated_cols_idx = main_glcm_seasonBased_joined_df_2122.columns.duplicated()
 main_glcm_seasonBased_joined_df_2122 = main_glcm_seasonBased_joined_df_2122.iloc[
     :, ~duplicated_cols_idx]
 
-# # Save the season-based dataframe 
-# main_glcm_seasonBased_joined_df_2122.to_csv(
-#     '/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv')
-
-
 # Display on Map
 # Map = geemap.Map()
 # Map.setCenter(-117.100, 46.94, 7)
@@ -558,5 +553,13 @@ glcmBands = [name for sublist in nameLists for name in sublist]
 
 # Convert each year's composites to a single dataframe and put all the dataframes in a list
 # The dataframes include pointID (first column), mainbands, derived indices and the corresponding GLCM metrics
-metricBased_dataframeList_mainBands = eefeatureColl_to_Pandas(reducedList_mainBands, mainBands)
-metricBased_dataframeList_glcm = eefeatureColl_to_Pandas(reducedList_glcmBands, glcmBands)
+
+important_columns_names = ['pointID', 'CurrentCro', 'DateTime', 'PriorCropT', 'ResidueCov', 'Tillage', 'WhereInRan']
+
+metricBased_dataframeList_mainBands = eefeatureColl_to_Pandas(reducedList_mainBands, mainBands, important_columns_names)
+metricBased_dataframeList_glcm = eefeatureColl_to_Pandas(reducedList_glcmBands, glcmBands, important_columns_names)
+# -
+
+metricBased_dataframeList_mainBands[0]
+
+metricBased
