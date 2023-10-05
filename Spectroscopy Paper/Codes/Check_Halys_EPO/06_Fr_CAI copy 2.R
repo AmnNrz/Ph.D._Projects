@@ -32,14 +32,21 @@ library(ggplot2)
 ##################################################################
 ##################################################################
 ##################################################################
-setwd("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO")
-path_to_save = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/index_org_trsfed_crp_sl/estAFTER_EPO"
+
+path_to_data = paste0("/Users/aminnorouzi/Library/CloudStorage/",
+                      "OneDrive-WashingtonStateUniversity(email.wsu.edu)/", 
+                      "Ph.D/Projects/Spectroscopy_Paper/Data/Halys/")
+
+path_to_plots = paste0("/Users/aminnorouzi/Library/CloudStorage/",
+                       "OneDrive-WashingtonStateUniversity(email.wsu.edu)/",
+                       "Ph.D/Projects/Spectroscopy_Paper/Plots/Halys/")
 
 ## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
-CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main copy EPO/CAI_transformed_Combined.csv")
+CAI <- read.csv(paste0(path_to_data, "CAI_transformed_Combined.csv"))
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
-"X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000",
+                      "X2100", "X2200", "X2260", "X2330", "CAI", "SINDRI", "NDTI", 
+                      "R2220", "R1620", "RSWIR", "ROLI")
 # Reorder the columns
 CAI <- CAI[, desired_colOrder]
 
@@ -83,9 +90,9 @@ for (crp in sort(crops)) {
     
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
     
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
+    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.y")
     
     
     for (i in fractions){
@@ -97,7 +104,7 @@ for (crp in sort(crops)) {
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
     
-    write.csv(test3_NDTI, paste0(path_to_save,"/","NDTI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_NDTI, paste0(path_to_data,"index_org_trsfed_crp_sl/","NDTI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
     
     ##Fig5
     ggplot(test3_NDTI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
@@ -155,7 +162,7 @@ for (crp in sort(crops)) {
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
     
-    write.csv(test3_CAI, paste0(path_to_save, "/", "CAI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_CAI, paste0(path_to_data,"index_org_trsfed_crp_sl/", "CAI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
     
     ##Fig5
     ggplot(test3_CAI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
@@ -212,7 +219,7 @@ for (crp in sort(crops)) {
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
     
-    write.csv(test3_SINDRI, paste0(path_to_save, "/", "SINDRI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_SINDRI, paste0(path_to_data,"index_org_trsfed_crp_sl/", "SINDRI_transformed_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
     
     ##Fig5
     ggplot(test3_SINDRI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
@@ -236,14 +243,12 @@ for (crp in sort(crops)) {
   ##################################################################
   ##################################################################
 
-setwd('/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main')
-
 ## Run 03 to create CAI it might have got altered or saved as soil_residue_combined.csv
-CAI <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/CAI_Combined.csv")
-CAI$Sample <- gsub("Crop Residue", "Residue", CAI$Sample)
+CAI <- read.csv(paste0(path_to_data, "CAI_Combined.csv"))
+# CAI$Sample <- gsub("Crop Residue", "Residue", CAI$Sample)
 
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200", "X2205",
+desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
                       "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
 # Reorder the columns
 CAI <- CAI[, desired_colOrder]
@@ -293,7 +298,7 @@ for (crp in sort(crops)) {
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "CAI"
   
-    write.csv(test3_NDTI, paste0(path_to_save, "/", "NDTI_Original_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_NDTI, paste0(path_to_data,"index_org_trsfed_crp_sl/", "NDTI_Original_", crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
   
     ##Fig5
     ggplot(test3_NDTI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
@@ -351,7 +356,7 @@ for (crp in sort(crops)) {
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"
     names(test3_CAI)[3] <- "CAI"
   
-    write.csv(test3_CAI, paste0(path_to_save, "/", "CAI_Original_" , crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
+    write.csv(test3_CAI, paste0(path_to_data,"index_org_trsfed_crp_sl/", "CAI_Original_" , crp, "_", gsub("_", " ", sl), ".csv"), row.names = FALSE)
   
     ##Fig5
     ggplot(test3_CAI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
@@ -409,7 +414,7 @@ for (crp in sort(crops)) {
     names(test3_SINDRI)[2] <- "Fraction_Residue_Cover"
     names(test3_SINDRI)[3] <- "CAI"
   
-    write.csv(test3_SINDRI, paste0(path_to_save, "/", "SINDRI_Original_", crp, "_", gsub("_", " ", sl),  ".csv"), row.names = FALSE)
+    write.csv(test3_SINDRI, paste0(path_to_data,"index_org_trsfed_crp_sl/", "SINDRI_Original_", crp, "_", gsub("_", " ", sl),  ".csv"), row.names = FALSE)
   
     ##Fig5
     ggplot(test3_SINDRI, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +

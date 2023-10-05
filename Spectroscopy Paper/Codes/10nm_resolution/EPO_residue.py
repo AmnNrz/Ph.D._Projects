@@ -19,19 +19,18 @@ import pandas as pd
 import numpy as np
 
 # +
-path_to_data = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/"
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "OneDrive-WashingtonStateUniversity(email.wsu.edu)"
+                "/Ph.D/Projects/Spectroscopy_Paper/Data/Halys/")
 # path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
 
-residue_df = pd.read_csv(path_to_data + "Residue_08_18.csv")
-
+residue_df = pd.read_csv(path_to_data + "Residue.csv")
+residue_df = residue_df.drop(columns=['Unnamed: 0', 'EPO_Reflect'])
+residue_df.rename({'Soil': 'Type_Name'}, axis=1, inplace=True)
+residue_df['Sample'] = residue_df['Sample'].map({'Crop Residue':'Residue'})
 colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
-residue_df.columns = colnames
-residue_df["Type_Name"].unique()
-# residue_df = pd.read_csv(
-    # "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Residue_08_18.csv")
-# soil_df = pd.read_csv(r"G:\My Drive\PhD\Projects\Spectroscopy paper\Spectrometry-main\Soil_08_18.csv")
-# soil_df = pd.read_csv(
-    # "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Soil_08_18.csv")
+residue_df = residue_df[colnames]
+residue_df
 
 
 # +
