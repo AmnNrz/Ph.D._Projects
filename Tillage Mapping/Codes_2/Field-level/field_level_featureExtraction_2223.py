@@ -61,7 +61,7 @@ path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
 
 # -
 
-WSDA_featureCol
+WSDA_featureCol 
 
 
 # + [markdown] id="dl5KSrInfIGI"
@@ -435,9 +435,9 @@ landSat_7_8 = landSat_7_8.map(lambda image: image.addBands(dem)) \
 
 # Create season-based composites
 # Specify time period
-startSeq= 2022
-endSeq= 2023
-years = list(range(startSeq, endSeq));
+startYear= 2022
+endYear= 2023
+years = list(range(startYear, endYear));
 
 # Create season-based composites for each year and put them in a list
 yearlyCollectionsList = []

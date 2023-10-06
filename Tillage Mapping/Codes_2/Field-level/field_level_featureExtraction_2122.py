@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -439,9 +439,9 @@ landSat_7_8 = landSat_7_8.map(lambda image: image.addBands(dem)) \
 
 # Create season-based composites
 # Specify time period
-startSeq= 2021
-endSeq= 2022
-years = list(range(startSeq, endSeq));
+startYear= 2021
+endYear= 2022
+years = list(range(startYear, endYear));
 
 # Create season-based composites for each year and put them in a list
 yearlyCollectionsList = []
