@@ -51,9 +51,9 @@ for (name in unique(csv_files)) {
   SINDRI_original <- read.csv(paste0(path_to_data, 'index_org_trsfed_crp_sl/SINDRI_Original_', name, '.csv'))
   
   ##Fig5
-  ggplot(NDTI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-    geom_line(aes(color = factor(RWC.x))) +
-    geom_point(aes(shape = factor(RWC.x)))+
+  ggplot(NDTI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.y))) +
+    geom_line(aes(color = factor(RWC.y))) +
+    geom_point(aes(shape = factor(RWC.y)))+
     labs(y = "Fraction Residue Cover", x = "NDTI") +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
     theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
@@ -66,9 +66,9 @@ for (name in unique(csv_files)) {
   
   
   ##Fig5
-  ggplot(CAI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-    geom_line(aes(color = factor(RWC.x))) +
-    geom_point(aes(shape = factor(RWC.x)))+
+  ggplot(CAI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.y))) +
+    geom_line(aes(color = factor(RWC.y))) +
+    geom_point(aes(shape = factor(RWC.y)))+
     labs(y = "Fraction Residue Cover", x = "CAI") +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
     theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
@@ -81,9 +81,9 @@ for (name in unique(csv_files)) {
   
   
   ##Fig5
-  ggplot(SINDRI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-    geom_line(aes(color = factor(RWC.x))) +
-    geom_point(aes(shape = factor(RWC.x)))+
+  ggplot(SINDRI_transformed, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.y))) +
+    geom_line(aes(color = factor(RWC.y))) +
+    geom_point(aes(shape = factor(RWC.y)))+
     labs(y = "Fraction Residue Cover", x = "SINDRI") +
     scale_y_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.2)) +
     theme(text = element_text(size = 20),legend.position = c(0.8, 0.2),
@@ -130,16 +130,16 @@ for (name in unique(csv_files)) {
   combined_data$index <- factor(combined_data$index, levels = c('Before EPO', 'After EPO'))
   
   # Get all unique RWC levels from both dataframes
-  all_rwc_levels <- unique(c(combined_data$RWC.x))
+  all_rwc_levels <- unique(c(combined_data$RWC.y))
   
   # Create a color palette with enough colors for all RWC levels
   custom_colors <- viridis(length(all_rwc_levels))
   custom_colors <- rev(custom_colors)
   
   # Plotting
-  ggplot(combined_data, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.x))) +
-  geom_line(aes(color = factor(RWC.x))) +
-  geom_point(aes(shape = factor(RWC.x), color = factor(RWC.x))) +
+  ggplot(combined_data, aes(CAI, Fraction_Residue_Cover, group = factor(RWC.y))) +
+  geom_line(aes(color = factor(RWC.y))) +
+  geom_point(aes(shape = factor(RWC.y), color = factor(RWC.y))) +
   scale_color_manual(values = custom_colors, name = "RWC Levels") +  # Set legend title here
   labs(title = paste0("'", strsplit(name, "_")[[1]][1], "'"," ", "on", " ", "'", strsplit(name, "_")[[1]][2], "'"),
        y = "Fraction Residue Cover") +  # Removed the 'shape' title here

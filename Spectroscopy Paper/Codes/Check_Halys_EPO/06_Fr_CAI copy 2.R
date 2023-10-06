@@ -148,9 +148,9 @@ for (crp in sort(crops)) {
   
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
     
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
+    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.y")
     
     
     for (i in fractions){
@@ -206,9 +206,9 @@ for (crp in sort(crops)) {
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
     
-    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
+    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.y")
     
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -286,9 +286,9 @@ for (crp in sort(crops)) {
   
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
   
-    test3_NDTI <- test2_NDTI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.x")
+    test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.y")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -343,9 +343,9 @@ for (crp in sort(crops)) {
     
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
   
-    test3_CAI <- test2_CAI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.x")
+    test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.y")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)
@@ -401,9 +401,9 @@ for (crp in sort(crops)) {
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(4,38:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
   
-    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.x")
+    test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.y")
   
     for (i in fractions){
       pattern <- paste0("CAI_", i)

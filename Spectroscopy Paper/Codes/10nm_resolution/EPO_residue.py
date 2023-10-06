@@ -256,7 +256,7 @@ residue_df
 #== Filter spectra at > 1500 nm wavelength ==#
 residue_df = residue_df.loc[residue_df['Wvl']>= 1500]
 
-residue_df
+r = 'Canola'
 
 #== Apply EPO to all crops ==#
 Residue_transformed = pd.DataFrame([])
