@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: tillmap
 #     language: python
@@ -16,13 +16,13 @@
 # +
 import pandas as pd
 
-# Read data
-path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-                "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
-                "Tillage_Mapping/Data/")
+# # Read data
+# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+#                 "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
+#                 "Tillage_Mapping/Data/")
 
-# path_to_data = ("/home/amnnrz/OneDrive - "
-#                 "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
+path_to_data = ("/home/amnnrz/OneDrive - "
+                "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
 
 df_2122 = pd.read_csv(
     path_to_data + 'field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv',
@@ -82,6 +82,9 @@ df_2122['PriorCropT'].isna().value_counts()
 df1 = pd.concat([df_2122, df_2223])
 
 df1
+# -
+
+
 
 # +
 from sklearn.base import BaseEstimator, ClassifierMixin
