@@ -29,10 +29,7 @@ colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
 soil_df = soil_df[colnames]
 soil_df
 
-# -
 
-
-soil_df
 
 # +
 #== Plot the Raw reflectance vs Wvl for wheat duet ==#  
@@ -280,7 +277,7 @@ for r in soil_df['Type_Name'].unique():
     P
 
 
-    X_raw = X_wet
+    X_raw = X
     X_transformed = X_raw @ P
 
     X_transformed.columns = X_wet.columns

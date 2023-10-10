@@ -13,29 +13,39 @@
 #     name: python3
 # ---
 
+# +
 import pandas as pd
+
 import numpy as np
 
 # +
-# path_to_data = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/"
-path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
-soil_df = pd.read_csv(path_to_data + "Soil_08_18.csv")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "OneDrive-WashingtonStateUniversity(email.wsu.edu)"
+                "/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/")
+# path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
 
+residue_df = pd.read_csv(path_to_data + "Residue.csv")
+residue_df = residue_df.drop(columns=['Unnamed: 0', 'EPO_Reflect'])
+residue_df.rename({'Soil': 'Type_Name'}, axis=1, inplace=True)
+residue_df['Sample'] = residue_df['Sample'].map({'Crop Residue':'Residue'})
 colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
-soil_df.columns = colnames
-soil_df
-# -
+residue_df = residue_df[colnames]
+residue_df
 
-
-soil_df
 
 # +
-#== Plot the Raw reflectance vs Wvl for wheat duet ==#  
+Wheat_Duet = residue_df[residue_df['Type_Name'] == 'Weathered Canola'].copy()
 
-Almira_top = soil_df[soil_df['Type_Name'] == 'Almira_top'].copy()
-Almira_top['RWC'].unique()
+Wheat_Duet
 
-df = Almira_top
+
+# +
+#== Plot the Raw reflectance vs Wvl for Wheat Duet ==#  
+
+Wheat_Duet = residue_df[residue_df['Type_Name'] == 'Weathered Canola'].copy()
+Wheat_Duet['RWC'].unique()
+
+df = Wheat_Duet
 
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -59,7 +69,7 @@ for rwc_level in rwc_levels:
 # Set labels and title
 ax.set_xlabel('Wvl')
 ax.set_ylabel('Reflect')
-ax.set_title('Reflect vs Wvl for Different RWC Levels')
+ax.set_title('Reflect vs Wvl of Wheat Duet for Different RWC Levels (Before EPO)')
 
 # Add a legend
 ax.legend()
@@ -69,38 +79,30 @@ plt.show()
 
 # -
 
-Almira_top
+df.to_csv('G:\My Drive\PhD\Projects\Spectroscopy paper\EPO\wheatDuet_sperctra_original.csv')
 
-Almira_top['RWC'].unique()
-
-# +
-#== Prepare X ==#
-# scan1: rwc=1, scan2: rwc=1.12, scan3: rwc= 0.86, scan4: rwc= 0.73,
-# scan5: rwc=0.65, scan6: rwc=0.39, scan7: rwc=0.16
-
-# Replace Scan column with RWC values
-replacement_dict = {'Scan1':'rwc=1', 'Scan2':'rwc=0.84', 'Scan3':'rwc=0.68', 'Scan4':'rwc=0.65',
-'Scan5':'rwc=0.53', 'Scan6':'rwc=0.35', 'Scan7':'rwc=0.18', 'Scan8':'rwc=0.11', 'Scan9':'rwc=0.09'}
-
-Almira_top['Scan'] = Almira_top['Scan'].replace(replacement_dict)
-Almira_top
-
-X_wd = Almira_top.pivot(index=['Wvl'], columns='Scan', values='Reflect')
-reordered_cols = ['rwc=1', 'rwc=0.84', 'rwc=0.68', 'rwc=0.65',
-                   'rwc=0.53', 'rwc=0.35','rwc=0.18', 'rwc=0.11', 'rwc=0.09']
-X_wd = X_wd[reordered_cols]
-X_wd
+for crp in residue_df['Type_Name'].unique():
+    print(crp)
+    #== Apply EPO for one Crop ==#
+    res_df = residue_df[residue_df['Type_Name'] == crp].copy()
+    res_df
+    #== Prepare X ==#
+    X_wd = res_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
+    X_wd
+    X = X_wd/100
+    print(min(X.columns))
 
 # +
-#== Apply EPO ==#
+#==    Apply EPO on Raw    ==#
 X = X_wd/100
-X_wet = X.iloc[:, :8]
 
-D = X_wet.sub(X.iloc[:, 8], axis = 'index')
-D = -D
-print(D.shape)
+X_wet = X.drop(min(X.columns), axis=1)
+X_wet
+# D = X_wet.sub(X[min(X.columns)], axis = 'index')
+# D = -D
+# print(D.shape)
 # Perform a singular value decompostion on D(D.T)
-U, S, V = np.linalg.svd(np.array(D.T@D))
+U, S, V = np.linalg.svd(np.array(X_wet.T@X_wet))
 print(U.shape, 'U.shape')
 print(S.shape, 'S.shape')
 print(V.shape, 'V.shape')
@@ -112,18 +114,47 @@ print(Q.shape, 'Q.shape')
 P = np.ones([Q.shape[0],Q.shape[0]]) - Q
 P
 
-# +
-X_raw = X.iloc[:, :8]
+
+X_raw = X_wet
 X_transformed = X_raw @ P
+
+X_transformed.columns = X_wet.columns
 X_transformed
 
-X_transformed_cols = ['rwc=1', 'rwc=0.84', 'rwc=0.68', 'rwc=0.65',
-                   'rwc=0.53', 'rwc=0.35','rwc=0.18', 'rwc=0.11']
-X_transformed.columns = X_transformed_cols
-# -
+# +
+#==   Apply EPO on D   ==#
+#== Apply EPO for one Crop ==#
+res_df = residue_df[residue_df['Type_Name'] == 'Wheat Duet'].copy()
+# res_df.set_index(['Wvl', 'RWC'], inplace=True)
+res_df
+#== Prepare X ==#
+X_wd = res_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
+X_wd
+X = X_wd/100
 
-X_raw
+X_wet = X.drop(min(X.columns), axis=1)
+X_wet
+D = X_wet.sub(X[min(X.columns)], axis = 'index')
+D = -D
+print(D.shape)
+# Perform a singular value decompostion on D(D.T)
+U, S, V = np.linalg.svd(np.array(D.T@D))
+print(U.shape, 'U.shape')
+print(S.shape, 'S.shape')
+print(V.shape, 'V.shape')
+print(f"{V.shape = }")
+Vs = V[:, 0:4]
+Q = Vs@Vs.T
+print(Q.shape, 'Q.shape')
 
+P = np.ones([Q.shape[0],Q.shape[0]]) - Q
+P
+
+
+X_raw = X_wet
+X_transformed = X_raw @ P
+
+X_transformed.columns = X_wet.columns
 X_transformed
 
 # +
@@ -149,7 +180,7 @@ for rwc_level in rwc_levels:
 # Set labels and title
 ax.set_xlabel('Wvl')
 ax.set_ylabel('Reflect')
-ax.set_title('Reflect vs Wvl of Almira_top for Different RWC Levels (Before EPO)')
+ax.set_title('Reflect vs Wvl for Different RWC Levels (Before EPO)')
 
 # Add a legend
 ax.legend()
@@ -181,7 +212,7 @@ for rwc_level in rwc_levels:
 # Set labels and title
 ax.set_xlabel('Wvl')
 ax.set_ylabel('Reflect')
-ax.set_title('Reflect vs Wvl of Almira_top for Different RWC Levels (After EPO)')
+ax.set_title('Reflect vs Wvl of Wheat Duet for Different RWC Levels (After EPO)')
 
 # Add a legend
 ax.legend()
@@ -189,28 +220,15 @@ ax.legend()
 # Display the plot
 plt.show()
 
-# -
-
-X_transformed
 
 # +
-import pandas as pd
-
-import pandas as pd
-import pandas as pd
-
-# Assuming X_wd is your pivoted DataFrame
 # Create a copy of X_wd to avoid modifying the original DataFrame
-X_transformed_copy = X_transformed_copy.copy()
+X_transformed_copy = X_transformed.copy()
 
 # Reset the index to make 'Wvl' a column again
 X_transformed_copy.reset_index(inplace=True)
 
-# Use pd.melt() to unpivot the DataFrame back to its original form
-reordered_cols = ['rwc=1', 'rwc=0.84', 'rwc=0.68', 'rwc=0.65',
-                   'rwc=0.53', 'rwc=0.35','rwc=0.18', 'rwc=0.11']
-
-df_original = pd.melt(X_transformed_copy, id_vars=['Wvl'], value_vars=reordered_cols, var_name='Scan', value_name='Reflect')
+df_original = pd.melt(X_transformed_copy, id_vars=['Wvl'], var_name='RWC', value_name='Reflect')
 
 # Sort the DataFrame by the 'Wvl' column to get the original order
 df_original.sort_values(by='Wvl', inplace=True)
@@ -218,36 +236,36 @@ df_original.sort_values(by='Wvl', inplace=True)
 # Optionally, reset the index if you want a continuous integer index
 df_original.reset_index(drop=True, inplace=True)
 
-# Display the resulting DataFrame (df_original)
-df_original
+# # Display the resulting DataFrame (df_original)
+Wheat_Duet_df = residue_df[residue_df['Type_Name'] == 'Wheat Duet'].copy()
+Wheat_Duet_df['Scan_RWC'] = Wheat_Duet_df['Scan'].astype(str) + '_' + Wheat_Duet_df['RWC'].astype(str)
+scan_list = list(Wheat_Duet_df['Scan_RWC'].unique())
 
-# df_original.to_csv(r'G:\My Drive\PhD\Projects\Spectroscopy paper\EPO\soil_transformed.csv')
+# Create a mapping dictionary from RWC to Scan strings
+mapping_dict = {float(scan.split('_')[1]): scan.split('_')[0] for scan in scan_list}
+
+# Create the 'Scan' column using the map function with the mapping dictionary
+df_original['Scan'] = df_original['RWC'].map(mapping_dict)
+df_original
 # -
 
-soil_df['Type_Name'].unique()
+df_original.to_csv('G:\My Drive\PhD\Projects\Spectroscopy paper\EPO\WheatDuet_spectra_EpoAppliedOnRaw.csv')
 
-s_df = soil_df[soil_df['Type_Name'] == 'Almira_bottom'].copy()
-s_df
-X_wd = s_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
-X_wd
-
-s_df = soil_df[soil_df['Type_Name'] == 'Bickleton_bottom'].copy()
-print(s_df.shape)
-s_df.drop_duplicates(subset=['Wvl', 'RWC'], inplace=True)
-print(s_df.shape)
-X_wd = s_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
+residue_df
 
 #== Filter spectra at > 1500 nm wavelength ==#
-soil_df = soil_df.loc[soil_df['Wvl']>= 1500]
+residue_df = residue_df.loc[residue_df['Wvl']>= 1500]
 
-#== Apply EPO to all soils ==#
-Soil_transformed = pd.DataFrame([])
-for r in soil_df['Type_Name'].unique():
+r = 'Canola'
+
+#== Apply EPO to all crops ==#
+Residue_transformed = pd.DataFrame([])
+for r in residue_df['Type_Name'].unique():
     print(r)
     #== Apply EPO for all Crops ==#
-    s_df = soil_df[soil_df['Type_Name'] == f'{r}'].copy()
-    s_df.drop_duplicates(subset=['Wvl', 'RWC'], inplace=True)
-    X_wd = s_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
+    res_df = residue_df[residue_df['Type_Name'] == f'{r}'].copy()
+
+    X_wd = res_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
     # reordered_cols = ['rwc=1.12', 'rwc=1', 'rwc=0.86', 'rwc=0.73',  'rwc=0.65', 'rwc=0.39','rwc=0.16']
     # X_wd = X_wd[reordered_cols]
     print(X_wd.shape, "X_wd.shape")
@@ -267,7 +285,7 @@ for r in soil_df['Type_Name'].unique():
     print(S.shape, 'S.shape')
     print(V.shape, 'V.shape')
 
-    Vs = V[:, 0:4]
+    Vs = V[:, 0:2]
     Q = Vs@Vs.T
     print(Q.shape, 'Q.shape')
 
@@ -301,7 +319,7 @@ for r in soil_df['Type_Name'].unique():
     df_original.reset_index(drop=True, inplace=True)
 
     # # Display the resulting DataFrame (df_original)
-    Crop_df = soil_df[soil_df['Type_Name'] == f'{r}'].copy()
+    Crop_df = residue_df[residue_df['Type_Name'] == f'{r}'].copy()
     Crop_df['Scan_RWC'] = Crop_df['Scan'].astype(str) + '_' + Crop_df['RWC'].astype(str)
     scan_list = list(Crop_df['Scan_RWC'].unique())
 
@@ -321,11 +339,14 @@ for r in soil_df['Type_Name'].unique():
     df_original['Crop'] = r
 
     # Create Sampe column
-    df_original['Sample'] = 'Soil'
+    df_original['Sample'] = 'Residue'
 
     # Append to the Residue_transformed
-    Soil_transformed = pd.concat([Soil_transformed, df_original])
+    Residue_transformed = pd.concat([Residue_transformed, df_original])
 # Display the resulting DataFrame (df_original)
-Soil_transformed
+Residue_transformed
 
-Soil_transformed.to_csv(path_to_data + 'Soil_Transformed.csv', index=False)
+Residue_transformed
+
+
+Residue_transformed.to_csv(path_to_data + "Residue_Transformed.csv", index=False)
