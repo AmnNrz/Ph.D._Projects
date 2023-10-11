@@ -1,7 +1,7 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: py:light,ipynb
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
@@ -17,12 +17,12 @@
 import pandas as pd
 
 # # Read data
-# path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-#                 "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
-#                 "Tillage_Mapping/Data/")
+path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
+                "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/"
+                "Tillage_Mapping/Data/")
 
-path_to_data = ("/home/amnnrz/OneDrive - "
-                "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
+# path_to_data = ("/home/amnnrz/OneDrive - "
+#                 "a.norouzikandelati/Ph.D/Projects/Tillage_Mapping/Data/")
 
 df_2122 = pd.read_csv(
     path_to_data + 'field_level_data/field_level_main_glcm_seasonBased_joined_2122.csv',
@@ -81,14 +81,13 @@ df_2122['PriorCropT'].isna().value_counts()
 
 df1 = pd.concat([df_2122, df_2223])
 
+
 df1
-# -
-
-
 
 # +
 from sklearn.base import BaseEstimator, ClassifierMixin
 from sklearn.ensemble import RandomForestClassifier
+import numpy as np
 
 # Custom weight formula function
 def calculate_custom_weights(y, a):
@@ -135,6 +134,34 @@ class CustomWeightedRF(BaseEstimator, ClassifierMixin):
         return self.rf.feature_importances_
 
 
+# -
+
+X
+
+X
+
+X
+
+
+# +
+# Find columns that start with "ResidueCov_"
+dummies_cols = [
+    col for col in df_encoded.columns if col.startswith('ResidueCov_')]
+
+# Inverse the one-hot encoding
+df_encoded['ResidueCov'] = df_encoded[dummies_cols].idxmax(axis=1)
+
+# Remove "ResidueCov_" prefix
+df_encoded['ResidueCov'] = df_encoded['ResidueCov'].str.replace(
+    'ResidueCov_', '')
+
+# Drop the dummy columns
+df_encoded = df_encoded.drop(columns=dummies_cols)
+
+# -
+
+df_encoded
+
 # +
 import numpy as np
 import pandas as pd
@@ -147,11 +174,15 @@ import matplotlib.pyplot as plt
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder
 
+
+# df1 = df1.drop(columns='ResidueCov')
+
 # Load your dataframe with categorical features
 df = df1
 
-# Perform one-hot encoding for "Residue Cover" features
-df_encoded = pd.get_dummies(df, columns=['ResidueCov'])
+# # # Perform one-hot encoding for "Residue Cover" features
+# df_encoded = pd.get_dummies(df, columns=['ResidueCov'])
+df_encoded = df
 
 # Encode "PriorCropT"
 encode_dict = {
@@ -162,23 +193,28 @@ encode_dict = {
 df_encoded['PriorCropT'] = df_encoded['PriorCropT'].replace(encode_dict)
 df_encoded
 
-# Place the one-hot encoded columns on the left side of the dataframe
-ordered_columns = list(df_encoded.columns.difference(df.columns)) + \
-[col for col in df.columns if col not in ['ResidueCov']]
-df_ordered = df_encoded[ordered_columns]
+# # Place the one-hot encoded columns on the left side of the dataframe
+# ordered_columns = list(df_encoded.columns.difference(df.columns)) + \
+# [col for col in df.columns if col not in ['ResidueCov']]
+# df_ordered = df_encoded[ordered_columns]
+
+df_ordered = df_encoded
 
 # Remove NA from Tillage
-df_ordered = df_ordered.dropna(subset="Tillage")
+df_ordered = df_ordered.dropna(subset=["Tillage", "ResidueCov"])
 
 le = LabelEncoder()
-df_ordered['Tillage'] = le.fit_transform(df_ordered['Tillage'])
+df_ordered['ResidueCov'] = le.fit_transform(df_ordered['ResidueCov'])
 
 # Split features and target variable
 X = df_ordered.iloc[:, np.concatenate(
     [np.arange(0, 3), np.arange(6,7), np.arange(9, df_ordered.shape[1])]
     )]
+
+# Remove ResidueCov
+X = X.iloc[:, 3:]
     
-y = df_ordered['Tillage']
+y = df_ordered['ResidueCov']
 
 # Impute missing values with the median
 X = X.fillna(X.median())
@@ -190,8 +226,10 @@ X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_
 
 param_grid = {
     'n_estimators': [20, 30, 40, 50, 100, 300],
-    'max_depth': [5, 10, 20, 30, 45],
-    'a': [0, 0.2, 0.4, 0.6, 1, 3, 10]
+    # 'n_estimators': [30],
+    'max_depth': [5, 10 , 20 , 40],
+    # 'a': list(np.arange(-10, 10, 0.5))
+    'a': [0]
 }
 
 # Perform cross-validation for 20 times and calculate accuracies
@@ -203,7 +241,10 @@ feature_counter = Counter()  # Counter to keep track of feature occurrences
 # Initialize a list to store mean test scores for each hyperparameter combination
 mean_test_scores = []
 
-for _ in range(5):
+# initialize a list to store mean validation accuracies for each value of "a"
+a_vs_accuracy = {a_value: [] for a_value in param_grid['a']}
+
+for _ in range(10):
 
     if _ == 3:  # After the first three loops
         top_20_features = [feature[0]
@@ -218,6 +259,12 @@ for _ in range(5):
     grid_search.fit(X_train, y_train)
 
     print(grid_search.cv_results_['mean_test_score'].shape)
+
+    # Update the a_vs_accuracy dictionary with the mean validation accuracies 
+    # for each value of "a"
+    for i, a_value in enumerate(param_grid['a']):
+        a_vs_accuracy[a_value].append(grid_search.cv_results_[
+            'mean_test_score'][i::len(param_grid['a'])].mean())
 
 
     # Store mean test scores in the list
@@ -252,6 +299,9 @@ for i, accuracy in enumerate(mean_accuracies, 1):
 
 # Print mean accuracy
 print(f"Mean Accuracy: {mean_accuracy:.4f}")
+
+# print hyperparameters of the best model 
+print("Best hyperparameters for the model:", grid_search.best_params_)
 
 # Create a confusion matrix using predictions from the best model
 y_pred_best = best_model.predict(X_test)
@@ -307,6 +357,29 @@ plt.xlabel('Mean Cross-Validated Accuracy')
 plt.ylabel('Hyperparameter Combination')
 plt.title('Boxplot of Validation Accuracies for each Hyperparameter Combination')
 plt.show()
+
+# Plot a vs mean validation accuracy
+plt.figure(figsize=(10, 6))
+for a_value, accuracies in a_vs_accuracy.items():
+    plt.plot(accuracies, label=f'a={a_value}')
+plt.xlabel('Iteration')
+plt.ylabel('Mean Validation Accuracy')
+plt.title('Hyperparameter "a" vs. Mean Validation Accuracy for Each Iteration')
+plt.legend()
+plt.show()
+
+# -
+
+plt.figure(figsize=(10, 6))
+for a_value, accuracies in a_vs_accuracy.items():
+    plt.scatter([a_value] * len(accuracies), accuracies, label=f'a={a_value}')
+plt.xlabel('Hyperparameter "a"')
+plt.ylabel('Mean Validation Accuracy')
+plt.title('Hyperparameter "a" vs. Mean Validation Accuracy for Each Iteration')
+# Moved the legend to the right
+plt.legend(loc='upper left', bbox_to_anchor=(1, 1))
+plt.show()
+
 
 # +
 import matplotlib.pyplot as plt
