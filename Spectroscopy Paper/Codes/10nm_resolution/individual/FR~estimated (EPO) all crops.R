@@ -5,23 +5,29 @@ library(ggplot2)
 library(viridis)
 library(scales)
 library(minpack.lm)
+library(tidyverse)
+
 
 
 # Set the path to directory
 # Set the path to directory
-# path_to_directory <- paste0("/Users/aminnorouzi/Library/CloudStorage/", 
-#                           "OneDrive-WashingtonStateUniversity(email.wsu.edu)/",
-#                           "Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/",
-#                           "index_org_trsfed_crp_sl")
-# 
-path_to_directory <- paste0("/home/amnnrz/OneDrive - a.norouzikandelati/",
-                            "Ph.D/Projects/Spectroscopy_Paper/Data/",
-                            "10nm_res_individual/index_org_trsfed_crp_sl/")
+path_to_directory <- paste0("/Users/aminnorouzi/Library/CloudStorage/",
+                            "OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/",
+                            "Projects/Spectroscopy_Paper/Data/10nm_res_individual/index_org_trsfed_crp_sl/")
 
 path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Spectroscopy_Paper/Plots/', 
-                        '10nm_res_individual/frAct_frEst/')
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                        '/Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_res_individual/frAct_frEst_transformedBase/allCrops/')
+# 
+# path_to_directory <- paste0("/home/amnnrz/OneDrive - a.norouzikandelati/",
+#                             "Ph.D/Projects/Spectroscopy_Paper/Data/",
+#                             "10nm_res_individual/index_org_trsfed_crp_sl/")
+
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+#                         'Ph.D/Projects/Spectroscopy_Paper/Plots/', 
+#                         '10nm_res_individual/frAct_frEst/')
+
 
 # Get a list of all .csv files in the directory
 all_csv_files <- list.files(path = path_to_directory, pattern = "\\.csv$", full.names = FALSE)
@@ -36,16 +42,12 @@ print(unique(CROOP_soil_names))
 CROOPs <- unique(sapply(strsplit(CROOP_soil_names, "_"), function(x) paste(x[1])))
 soils <- unique(sapply(strsplit(CROOP_soil_names, "_"), function(x) paste(x[2])))
 
-# setwd(paste0("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive",
-#               "-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper",
-#               "/Spectrometry-main copy EPO"))
-
 
 ################################################################
 ##################                          ####################
 ################################################################
-index = 'SINDRI'
-
+index <-  'NDTI'
+# CROOPs <- "Peas"
 all_data <- list()
 for (croop in CROOPs){
   # remaining_CROOPs <- setdiff(CROOPs, CROOP)
@@ -70,19 +72,19 @@ for (croop in CROOPs){
   df_original_minRWC_CROOP$Intercept = NA
   
   # Perform linear regression (Fr ~ index)
-  for (rwc in unique(df_original_minRWC_CROOP$RWC.y)){
-    df <- dplyr::filter(df_original_minRWC_CROOP, RWC.y == rwc)
-    lm_fit <- lm(df$Fraction_Residue_Cover ~ df$CAI,
-                 data = df)
-    slope <- coef(lm_fit)[2]
-    intercept <- coef(lm_fit)[1]
-    df_original_minRWC_CROOP <- df_original_minRWC_CROOP %>%
-      mutate(Slope = ifelse(RWC.y == rwc, slope,Slope)) %>% 
-      mutate(Intercept = ifelse(RWC.y == rwc, intercept, Intercept))
-  } 
+  df = df_original_minRWC_CROOP
+  lm_fit <- lm(df$Fraction_Residue_Cover ~ df$CAI,
+               data = df)
+  slope <- coef(lm_fit)[2]
+  intercept <- coef(lm_fit)[1]
   
-  df_original$Slope_base <- df_original_minRWC_CROOP$Slope[1]
-  df_original$Intercept_base <- df_original_minRWC_CROOP$Intercept[1]
+  # df_original <- df_original %>%
+  #   mutate(C = ifelse(CROOP == croop, Slope, slope))
+  # df_original <- df_original %>%
+  #   mutate(C = ifelse(CROOP == croop, Intercept, intercept))
+  
+  df_original$Slope_base <- slope
+  df_original$Intercept_base <- intercept
   df_original$Fr_est <- df_original$Intercept_base + 
     df_original$Slope_base * df_original$CAI
   
@@ -197,8 +199,8 @@ for (croop in CROOPs){
   df_transformed$Fr_est_originalBaseline <- df_original_wet$Intercept_base + 
     df_original_wet$Slope_base * df_transformed$CAI
   
-  df_transformed$Fr_est <- df_original_wet$Intercept_base + 
-    df_original_wet$Slope_base * df_transformed$CAI
+  df_transformed$Fr_est <- df_transformed$Intercept_base + 
+    df_transformed$Slope_base * df_transformed$CAI
   # Load the dplyr package
   library(dplyr)
   
@@ -248,8 +250,8 @@ for (croop in CROOPs){
           plot.title = element_text(hjust = 0.5))+
     theme_minimal() +
     # scale_color_viridis(discrete = TRUE, option = "E") +
-    scale_x_continuous(limits = c(-20, 20)) + # Change as needed
-    scale_y_continuous(limits = c(-20, 20)) + # Change as needed
+    scale_x_continuous(limits = c(0, 1)) + # Change as needed
+    scale_y_continuous(limits = c(0, 1)) + # Change as needed
     coord_fixed(ratio = 1)
   p2 <- p2 + annotate("text", x = 0.85, y = 0.05, label = paste("RMSE:", round(rmse, 4)), hjust=1)
   print(p2)
@@ -282,8 +284,7 @@ for (croop in CROOPs){
 
 for (df in all_data){
   rmse_values <- c("Original" = dplyr :: filter(df, source == 'Original')['RMSE'][1,1],
-                   "EPO" = dplyr :: filter(df, source == 'EPO')['RMSE'][1,1]
-  )
+                   "EPO" = dplyr :: filter(df, source == 'EPO')['RMSE'][1,1])
   
   # Create a data frame with the positions and labels for the RMSE annotations
   rmse_df <- data.frame(
@@ -302,13 +303,16 @@ for (df in all_data){
   
   p <- ggplot(df, aes(y = Fr_est, x = Fraction_Residue_Cover)) +
     geom_point(aes(color = rwc_range), size = 0.6) +
-    geom_smooth(method = 'lm', se = FALSE) +
+    # geom_smooth(method = 'lm', se = FALSE) +
     geom_abline(intercept = 0, slope = 1, linetype = "dashed", size = 1, color = "red") +
     labs(title = paste0("NDTI - ", df['CROOP'][1, 1]),
          x = "Fraction residue cover", y = "Estimated fraction residue cover") +
     theme(legend.title = element_text("RWC"),
-          plot.title = element_text(hjust = 0.5)) +
-    theme_minimal() +
+          plot.title = element_text(hjust = 0.5),
+          panel.background = element_rect(fill = "white"), # Set panel background to white
+          panel.grid.major = element_blank(), # Remove major grid lines
+          panel.grid.minor = element_blank()) +
+    # theme_minimal() +
     scale_x_continuous(limits = c(0, 1)) +
     scale_y_continuous(limits = c(0, 1)) +
     coord_fixed(ratio = 1) +
@@ -319,7 +323,7 @@ for (df in all_data){
   
   print(p)
   print(paste0(path_to_plots, df['CROOP'][1, 1],".png"))
-  ggsave(paste0(path_to_plots, df['CROOP'][1, 1],".png"), p,
+  ggsave(paste0(path_to_plots, df['CROOP'][1, 1],"_",index, ".png"), p,
          width = 45, height = 15, units = "cm",dpi = 200)
   
 }

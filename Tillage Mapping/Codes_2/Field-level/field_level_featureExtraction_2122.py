@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.1
+#       jupytext_version: 1.15.2
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -33,35 +33,6 @@ import os
 # # Mount google drive
 # from google.colab import drive
 # drive.mount('/content/drive')
-
-# + [markdown] id="zNHfo5P4FUfQ"
-# # Download raw and derived indices data for residue and crop-type classification from GEE imagery data:
-
-# + [markdown] id="MWRiGjZRHCOf"
-# #### Imports
-
-# + colab={"background_save": true} id="RkSJ3M7GG_pD"
-######## imports #########
-# Import WSDA polygons of surveyed fields
-# consider a polygon that covers the study area (Whitman & Columbia counties)
-geometry = ee.Geometry.Polygon(
-        [[[-118.61039904725511, 47.40441980731236],
-          [-118.61039904725511, 45.934467488469],
-          [-116.80864123475511, 45.934467488469],
-          [-116.80864123475511, 47.40441980731236]]], None, False)
-geometry2 = ee.Geometry.Point([-117.10053796709163, 46.94957951590986]),
-
-#import USGS Landsat 8 Level 2, Collection 2, Tier 1
-L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-L7T1 =ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
-
-# path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
-#                 'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
-#                 'Projects/Tillage_Mapping/Data/')
-
-path_to_data = ('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/'
-                'Tillage_Mapping/Data/')
-
 
 # + [markdown] id="dl5KSrInfIGI"
 # #### Functions
@@ -219,7 +190,9 @@ def addDOY(img):
 
 # ///// Make metric-based imageCollections /////
 # This groups images in a year and returns a list of imageCollections.
-def groupImages(year, orgCollection):
+
+
+def groupImages(year, orgCollection, geometry):
 # This groups images and rename bands
   bands = ['B', 'G', 'R', 'NIR', 'SWIR1', 'SWIR2', 'evi', 'gcvi', 'ndvi', 'sndvi', 'ndti', 'ndi5', 'ndi7', 'crc', 'sti', 'doy'];
   new_bandS0 = ['B_S0', 'G_S0', 'R_S0', 'NIR_S0', 'SWIR1_S0', 'SWIR2_S0', 'evi_S0', 'gcvi_S0', 'ndvi_S0', 'sndvi_S0', 'ndti_S0', 'ndi5_S0', 'ndi7_S0', 'crc_S0', 'sti_S0', 'doy_S0'];
@@ -348,10 +321,10 @@ def collectionReducer(imgcollection, shp):
 
 # ///// Function to reduce each percentile image (with different band names for each image) to
 # a median value (median value over each field geometry) /////
-def percentile_imageReducer(imageList):
+def percentile_imageReducer(imageList, shp):
   return list(map(lambda img: ee.Image(img).reduceRegions(**{
       'reducer': ee.Reducer.median(),
-      'collection': WSDA_featureCol,
+      'collection': shp,
       'scale': 1000,
       'tileScale': 16
   }), imageList))
@@ -434,15 +407,11 @@ def merge_cdl(maindf_list, cdl_list):
         for df in final_dataframes_list]
 
     return final_dataframes_list
+# -
 
-# + [markdown] id="Xi8j9i9nSiW7"
-# #### Extract season-based features, using main bands and Gray-level 
-# #### Co-occurence Metrics (GLCMs) values and merge CDL
+# #### Imports
 
-# + colab={"background_save": true} id="1OJ1fUM1K-_S" outputId="6528614e-d813-455e-e2ff-42aa84416909"
-#####################################################################
-###################      Season-based Features      #################
-#####################################################################
+# +
 ######## imports #########
 # consider a polygon that covers the study area (Whitman & Columbia counties)
 geometry = ee.Geometry.Polygon(
@@ -450,18 +419,114 @@ geometry = ee.Geometry.Polygon(
       [-118.61039904725511, 45.934467488469],
       [-116.80864123475511, 45.934467488469],
       [-116.80864123475511, 47.40441980731236]]], None, False)
+
 geometry2 = ee.Geometry.Point([-117.10053796709163, 46.94957951590986]),
 
 asset_folder = 'projects/ee-bio-ag-tillage/assets/tillmap_shp'
 assets_list = ee.data.getList({'id': asset_folder})
 shpfilesList = [i['id'] for i in assets_list]
 
-#import USGS Landsat 8 Level 2, Collection 2, Tier 1
-L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
-L7T1 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
+path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
+                'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
+                'Projects/Tillage_Mapping/Data/')
+
+# path_to_data = ('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/'
+#                 'Tillage_Mapping/Data/')
 
 startYear = 2021
 endYear = 2023
+
+# -
+
+# # Download CDL data
+
+# +
+# Define date range
+# ****** For 2021-2022 season, 2021 and for 2022-2023 season, 2022 cdl
+# ****** data is downloaded and used as PriorCropType
+
+# read shapefiles as geopandas dataframes and put them in a list
+files = os.listdir(path_to_data +
+                   'GIS_Data/final_shpfiles')
+
+shapefile_names = [shp for shp in files if shp.endswith('.shp')]
+
+
+geopandas_list = [gpd.read_file(
+    path_to_data + 'GIS_Data/final_shpfiles/' + _
+) for _ in shapefile_names]
+
+# Load the USDA NASS CDL dataset
+cdl = ee.ImageCollection("USDA/NASS/CDL") \
+.filterDate(
+    ee.Date.fromYMD(ee.Number(startYear), 1, 1),
+    ee.Date.fromYMD(ee.Number(endYear), 12, 31)) \
+.filterBounds(geometry)
+
+def getMostFrequentClass(image, polygon):
+    polygon = ee.Feature(polygon)
+    # Clip the CDL image to the polygon
+    cdlClipped = image.clip(polygon)
+
+    # Calculate the histogram for the polygon
+    histogram = cdlClipped.reduceRegion(**{
+        'reducer': ee.Reducer.frequencyHistogram(),
+        'geometry': polygon.geometry(),
+        'scale': 30 # adjust based on CDL dataset's resolution
+    }).get('cropland')
+
+    # Convert the dictionary to key-value pairs
+    keys = ee.Dictionary(histogram).keys()
+    values = keys.map(
+        lambda key:ee.Number(ee.Dictionary(histogram).get(key))
+    )
+
+    # Find the most frequent class
+    max = values.reduce(ee.Reducer.max())
+    indexMax = values.indexOf(max)
+    mostFrequentClass = keys.get(indexMax)
+
+    return polygon.set('most_frequent_class', mostFrequentClass)
+
+
+# Initiate a list to store cdl data for each year
+cdl_dataframes = {}
+
+# filter colllection for the year
+years = np.arange(startYear, endYear)
+
+def cdl_dataframe_yith(year, shapefile):
+    cdl_image = cdl.filterDate(
+    ee.Date.fromYMD(ee.Number(int(year)), 1, 1),
+    ee.Date.fromYMD(ee.Number(int(year)), 12, 31)) \
+    .first()
+
+    # Map the function across all polygons
+    polygons = geemap.geopandas_to_ee(shapefile)
+    polygonsList = eeList_to_pyList(polygons.toList(polygons.size()))
+
+    cdl_feature_pylist = list(
+        map(lambda pol: getMostFrequentClass(cdl_image, pol), polygonsList))
+    
+    cdl_feature_eelist = pyList_to_eeList(cdl_feature_pylist)
+    cdl_y_data = ee.FeatureCollection(cdl_feature_eelist)
+    return geemap.ee_to_pandas(cdl_y_data)
+
+cdl_list = list(map(lambda year, shapefile: cdl_dataframe_yith(year, shapefile), years, geopandas_list))
+
+
+# + [markdown] id="Xi8j9i9nSiW7"
+# #### Extract season-based features, using main bands, Indices and 
+# #### their Gray-level Co-occurence Metrics (GLCMs)
+
+# + colab={"background_save": true} id="1OJ1fUM1K-_S" outputId="6528614e-d813-455e-e2ff-42aa84416909"
+#####################################################################
+###################      Season-based Features      #################
+#####################################################################
+
+#import USGS Landsat 8 Level 2, Collection 2, Tier 1
+L8T1 = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")
+L7T1 = ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
 
 L8_2122 = L8T1\
   .filter(ee.Filter.calendarRange(startYear, endYear, 'year'))\
@@ -585,9 +650,11 @@ allYears_seasonBased_list = list(map(
         seasonBased_dataframeList_mainBands, seasonBased_dataframeList_glcm))
 
 # Remove duplicated columns
-duplicated_cols_idx = [df.columns.duplicated() for df in allYears_seasonBased_list]
+duplicated_cols_idx = [df.columns.duplicated() for
+                        df in allYears_seasonBased_list]
 seasonBased_list = list(map(
-      lambda df, dup_idx: df.iloc[:, ~dup_idx], allYears_seasonBased_list, duplicated_cols_idx))
+      lambda df, dup_idx: df.iloc[:, ~dup_idx],
+        allYears_seasonBased_list, duplicated_cols_idx))
 
 print(seasonBased_list[0].shape)
 print(seasonBased_list[1].shape)
@@ -600,99 +667,9 @@ print(seasonBased_list[1].shape)
 # clipped_mainBands_CollectionList[0].size(
 # )).get(1)), {'bands': ['B4_S1', 'B3_S1', 'B2_S1'], max: 0.5, 'gamma': 2}, 'L8')
 # Map
-# -
-# # Download CDL data
-
-# +
-# Define date range
-# ****** For 2021-2022 season, 2021 and for 2022-2023 season, 2022 cdl
-# ****** data is downloaded and used as PriorCropType
-startDate = 2021
-endDate = 2023
-
-# read shapefiles as geopandas dataframes and put them in a list
-files = os.listdir(path_to_data +
-                   'GIS_Data/final_shpfiles')
-
-shapefile_names = [shp for shp in files if shp.endswith('.shp')]
-
-
-geopandas_list = [gpd.read_file(
-    path_to_data + 'GIS_Data/final_shpfiles/' + _
-) for _ in shapefile_names]
-
-# Load the USDA NASS CDL dataset
-cdl = ee.ImageCollection("USDA/NASS/CDL") \
-.filterDate(
-    ee.Date.fromYMD(ee.Number(startDate), 1, 1),
-    ee.Date.fromYMD(ee.Number(endDate), 12, 31)) \
-.filterBounds(geometry)
-
-# cropLandcover = cdl.select('cropland')
-# # Define visualization parameters
-# polygonStyle = {
-#     'fillColor": '#0000FF',  # Color in hexadecimal format(red in this case)
-#     'fillOpacity': 0,     # Opacity of the fill color
-#     'color': '000000',      # Border color in hexadecimal format(black in this case)
-#     'width': 1 # Border width in pixels
-# }
-# Map.addLayer(survey_pols, polygonStyle, 'Survey Polygons')
-
-def getMostFrequentClass(image, polygon):
-    polygon = ee.Feature(polygon)
-    # Clip the CDL image to the polygon
-    cdlClipped = image.clip(polygon)
-
-    # Calculate the histogram for the polygon
-    histogram = cdlClipped.reduceRegion(**{
-        'reducer': ee.Reducer.frequencyHistogram(),
-        'geometry': polygon.geometry(),
-        'scale': 30 # adjust based on CDL dataset's resolution
-    }).get('cropland')
-
-    # Convert the dictionary to key-value pairs
-    keys = ee.Dictionary(histogram).keys()
-    values = keys.map(
-        lambda key:ee.Number(ee.Dictionary(histogram).get(key))
-    )
-
-    # Find the most frequent class
-    max = values.reduce(ee.Reducer.max())
-    indexMax = values.indexOf(max)
-    mostFrequentClass = keys.get(indexMax)
-
-    return polygon.set('most_frequent_class', mostFrequentClass)
-
-
-# Initiate a list to store cdl data for each year
-cdl_dataframes = {}
-
-# filter colllection for the year
-years = np.arange(startDate, endDate)
-
-def cdl_dataframe_yith(year, shapefile):
-    cdl_image = cdl.filterDate(
-    ee.Date.fromYMD(ee.Number(int(year)), 1, 1),
-    ee.Date.fromYMD(ee.Number(int(year)), 12, 31)) \
-    .first()
-
-    # Map the function across all polygons
-    polygons = geemap.geopandas_to_ee(shapefile)
-    polygonsList = eeList_to_pyList(polygons.toList(polygons.size()))
-
-    cdl_feature_pylist = list(
-        map(lambda pol: getMostFrequentClass(cdl_image, pol), polygonsList))
-    
-    cdl_feature_eelist = pyList_to_eeList(cdl_feature_pylist)
-    cdl_y_data = ee.FeatureCollection(cdl_feature_eelist)
-    return geemap.ee_to_pandas(cdl_y_data)
-
-cdl_list = list(map(lambda year, shapefile: cdl_dataframe_yith(year, shapefile), years, geopandas_list))
-
-
-
 # + [markdown] id="DUhdHR8xIrUE"
-# #### Extract distribution-based (metric-based) features using main bands and Gray-level Co-occurence Metrics (GLCMs) values
+# #### Extract distribution-based (metric-based) features using main bands, 
+# #### indices and Gray-level Co-occurence Metrics (GLCMs)
 
 # + colab={"background_save": true} id="vrRY7E6NLhul"
 from functools import reduce
@@ -701,56 +678,101 @@ from functools import reduce
 ###########################################################################
 
 # Create metric composites
-# Specify time period
-startSeq= 2021
-endSeq= 2022
-years = list(range(startSeq, endSeq));
+# Years
+years = list(range(startYear, endYear));
 
-# Create a list of lists of imageCollections. Each year would have n number of imageCollection corresponding to the time periods specified
+# Create a list of lists of imageCollections. Each year would have n number 
+# of imageCollection corresponding to the time periods specified
 # for creating metric composites.
 yearlyCollectionsList = []
 for y in years:
-  yearlyCollectionsList = yearlyCollectionsList + [groupImages(y, landSat_7_8)]  # 'yearlyCollectionsList' is a Python list
-yearlyCollectionsList[0][0]
+  yearlyCollectionsList = yearlyCollectionsList + \
+  [groupImages(y, landSat_7_8, geometry)]  # 'yearlyCollectionsList' is a Python list
+# yearlyCollectionsList[0][0]
 
 # Clip each collection to the WSDA field boundaries
-clipped_mainBands_CollectionList = list(map(lambda collList: list(map(lambda collection: ee.ImageCollection(collection).map(lambda img: img.clip(WSDA_featureCol)), collList)), yearlyCollectionsList))
+clipped_mainBands_CollectionList = list(map(
+  lambda collList, shp: list(map(
+    lambda collection: ee.ImageCollection(collection).map(
+      lambda img: img.clip(ee.FeatureCollection(shp))), collList)),
+        yearlyCollectionsList, shpfilesList))
 
 # Extract GLCM metrics
-clipped_GLCM_collectionList = list(map(lambda collList: list(map(applyGLCM, collList)), clipped_mainBands_CollectionList))
+clipped_GLCM_collectionList = list(map(
+  lambda collList: list(map(applyGLCM, collList)),
+    clipped_mainBands_CollectionList))
 
 # # Compute percentiles
 percentiles = [5, 25, 50, 75, 100]
-mainBands_percentile_collectionList = list(map(lambda collList: list(map(lambda collection: collection.reduce(ee.Reducer.percentile(percentiles)), collList)), clipped_mainBands_CollectionList))
-glcmBands_percentile_collectionList = list(map(lambda collList: list(map(lambda collection: collection.reduce(ee.Reducer.percentile(percentiles)), collList)), clipped_GLCM_collectionList))
+mainBands_percentile_collectionList = \
+list(map(lambda collList: list(map(lambda collection: collection.reduce(
+  ee.Reducer.percentile(percentiles)), collList)),
+    clipped_mainBands_CollectionList))
 
-# Reduce each image in the imageCollections (with main bands) to mean value over each field (for each year)
-reducedList_mainBands = list(map(percentile_imageReducer, mainBands_percentile_collectionList))   # This will produce a list of lists containing reduced featureCollections
+glcmBands_percentile_collectionList = \
+list(map(lambda collList: list(map(lambda collection: collection.reduce(
+  ee.Reducer.percentile(percentiles)), collList)),
+    clipped_GLCM_collectionList))
 
-# Reduce each image in the imageCollections (with GLCM bands) to mean value over each field (for each year)
-reducedList_glcmBands = list(map(percentile_imageReducer, glcmBands_percentile_collectionList))
+# Reduce each image in the imageCollections (with main bands) to mean
+#  value over each field (for each year)
+# This will produce a list of lists containing reduced featureCollections
+reducedList_mainBands = list(map(
+  lambda imgList, shp:percentile_imageReducer(
+    imgList, ee.FeatureCollection(shp)),
+       mainBands_percentile_collectionList, shpfilesList))   
+
+# Reduce each image in the imageCollections (with GLCM bands)
+#  to mean value over each field (for each year)
+reducedList_glcmBands = list(map(
+    lambda imgList, shp: percentile_imageReducer(
+        imgList, ee.FeatureCollection(shp)),
+    glcmBands_percentile_collectionList, shpfilesList))
 
 # Extract band names to use in our dataframes
-# The bands are identical for all years so we use the first year imageCollection, [0]
+# The bands are identical for all years so we use the first year
+#  imageCollection, [0]
 # Main bands:
-# imageList = eeList_to_pyList(clipped_mainBands_CollectionList[0])
-nameLists = list(map(lambda img: ee.Image(img).bandNames().getInfo(), mainBands_percentile_collectionList[0]))
+nameLists = list(map(lambda img: ee.Image(img).bandNames().getInfo(),
+                      mainBands_percentile_collectionList[0]))
 mainBands = [name for sublist in nameLists for name in sublist]
 
 # GLCM bands:
-# imageList = eeList_to_pyList(clipped_GLCM_collectionList[0].toList(clipped_GLCM_collectionList[0].size()))
-nameLists = list(map(lambda img: ee.Image(img).bandNames().getInfo(), glcmBands_percentile_collectionList[0]))
+nameLists = list(map(lambda img: ee.Image(img).bandNames().getInfo(),
+                      glcmBands_percentile_collectionList[0]))
 glcmBands = [name for sublist in nameLists for name in sublist]
 
-# Convert each year's composites to a single dataframe and put all the dataframes in a list
-# The dataframes include pointID (first column), mainbands, derived indices and the corresponding GLCM metrics
+# Convert each year's composites to a single dataframe 
+# and put all the dataframes in a list a dataframe.
 
-important_columns_names = ['pointID', 'CurrentCro', 'DateTime', 'PriorCropT', 'ResidueCov', 'Tillage', 'WhereInRan']
+important_columns_names = ['pointID', 'CurrentCro', 'DateTime', 'PriorCropT', 
+                           'ResidueCov', 'Tillage', 'WhereInRan']
 
-metricBased_dataframeList_mainBands = eefeatureColl_to_Pandas(reducedList_mainBands, mainBands, important_columns_names)
-metricBased_dataframeList_glcm = eefeatureColl_to_Pandas(reducedList_glcmBands, glcmBands, important_columns_names)
+metricBased_dataframeList_mainBands = eefeatureColl_to_Pandas(
+  reducedList_mainBands, mainBands, important_columns_names)
+
+metricBased_dataframeList_glcm = eefeatureColl_to_Pandas(
+  reducedList_glcmBands, glcmBands, important_columns_names)
+
+# Merge main and glcm bands for each year
+allYears_metricBased_list = list(map(
+    lambda mainband_df, glcmband_df: pd.concat(
+        [mainband_df, glcmband_df], axis=1),
+    metricBased_dataframeList_mainBands, metricBased_dataframeList_glcm))
+
+# Remove duplicated columns
+duplicated_cols_idx = [df.columns.duplicated()
+                       for df in allYears_metricBased_list]
+metricBased_list = list(map(
+    lambda df, dup_idx: df.iloc[:, ~dup_idx], allYears_metricBased_list, duplicated_cols_idx))
+
+print(metricBased_list[0].shape)
+print(metricBased_list[1].shape)
+
 # -
 
-metricBased_dataframeList_mainBands[0]
+yearly_dfs_metric = merge_cdl(metricBased_list, cdl_list)
+yearly_dfs_season = merge_cdl(seasonBased_list, cdl_list)
 
-metricBased
+
+yearly_dfs_metric[0]
