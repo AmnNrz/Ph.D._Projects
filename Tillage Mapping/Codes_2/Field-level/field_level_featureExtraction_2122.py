@@ -45,7 +45,7 @@ import os
 def renameBandsL8(image):
     bands = ['SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B6', 'SR_B7', 'QA_PIXEL'];
     new_bands = ['B', 'G', 'R', 'NIR', 'SWIR1', 'SWIR2', 'QA_PIXEL'];
-    return image.select(bands).rename(new_bands);
+    return image.select(bands).rename(new_bands)
 
 def renameBandsL7(image):
     bands = ['SR_B1', 'SR_B2', 'SR_B3', 'SR_B4', 'SR_B5', 'SR_B7', 'QA_PIXEL'];
@@ -645,7 +645,7 @@ seasonBased_dataframeList_glcm = eefeatureColl_to_Pandas(
 
 # Merge main and glcm bands for each year 
 allYears_seasonBased_list = list(map(
-    lambda mainband_df, glcmband_df: pd.concat(
+    lambda mainband_df, glcmband_df: pd.concat( 
       [mainband_df, glcmband_df], axis=1),
         seasonBased_dataframeList_mainBands, seasonBased_dataframeList_glcm))
 
@@ -720,7 +720,7 @@ list(map(lambda collList: list(map(lambda collection: collection.reduce(
 reducedList_mainBands = list(map(
   lambda imgList, shp:percentile_imageReducer(
     imgList, ee.FeatureCollection(shp)),
-       mainBands_percentile_collectionList, shpfilesList))   
+       mainBands_percentile_collectionList, shpfilesList))    
 
 # Reduce each image in the imageCollections (with GLCM bands)
 #  to mean value over each field (for each year)
