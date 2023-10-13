@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: Python 3
 #     name: python3
@@ -58,10 +58,9 @@ L7T1 =ee.ImageCollection("LANDSAT/LE07/C02/T1_L2")
 # path_to_data = ('/Users/aminnorouzi/Library/CloudStorage/'
 #                 'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/'
 #                 'Projects/Tillage_Mapping/Data/')
-path_to_data = (
-    '/Users/aminnorouzi/Library/CloudStorage/'
-    'OneDrive-WashingtonStateUniversity(email.wsu.edu)/'
-    'Ph.D/Projects/Tillage_Mapping/Data/')
+
+path_to_data = ('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/'
+                'Tillage_Mapping/Data/')
 
 
 # + [markdown] id="dl5KSrInfIGI"
@@ -394,9 +393,51 @@ def applyGLCM(coll):
   glcmColl = int32Coll.map(lambda img: img.glcmTexture().set("system:time_start", img.date()))
   return glcmColl
 
+## function to merge cdl wiht main data
+def merge_cdl(maindf_list, cdl_list):
+    '''
+    Merge main dataframe and cdl
+    
+    '''
+    cdl_list = [df.drop(columns='PriorCropT') for df in cdl_list]
+
+    # Rename most_frequent_class to PriorCropT
+    cdl_list = [df.rename(columns={'most_frequent_class': 'ResidueType'}) for
+                        df in cdl_list]
+
+    # Select just priorCropT and pointID
+    cdl_list = [df[['pointID', 'ResidueType']].copy() for df in cdl_list]
+
+
+
+    # Rename cdl labels or crop type
+    replacement_dict = {'24': 'grain', '23': 'grain', '51': 'legume',
+                        '51': 'legume', '31': 'canola', '53': 'legume',
+                        '21': 'grain', '51': 'legume', '52': 'legume',
+                        '28': 'grain'}
+
+    # Just rename the three categories for grain, canola and legume
+    cdl_list = [df.replace({'ResidueType':replacement_dict}) for df in cdl_list]
+    cdl_list = [df.loc[df['ResidueType'].isin(['grain', 'legume', 'canola'])] for 
+        df in cdl_list]
+
+    # Make a list of tuples.Each tupple contain one seasonbased 
+    # Corresponding to a year and one cdl dataframe
+    sat_cdl = list(zip(maindf_list, cdl_list))
+
+    # Merge cdl with main dataframe 
+    final_dataframes_list = list(map(lambda df_tuple: pd.merge(
+        df_tuple[0], df_tuple[1], on='pointID'), sat_cdl))
+
+    # move ResidueType to the 4th column
+    [df.insert(3, 'ResidueType', df.pop(df.columns[-1])) 
+        for df in final_dataframes_list]
+
+    return final_dataframes_list
 
 # + [markdown] id="Xi8j9i9nSiW7"
-# #### Extract season-based features, using main bands and Gray-level Co-occurence Metrics (GLCMs) values
+# #### Extract season-based features, using main bands and Gray-level 
+# #### Co-occurence Metrics (GLCMs) values and merge CDL
 
 # + colab={"background_save": true} id="1OJ1fUM1K-_S" outputId="6528614e-d813-455e-e2ff-42aa84416909"
 #####################################################################
@@ -538,18 +579,19 @@ seasonBased_dataframeList_glcm = eefeatureColl_to_Pandas(
                     reducedList_glcmBands, glcmBands, important_columns_names)
 
 # Merge main and glcm bands for each year 
-df_list = list(map(
+allYears_seasonBased_list = list(map(
     lambda mainband_df, glcmband_df: pd.concat(
       [mainband_df, glcmband_df], axis=1),
         seasonBased_dataframeList_mainBands, seasonBased_dataframeList_glcm))
 
 # Remove duplicated columns
-duplicated_cols_idx = [df.columns.duplicated() for df in df_list]
-df_list = list(map(
-      lambda df, dup_idx: df.iloc[:, ~dup_idx], df_list, duplicated_cols_idx))
+duplicated_cols_idx = [df.columns.duplicated() for df in allYears_seasonBased_list]
+seasonBased_list = list(map(
+      lambda df, dup_idx: df.iloc[:, ~dup_idx], allYears_seasonBased_list, duplicated_cols_idx))
 
-print(df_list[0].shape)
-print(df_list[1].shape)
+print(seasonBased_list[0].shape)
+print(seasonBased_list[1].shape)
+
 
 # Display on Map
 # Map = geemap.Map()
@@ -563,7 +605,7 @@ print(df_list[1].shape)
 
 # +
 # Define date range
-# ****** For 2021-2022, 2020-2021 and for 2022-2023, 2021-2022 cdl
+# ****** For 2021-2022 season, 2021 and for 2022-2023 season, 2022 cdl
 # ****** data is downloaded and used as PriorCropType
 startDate = 2021
 endDate = 2023
@@ -645,69 +687,7 @@ def cdl_dataframe_yith(year, shapefile):
     cdl_y_data = ee.FeatureCollection(cdl_feature_eelist)
     return geemap.ee_to_pandas(cdl_y_data)
 
-data_list = list(map(lambda year, shapefile: cdl_dataframe_yith(year, shapefile), years, geopandas_list))
-
-# // Export the result, if needed
-# Export.table.toDrive({
-#     collection: survey_pols_with_data,
-#     description: 'most_frequent_cdl_classes_survey_polygons_2223',
-#     fileFormat: 'CSV'
-# })
-
-# -
-
-data_list[0]
-
-# +
-df_list_ = df_list
-# # Read cdl data
-cdl_2122 = pd.read_csv(path_to_data + 'cdl_data/cdl_2122.csv')
-
-
-# Rename PriorCropT labels
-replacement_dict = {
-    'Grain':'grain', 
-    'Canola':'canola', 
-    'Legume':'legume'
-}
-df_list_ = [df.replace({'PriorCropT':replacement_dict}) for df in df_list_]
-df_list_ = [df.loc[df['PriorCropT'].isin(list(replacement_dict.values()))] 
-           for df in df_list_]
-
-# cdl = cdl_2122[['pointID', 'most_frequent_class']].copy()
-# cdl.rename(columns={'most_frequent_class': 'PriorCropT'}, inplace=True)
-
-# # Rename cdl labels
-# replacement_dict = {24: 'grain', 23: 'grain', 51: 'legume',
-#                     51: 'legume', 31: 'canola', 53: 'legume',
-#                     21: 'grain', 51: 'legume', 52: 'legume',
-#                     28: 'grain'}
-# cdl['PriorCropT'] = cdl['PriorCropT'].replace(
-#     replacement_dict, inplace=True)
-# cdl = cdl.loc[cdl['PriorCropT'].isin(
-#                     ['grain', 'legume', 'canola'])]
-
-# df_2122.drop(columns='PriorCropT', inplace=True)
-# df_2122 = pd.merge(df_2122, cdl, on='pointID')
-
-# # Define the new order of columns
-# cols = list(df_2122.columns)
-# cols
-# cols.remove('PriorCropT')
-# cols.insert(3, 'PriorCropT')
-
-# # Reindex the DataFrame with the new column order
-# df_2122 = df_2122[cols]
-
-# df_2122['PriorCropT'].isna().value_counts()
-
-# df1 = pd.concat([df_2122, df_2223])
-
-# df1.to_csv(
-#     path_to_data + \
-#         'field_level_data/field_leve_main_glcm_seasonBased_joined_2122.csv')
-
-# -
+cdl_list = list(map(lambda year, shapefile: cdl_dataframe_yith(year, shapefile), years, geopandas_list))
 
 
 
