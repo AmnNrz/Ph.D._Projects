@@ -1,12 +1,12 @@
 # ---
 # jupyter:
 #   jupytext:
-#     formats: ipynb,py:light
+#     formats: ipynb,py
 #     text_representation:
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: tillenv
 #     language: python
@@ -24,17 +24,13 @@ import matplotlib.colors as mcolors
 from matplotlib.patches import FancyArrowPatch
 from sklearn.metrics import confusion_matrix
 
-
-
 # +
 # Read data
-path_to_data = ("/Users/aminnorouzi/Library/CloudStorage/"
-                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-                "PhD/Projects/DSFAS/Data/")
+path_to_data = ("/home/amnnrz/OneDrive - a.norouzikandelati/"
+                "Ph.D/Projects/DSFAS/Data/")
 
-path_to_plots = ("/Users/aminnorouzi/Library/CloudStorage/"
-                "GoogleDrive-msaminnorouzi@gmail.com/My Drive/"
-                 "PhD/Projects/DSFAS/Plots/")
+path_to_plots = ("/home/amnnrz/OneDrive - a.norouzikandelati/"
+                 "Ph.D/Projects/DSFAS/Plots/")
 
 # path_to_data = ("/home/amnnrz/GoogleDrive - "
 #                 "msaminnorouzi/PhD/Projects/DSFAS/Data/")
@@ -42,16 +38,37 @@ path_to_plots = ("/Users/aminnorouzi/Library/CloudStorage/"
 # path_to_plots = ("/home/amnnrz/GoogleDrive - msaminnorouzi/"
 #                  "PhD/Projects/DSFAS/Plots/")
 
-dry_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
-# dry_irig_df = pd.read_csv(
-#     path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+dry_df = pd.read_csv(
+    path_to_data + "Carbon&satellite_data_dry_joined_v1.csv")
+
+dry_irig_df = pd.read_csv(
+    path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+
+raw_data = pd.read_csv(path_to_data + "EWA_carbon_subset.csv")
+raw_data = raw_data.dropna(subset='TotalC_%')
 
 # Convert year to integer
 dry_df['YearSample'] = dry_df['YearSample'].astype(int)
 
 # remove old index column
 dry_df.drop(columns='index', axis=1, inplace=True)
+
+dry_df_raw = gpd.read_file(path_to_data + 
+                         ('/GIS_Data/Csample_buffer_shp/'
+                          'C_samples_dryland_shp/C_samples_dryland_shp.shp'))
+
+allSamples_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+
+# +
+# raw_data['DepthSampled_inches'].value_counts(), dry_df_raw['DepthSampl'].value_counts()
+# dry_irig_df['TotalC'].isna().value_counts(), dry_irig_df['DepthSampl'].value_counts()
+# dry_df['TotalC'].isna().value_counts(), dry_df['DepthSampl'].value_counts()
+# dry_irig_df['TotalC'].isna().value_counts(), dry_irig_df['DepthSampl'].value_counts()
+# dry_irig_df['SampleID'].isin(dry_df['SampleID']).value_counts()
+# dry_irig_df['DepthSampl'].value_counts()
 # -
+
+len(dry_df['SampleID'].unique())
 
 # check 0_6 -- 0_12 samples' year
 sampleYear_6_12 = dry_df.loc[dry_df['DepthSampl'] ==
@@ -80,8 +97,6 @@ dry_df.loc[dry_df.SampleID.isin(averaged_C.SampleID), 'TotalC']
 dry_df.loc[dry_df['DepthSampl'] == '0_6', 'DepthSampl'] = '0_12'
 dry_df
 
-df.columns
-
 # +
 # Normalize band values
 largeValue_idx = (dry_df.iloc[:, 11:].describe().loc["min"] < -2) | \
@@ -106,8 +121,6 @@ def tCarbon_to_gcm2(df):
     return df
 tCarbon_to_gcm2(dry_df)
 
-
-df
 
 # +
 # DENSITY DISTRIBUTION PLOT FOR ALL YEARS TOGETHER
@@ -162,9 +175,40 @@ plt.show()
 
 # # Create map of data
 
+dry_df
+
 # +
 # Load dry_irrigated dataframe 
 allSamples_df = pd.read_csv(path_to_data + "Carbon&satellite_data_dryIrgted_joined_v1.csv")
+
+# Get average of total_C over 0-6 and 6-12 inches samples 
+dup_df = allSamples_df.loc[allSamples_df.SampleID.duplicated(keep=False)]
+dup_df
+
+averaged_C = pd.DataFrame([])
+averaged_C['SampleID'] = dup_df.SampleID.unique()
+for id in dup_df.SampleID.unique():
+    averaged_C.loc[averaged_C["SampleID"] == id, "TotalC"] = np.mean(
+        dup_df.loc[dup_df["SampleID"] == id, "TotalC"])
+
+averaged_C.head(5)
+
+allSamples_df = allSamples_df.loc[~allSamples_df.SampleID.duplicated()]
+allSamples_df.loc[allSamples_df.SampleID.isin(averaged_C.SampleID),
+        'TotalC'] = averaged_C['TotalC'].values
+
+allSamples_df.loc[allSamples_df['DepthSampl'] == '0_6', 'DepthSampl'] = '0_12'
+allSamples_df.loc[allSamples_df['DepthSampl'] == '6_12', 'DepthSampl'] = '0_12'
+allSamples_df
+
+# -
+
+allSamples_df.shape, dry_df.shape
+
+dry_df.columns[dry_df.columns.isin(allSamples_df.columns)]
+
+# +
+
 
 # Convert dataframes to GeoDataFrames
 dry_df = gpd.GeoDataFrame(dry_df, geometry=gpd.points_from_xy(dry_df.Longitude, dry_df.Latitude))
@@ -177,20 +221,25 @@ dry_df = dry_df.loc[:, 'TotalC':].copy()
 dry_df.reset_index(drop = True, inplace=True)
 allSamples_df.reset_index(drop = True, inplace=True)
 
+dry_df = dry_df[dry_df.columns[dry_df.columns.isin(allSamples_df.columns)]]
+
 # merge two dataframes
-allSamples_df.sort_values(by='DepthSampl', inplace=True)
-unique_locations_df = allSamples_df.loc[~(allSamples_df['geometry'].duplicated(keep='last'))].copy()
-irrigated_df = unique_locations_df.loc[~(unique_locations_df['geometry'].isin(dry_df['geometry']))].copy()
-tCarbon_to_gcm2(irrigated_df)
+irrigated_df = allSamples_df.loc[
+    ~(allSamples_df['SampleID'].isin(dry_df['SampleID']))].copy()
 # add irrigation column
 irrigated_df['Irrigation'] = 'Irrigated'
 dry_df['Irrigation'] = 'Dryland'
 
 df = pd.concat([dry_df, irrigated_df])
+dry_df = tCarbon_to_gcm2(dry_df)
 # df
 # -
 
-df.shape
+(dry_df.columns == irrigated_df.columns)
+
+len(df['SampleID'].unique())
+
+df['Irrigation'].value_counts()
 
 # +
 ######=====  Sample points grouped by irrigation type  =====#########
@@ -224,11 +273,18 @@ ax = wa_state.boundary.plot(figsize=(40, 20), linewidth=2)
 wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
 wa_counties.apply(lambda x: ax.annotate(text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
 
+irrigation_counts = df['Irrigation'].value_counts()
+
+
 # Plot the points with the specified colors
+labels_with_counts = {}
 for color in color_map_dict.values():
     subset = df[df['color'] == color]
+    irrigation_type = subset['Irrigation'].unique()[0]
+    label_with_count = f"{irrigation_type} (n={irrigation_counts[irrigation_type]})"
+    labels_with_counts[irrigation_type] = label_with_count
     subset.plot(ax=ax, marker='o', color=color, markersize=500,
-                alpha=0.5, label=subset['Irrigation'].unique()[0])
+                alpha=0.5, label=label_with_count)
 
 # Add a legend
 handles, labels = ax.get_legend_handles_labels()
@@ -271,13 +327,17 @@ wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
 wa_counties.apply(lambda x: ax.annotate(
     text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
 
+year_counts = df['YearSample'].value_counts()
+
 # Plot the points with the specified colors
 for color in color_map_dict.values():
     subset = df[df['Yearcolor'] == color]
+    year_number = subset['YearSample'].unique()[0]
+    label_with_number = f'{year_number} (n = {year_counts[year_number]})'
     subset.plot(ax=ax, marker='o', color=color, markersize=500,
-                alpha=0.5, label=subset['YearSample'].unique()[0])
+                alpha=0.5, label=label_with_number)
 
-# Add a legend
+# Add a legendz
 handles, labels = ax.get_legend_handles_labels()
 ax.legend(handles, labels, title='Year',
           fontsize=22, title_fontsize=22)
@@ -330,11 +390,14 @@ wa_counties.boundary.plot(ax=ax, linewidth=1, edgecolor="black")
 wa_counties.apply(lambda x: ax.annotate(
     text=x.NAME, xy=x.geometry.centroid.coords[0], ha='center', fontsize=20, color='black'), axis=1)
 
+tercile_counts = df['tercile'].value_counts()
 # Plot the points with the specified colors
 for color in color_map_dict.values():
     subset = df[df['tercile_color'] == color]
+    tercile = subset['tercile'].unique()[0]
+    label_with_number = f'{tercile} (n = {tercile_counts[tercile]})'
     subset.plot(ax=ax, marker='o', color=color, markersize=500,
-                alpha=0.5, label=subset['tercile'].unique()[0])
+                alpha=0.5, label=label_with_number)
 
 # Add a legend
 handles, labels = ax.get_legend_handles_labels()
@@ -353,41 +416,16 @@ plt.ylabel("Latitude", fontsize=24)
 plt.figure(dpi=300)
 plt.show()
 
+# -
 
 
-# +
-#####=====   plot the distribution of terciles   =====#######
+# Renaming columns
+df.columns = df.columns.str.replace('_first', '_MAM')
+df.columns = df.columns.str.replace('_second', '_JJA')
+df.columns = df.columns.str.replace('_third', '_SON')
+df.to_csv(path_to_data + 'data_snapshot.csv')
 
-dataset = dry_df.loc[:, "NDVI_first":"Total_C (g/cm2)"].copy()
-dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third"], inplace=True)
-
-# Drop columns with just one value
-# dataset.drop(columns= df.nunique()[df.nunique() == 1].index[0], inplace=True )
-
-# Set the name of your y-variable
-y_var = 'Total_C (g/cm2)'
-
-# Set the terciles to use for separating the data
-bottom_tercile = dataset[y_var].quantile(1/3)
-top_tercile = dataset[y_var].quantile(2/3)
-
-# Create a new column in the DataFrame to indicate whether each row is in the top, middle, or bottom tercile
-dataset['tercile'] = pd.cut(dataset[y_var], bins=[dataset[y_var].min(
-), bottom_tercile, top_tercile, dataset[y_var].max()], labels=['bottom', 'middle', 'top'], include_lowest=True)
-
-# filter for just top and bottom tercils
-topBottom_df = dataset.loc[dataset['tercile'] != 'middle'].copy()
-topBottom_df['tercile'] = topBottom_df['tercile'].cat.remove_unused_categories()
-
-# Loop through each x-variable and create a density distribution plot for the top, middle, and bottom terciles
-for x_var in topBottom_df.columns.drop([y_var, 'tercile']):
-    g = sns.FacetGrid(topBottom_df, hue='tercile', height=4, aspect=1.2)
-    g.map(sns.kdeplot, x_var, fill=True)
-    g.add_legend()
-    
-    plot_name = path_to_plots + f"{x_var}_distribution_plot.png"
-    # # Save the plot with customized size and resolution
-    # g.fig.savefig(plot_name, dpi=300, bbox_inches='tight') 
+df.columns
 
 # +
 ###### ======   Density Distribution of features for top and bottom terciles =====######
@@ -442,7 +480,8 @@ for fig_num in range(num_figs):
 # +
 ### ==== build OLS ====###
 
-dataset = dry_df.loc[:, "NDVI_first":"geometry"].copy()
+dataset = dry_df.loc[:, "NDVI_first":"Total_C (g/cm2)"].copy()
+dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third", "Irrigation"], inplace=True)
 
 # Split the data into dependent and independent variables
 X = dataset.drop(columns=['Total_C (g/cm2)', 'geometry'])
@@ -497,7 +536,7 @@ for feature, coeff in sorted_coefficients.items():
 
 # plot histograms or other plots to visualize the distribution
 # of the percentage errors
-plt.hist(percentage_error, bins=10)  # Drop NaNs before plotting
+plt.hist(percentage_error * 100, bins=10)  # Drop NaNs before plotting
 plt.title("Distribution of Percentage Error")
 plt.xlabel("Percentage Error")
 plt.ylabel("Frequency")
@@ -506,7 +545,7 @@ plt.show()
 
 
 #################    Spatial Distribution of Percentage Error #######
-dataset['percentage_error'] = percentage_error
+dataset['percentage_error'] = percentage_error * 100
 # Define the size and axis for the plot
 fig, ax = plt.subplots(figsize=(40, 20))
 wa_state.boundary.plot(ax=ax, linewidth=2)
@@ -543,7 +582,7 @@ plt.show()
 
 # -
 
-X_terciles
+dry_df
 
 
 # +
@@ -553,8 +592,8 @@ from sklearn.model_selection import cross_val_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import confusion_matrix
 
-dataset = dry_df.loc[:, "NDVI_first":"geometry"].copy()
-dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third"], inplace=True)
+dataset = dry_df.loc[:, "NDVI_first":"Total_C (g/cm2)"].copy()
+dataset.drop(columns=["WDVI_first", "WDVI_second", "WDVI_third", "Irrigation"], inplace=True)
 
 
 # Set the terciles to use for separating the data
@@ -576,61 +615,46 @@ X_terciles = topBottom_df.drop(
     columns=['tercile', 'geometry', 'Total_C (g/cm2)'])
 y_terciles = topBottom_df['tercile']
 
-from sklearn.linear_model import LogisticRegression
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X_terciles, y_terciles, test_size=0.5, random_state=42)
 
 # Initialize the classifier
 classifier = LogisticRegression(max_iter=1000)
 
 # Perform cross-validation
-cv_scores = cross_val_score(classifier, X_terciles, y_terciles, cv=5)
-
-# Print the cross-validation scores
-print("Cross-Validation Scores:", cv_scores)
+cv_scores = cross_val_score(classifier, X_train, y_train, cv=3)
+print("Cross-Validation Scores for each fold:", cv_scores)
 print("Average Cross-Validation Score:", np.mean(cv_scores))
 
-# Train the classifier on the entire data
-classifier.fit(X_terciles, y_terciles)
+# Train the classifier on the training data
+classifier.fit(X_train, y_train)
 
-# Make predictions on the testing data
-y_pred = classifier.predict(X_terciles)
-
+# Make predictions on the test data
+y_pred = classifier.predict(X_test)
 
 # Generate a contingency table
-contingency_table = pd.crosstab(y_terciles, y_pred, rownames=['Actual'], colnames=['Predicted'])
-
+contingency_table = pd.crosstab(y_test, y_pred, rownames=['Actual'], colnames=['Predicted'])
 print(contingency_table)
 
-# Get coefficients from the logistic regression model
-coefficients = classifier.coef_[0]
-
-# Get feature names
-feature_names = X_terciles.columns
-
-# Combine feature names and coefficients into a dictionary
-feature_dict = dict(zip(feature_names, coefficients))
-
-# Sort features by the absolute value of their coefficient
-sorted_features = sorted(feature_dict.items(
-), key=lambda item: abs(item[1]), reverse=True)
-
-# Print sorted features
-for feature, coeff in sorted_features:
-    print(f"Feature: {feature}, Coefficient: {coeff}")
+# [Your code for printing feature importance]
 
 # Generate the confusion matrix
-cm = confusion_matrix(y_terciles, y_pred, labels=['bottom', 'top'])
+cm = confusion_matrix(y_test, y_pred, labels=['bottom', 'top'])
 
 # Plotting using matplotlib and seaborn
 fig, ax = plt.subplots(figsize=(8, 6))
 sns.heatmap(cm, annot=True, fmt='g', cmap='Blues', ax=ax)
 ax.set_xlabel('Predicted Total C')
-ax.set_ylabel('Atcutal Total C')
+ax.set_ylabel('Actual Total C')
 ax.set_title('Confusion Matrix of bottom and top terciles')
 ax.xaxis.set_ticklabels(['bottom', 'top'])
 ax.yaxis.set_ticklabels(['bottom', 'top'])
-plt.savefig(path_to_plots + "CM_bottom_top.png", dpi=300)
+plt.savefig(path_to_plots + "CM_bottom_top_test.png", dpi=300)
 plt.show()
+# -
 
+
+df['Total_C (g/cm2)']
 
 # +
 import pandas as pd
@@ -641,11 +665,12 @@ from sklearn.model_selection import cross_val_score, train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import confusion_matrix, accuracy_score
 
-# Load your data into a Pandas DataFrame
-df = df1[selected_cols]
+dataset = dry_df.loc[:, "NDVI_first":"Total_C (g/cm2)"].copy()
+dataset.drop(columns=["WDVI_third", "Irrigation"], inplace=True)
+df = dataset
 
 # Set the name of your y-variable
-y_var = 'Total_C_g/cm2'
+y_var = 'Total_C (g/cm2)'
 
 # Set the terciles to use for separating the data
 bottom_tercile = np.percentile(df[y_var], 33.33)
@@ -674,7 +699,7 @@ y_terciles = df_terciles['target']
 
 # Split the data into training and testing sets
 X_train, X_test, y_train, y_test = train_test_split(
-    X_terciles, y_terciles, test_size=0.25, random_state=42)
+    X_terciles, y_terciles, test_size=0.5, random_state=42)
 
 # Initialize the classifier
 classifier = RandomForestClassifier()
