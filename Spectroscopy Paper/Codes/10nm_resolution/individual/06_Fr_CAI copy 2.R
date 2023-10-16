@@ -38,7 +38,8 @@ path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 
 path_to_save <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/index_org_trsfed_crp_sl/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/',
+                       'index_org_trsfed_crp_sl/')
 
 CAI <- read.csv(paste0(path_to_data, "CAI_transformed_Combined.csv"))
 
