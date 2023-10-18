@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 
 Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
@@ -20,20 +20,17 @@ Soil <- Soil[, -c(1, ncol(Soil))]
 
 res_wide <- Residue %>%
   pivot_wider(names_from = Wvl, values_from = Reflect) 
-Soil_wide <- Soil %>%
+soil_wide <- Soil %>%
   pivot_wider(names_from = Wvl, values_from = Reflect) 
 
 res_wide <- res_wide %>% rename(Type = Crop)
-Soil_wide <- Soil_wide %>% rename(Type = Soil)
+soil_wide <- soil_wide %>% rename(Type = Soil)
 
 ###############################################################
 ###############################################################
 # Check common RWC ranges using hisotogram of RWC
 res_ = res_wide[, 1:4]
-soil_ = Soil_wide[, 1:4]
-
-res_ <- res_ %>% rename(Type = Crop)
-soil_ <- soil_ %>% rename(Type = Soil)
+soil_ = soil_wide[, 1:4]
 
 res_soil_ <- rbind(res_, soil_) 
 
@@ -43,7 +40,7 @@ write.csv(res_soil_, file = paste0(path_to_data, "res_soil_.csv"),
 ggplot(res_soil_, aes(x=RWC)) + 
   geom_histogram(breaks=seq(0, 1, by=0.1), fill="lightblue", color="black",
                  alpha=0.7) +
-  facet_wrap(~Type_Name, scales="free_y") + 
+  facet_wrap(~Type, scales="free_y") + 
   labs(title="Distribution of RWC across different soils and crop residues",
        x="RWC", 
        y="Count") +
@@ -53,54 +50,163 @@ ggplot(res_soil_, aes(x=RWC)) +
 
 ###############################################################
 ###############################################################
-# crops = unique(CAI[CAI$Sample == "Residue", ]$Type)
-# soils = unique(CAI[CAI$Sample == "Soil", ]$Type)
-
-common_cols <- intersect(names(res_wide), names(Soil_wide))
+common_cols <- intersect(names(res_wide), names(soil_wide))
 res_wide <- res_wide[, common_cols]
 
-df <- rbind(res_wide, Soil_wide)
+df <- rbind(res_wide, soil_wide)
 
 df <- df %>%
-  mutate(`RWC range` = case_when(
+  mutate(`RWC_range` = case_when(
     RWC >= 0.0 & RWC <= 0.25 ~ "0-0.25",
     RWC >= 0.48 & RWC <= 0.65 ~ "0.48-0.65",
     RWC >= 0.80 & RWC <= 1 ~ "0.85-1",
-    TRUE ~ "Other"  # Optional: Handle values outside of specified ranges
+    TRUE ~ "Other"
   )) %>%
-  select(1:3, "RWC range", everything())
+  select(1:3, "RWC_range", everything())
 
 df <- df %>%
-  filter(`RWC range` != "Other")
+  filter(`RWC_range` != "Other")
 
-df <- df %>%
-  rowwise() %>%
-  mutate(fr = list(seq(0, 1, by = 0.1))) %>%
-  unnest(cols = c(fr)) %>% 
-  select(1:5, "fr", everything())
+residue_df <- dplyr::filter(df, Sample == 'Residue')
+soil_df <- dplyr::filter(df, Sample == 'Soil')
 
 
 
+###############################################################
+###############################################################
+#####
+                # mix one crop, soil and RWC range 
+#####
+###############################################################
+###############################################################
 
+# Filter by one crop and one soil
+crop_filtered <- residue_df %>% 
+  filter(Type == 'Peas')
+soil_filtered <- soil_df %>% 
+  filter(Type == 'Athena')
 
+# filter by one RWC range
+rwc_crop <- dplyr::filter(crop_filtered, RWC_range == '0-0.25')
+rwc_soil <- dplyr::filter(soil_filtered, RWC_range == '0-0.25')
 
+cropScans <- unique(rwc_crop$Scan)
+soilScans <- unique(rwc_soil$Scan)
 
+mixed_dataframe <- data.frame()
 
-
-# mixed_df <- data.frame()
-# for (crp in crops) {
-
-Peas <- dplyr::filter(df, Type == "Peas")
-
-Athena <- dplyr::filter(df, Type == "Athena")
+for (i in cropScans){
+  for (j in soilScans){
     
-  
-# }
-  
+    fractions <- sort(runif(10, min = 0, max = 1))
+    
+    cropReflect <- dplyr::filter(rwc_crop, Scan == i) %>% 
+      select("500":ncol(rwc_crop))
+    
+    soilReflect <- dplyr::filter(rwc_soil, Scan == j)%>% 
+      select("500":ncol(rwc_soil))
+    
+    Rr <- lapply(fractions, function(fr) as.numeric(cropReflect) * fr)
+    Rs <- lapply(fractions, function(fr) as.numeric(soilReflect) * (1-fr))
+    
+    Rmix <- mapply(FUN = `+`, Rr, Rs, SIMPLIFY = FALSE)
+    
+    mixed_df <- as.data.frame(do.call(rbind, Rmix))
+    colnames(mixed_df) <- names(rwc_crop)[6:ncol(rwc_crop)]
+    
+    mixed_df$cropType <- rwc_crop$Type[1]
+    mixed_df$soilType <- rwc_soil$Type[1]
+    mixed_df$cropRWC <- rwc_crop$RWC[1]
+    mixed_df$soilRWC <- rwc_soil$RWC[1]
+    mixed_df$Fr <- sort(runif(10, min = 0, max = 1))
+    mixed_df$cropScan <- i
+    mixed_df$soilScan <- j
+    
+    mixed_df <- mixed_df %>% 
+      select("cropType", "soilType", "cropRWC", "soilRWC", "Fr", "cropScan", 
+      "soilScan", everything())
+    
+    mixed_dataframe <- rbind(mixed_dataframe, mixed_df)
+  }
+}
 
+###############################################################
+###############################################################
+#####
+              # mix all crops, soils and RWC ranges 
+#####
+###############################################################
+###############################################################
+# Filter by one crop and one soil
+crops = unique(res_wide$Type)
+soils = unique(soil_wide$Type)
 
+mixed_dataframe <- data.frame()
+for (crp in crops){
+  for (sl in soils){
+    
+    # Filter by one crop and one soil
+    crop_filtered <- residue_df %>% 
+      filter(Type == crp)
+    soil_filtered <- soil_df %>% 
+      filter(Type == sl)
+    
+    mixed_dataframe_rwcLevels <- data.frame()
+    for (crp_rwc in unique(crop_filtered$RWC_range)){
+      for (sl_rwc in unique(soil_filtered$RWC_range)){
+        
+        # filter by one RWC range
+        rwc_crop <- dplyr::filter(crop_filtered, RWC_range == crp_rwc)
+        rwc_soil <- dplyr::filter(soil_filtered, RWC_range == sl_rwc)
+        
+        cropScans <- unique(rwc_crop$Scan)
+        soilScans <- unique(rwc_soil$Scan)
+        
+        
+        mixed_dataframe_scans<- data.frame()
+        for (i in cropScans){
+          for (j in soilScans){
+            
+            fractions <- sort(runif(10, min = 0, max = 1))
+            
+            cropReflect <- dplyr::filter(rwc_crop, Scan == i) %>% 
+              select("500":ncol(rwc_crop))
+            
+            soilReflect <- dplyr::filter(rwc_soil, Scan == j)%>% 
+              select("500":ncol(rwc_soil))
+            
+            Rr <- lapply(fractions, function(fr) as.numeric(cropReflect) * fr)
+            Rs <- lapply(fractions, function(fr) as.numeric(soilReflect) * (1-fr))
+            
+            Rmix <- mapply(FUN = `+`, Rr, Rs, SIMPLIFY = FALSE)
+            
+            mixed_df <- as.data.frame(do.call(rbind, Rmix))
+            colnames(mixed_df) <- names(rwc_crop)[6:ncol(rwc_crop)]
+            
+            mixed_df$cropType <- rwc_crop$Type[1]
+            mixed_df$soilType <- rwc_soil$Type[1]
+            mixed_df$cropRWC <- rwc_crop$RWC[1]
+            mixed_df$soilRWC <- rwc_soil$RWC[1]
+            mixed_df$Fr <- sort(fractions)
+            mixed_df$cropScan <- i
+            mixed_df$soilScan <- j
+            
+            mixed_df <- mixed_df %>% 
+              select("cropType", "soilType", "cropRWC", "soilRWC", "Fr", "cropScan", 
+                     "soilScan", everything())
+            
+            mixed_dataframe_scans <- rbind(mixed_dataframe_scans, mixed_df)
+            
+        mixed_dataframe_rwcLevels <- rbind(
+          mixed_dataframe_rwcLevels, mixed_dataframe_scans)
+        
+    mixed_dataframe <- rbind(
+      mixed_dataframe, mixed_dataframe_rwcLevels)
+          }
+        }
+      }
+    }
+  }
+}
 
-
-
-
-
+write.csv(mixed_dataframe, paste0(path_to_data, "mixed_dataframe.csv"), row.names = FALSE)
