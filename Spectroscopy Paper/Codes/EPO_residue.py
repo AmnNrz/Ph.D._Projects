@@ -6,7 +6,7 @@
 #       extension: .py
 #       format_name: light
 #       format_version: '1.5'
-#       jupytext_version: 1.15.2
+#       jupytext_version: 1.15.1
 #   kernelspec:
 #     display_name: tillenv
 #     language: python
@@ -20,13 +20,17 @@ import numpy as np
 
 # +
 # path_to_data = "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/"
-path_to_data = "/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/"
+path_to_data = ("/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/Projects/"
+                "Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/")
 
-residue_df = pd.read_csv(path_to_data + "Residue_08_18.csv")
+residue_df = pd.read_csv(path_to_data + "Residue.csv", index_col=0)
 
-colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
-residue_df.columns = colnames
-residue_df["Type_Name"].unique()
+residue_df = residue_df[['Sample', 'Crop', 'Scan', 'Wvl', 'RWC', 'Reflect']]
+residue_df
+
+# colnames = ['Wvl', 'Sample', 'Scan', 'Type_Name', 'Reflect', 'RWC']
+# residue_df.columns = colnames
+# residue_df["Type_Name"].unique()
 # residue_df = pd.read_csv(
     # "/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main/Residue_08_18.csv")
 # soil_df = pd.read_csv(r"G:\My Drive\PhD\Projects\Spectroscopy paper\Spectrometry-main\Soil_08_18.csv")
@@ -121,17 +125,24 @@ X_transformed = X_raw @ P
 
 X_transformed.columns = X_wet.columns
 X_transformed
+# -
+
+residue_df['Crop'].unique()
+
+D
+
+D
 
 # +
 #==   Apply EPO on D   ==#
 #== Apply EPO for one Crop ==#
-res_df = residue_df[residue_df['Type_Name'] == 'Wheat Duet'].copy()
+res_df = residue_df[residue_df['Crop'] == 'Canola'].copy()
 # res_df.set_index(['Wvl', 'RWC'], inplace=True)
 res_df
 #== Prepare X ==#
 X_wd = res_df.pivot(index=['Wvl'], columns='RWC', values='Reflect')
 X_wd
-X = X_wd/100
+X = X_wd
 
 X_wet = X.drop(min(X.columns), axis=1)
 X_wet
@@ -144,11 +155,11 @@ print(U.shape, 'U.shape')
 print(S.shape, 'S.shape')
 print(V.shape, 'V.shape')
 print(f"{V.shape = }")
-Vs = V[:, 0:4]
+Vs = V[:, 0:2]
 Q = Vs@Vs.T
 print(Q.shape, 'Q.shape')
 
-P = np.ones([Q.shape[0],Q.shape[0]]) - Q
+P = np.eye(Q.shape[0]) - Q
 P
 
 
@@ -157,6 +168,11 @@ X_transformed = X_raw @ P
 
 X_transformed.columns = X_wet.columns
 X_transformed
+# -
+
+np.array(D.T@D)
+
+Vs@Vs.T
 
 # +
 import matplotlib.pyplot as plt
@@ -290,7 +306,7 @@ for r in residue_df['Type_Name'].unique():
     Q = Vs@Vs.T
     print(Q.shape, 'Q.shape')
 
-    P = np.ones([Q.shape[0],Q.shape[0]]) - Q
+    P = np.eye(Q.shape[0]) - Q
     P
 
 
