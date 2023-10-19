@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 
 Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
@@ -50,24 +50,49 @@ ggplot(res_soil_, aes(x=RWC)) +
 common_cols <- intersect(names(res_wide), names(soil_wide))
 res_wide <- res_wide[, common_cols]
 
-df <- rbind(res_wide, soil_wide)
+cropRWC <- res_wide %>%
+  select("Type", "RWC") %>% 
+  rename(Crop = Type, Crop_RWC = RWC)
+soilRWC <- soil_wide %>%
+  select("Type", "RWC") %>% 
+  rename(Soil = Type, Soil_RWC = RWC)
 
-df <- df %>%
-  mutate(`RWC_range` = case_when(
-    RWC >= 0.0 & RWC <= 0.25 ~ "0-0.25",
-    RWC >= 0.48 & RWC <= 0.65 ~ "0.48-0.65",
-    RWC >= 0.80 & RWC <= 1 ~ "0.85-1",
-    TRUE ~ "Other"
-  )) %>%
-  select(1:3, "RWC_range", everything())
-
-df <- df %>%
-  filter(`RWC_range` != "Other")
-
-residue_df <- dplyr::filter(df, Sample == 'Residue')
-soil_df <- dplyr::filter(df, Sample == 'Soil')
+crops <-  unique(cropRWC$Crop)
+soils <- unique(soilRWC$Soil)
 
 
+crp <- "Canola"
+sl <- "Athena"
+
+commonRWC_df <- data.frame()
+for (crp in crops){
+  for (sl in soils){
+    # Filter by one crop and one soil
+    cropRWC_filtered <- cropRWC %>% 
+      filter(Crop == crp)
+    soilRWC_filtered <- soilRWC %>% 
+      filter(Soil == sl)
+    
+    # Cross join
+    cross_df <- cropRWC_filtered %>%
+      crossing(soilRWC_filtered) %>% 
+      mutate(Difference = abs(Crop_RWC - Soil_RWC))
+    
+    df <- data.frame()
+    for (rwc in unique(cropRWC_filtered$Crop_RWC)){
+      
+      rwc_df <- dplyr::filter(cross_df, Crop_RWC == rwc)
+      selected_row <- rwc_df[which.min(rwc_df$Difference),]
+      
+      df <- rbind(df, selected_row)
+    }
+    
+    commonRWC_df <- rbind(commonRWC_df, df)
+}
+}
+
+residue_df <- dplyr::filter(res_wide, Sample == 'Residue')
+soil_df <- dplyr::filter(soil_wide, Sample == 'Soil')
 
 ###############################################################
 ###############################################################
@@ -138,75 +163,54 @@ soil_df <- dplyr::filter(df, Sample == 'Soil')
 crops = unique(res_wide$Type)
 soils = unique(soil_wide$Type)
 
+crp <- "Canola"
+sl <- "Athena"
+
 mixed_dataframe <- data.frame()
 for (crp in crops){
   for (sl in soils){
     print(paste0(crp, "_", sl))
     fractions <- sort(runif(10, min = 0, max = 1))
     
-    # Filter by one crop and one soil
-    crop_filtered <- residue_df %>% 
-      filter(Type == crp)
-    soil_filtered <- soil_df %>% 
-      filter(Type == sl)
     
-    mixed_dataframe_rwcLevels <- data.frame()
-    common_RWC <- intersect(unique(crop_filtered$RWC_range),
-                            unique(soil_filtered$RWC_range))
-    for (rwc_ in common_RWC){
-      print(rwc_)
-      # filter by one RWC range
-      rwc_crop <- dplyr::filter(crop_filtered, RWC_range == rwc_)
-      rwc_soil <- dplyr::filter(soil_filtered, RWC_range == rwc_)
+    # filter commonRWC_df by crop and soil
+    filtered_commonRWC_df <- commonRWC_df %>% 
+      filter(Crop == crp & Soil == sl)
+    filtered_commonRWC_df <- filtered_commonRWC_df %>%
+      filter(!duplicated(Soil_RWC)) %>% 
+      filter(!duplicated(Crop_RWC))
+
+    crop_filtered <- residue_df %>% 
+      filter(Type == crp) %>% 
+      filter(RWC %in% filtered_commonRWC_df$Crop_RWC)
       
-      cropScans <- unique(rwc_crop$Scan)
-      soilScans <- unique(rwc_soil$Scan)
-      
-      
-      mixed_dataframe_scans<- data.frame()
-      for (i in cropScans){
-        for (j in soilScans){
-          print(paste0(i, "_", j))
+    soil_filtered <- soil_df %>% 
+      filter(Type == sl) %>% 
+      filter(RWC %in% filtered_commonRWC_df$Soil_RWC)
           
-          cropReflect <- dplyr::filter(rwc_crop, Scan == i) %>% 
-            select("500":ncol(rwc_crop))
+    cropReflect <- crop_filtered %>% select("500":ncol(crop_filtered))
+    
+    soilReflect <- soil_filtered %>%select("500":ncol(soil_filtered))
           
-          soilReflect <- dplyr::filter(rwc_soil, Scan == j)%>% 
-            select("500":ncol(rwc_soil))
+    Rmix <- lapply(
+      fractions, function(fr) {
+        df <- (cropReflect * fr) + (soilReflect * (1-fr))
+        df <- cbind(Fraction = fr, df)
+        df <- cbind(crop_rwc = crop_filtered$RWC, df)
+        df <- cbind(soil_rwc = soil_filtered$RWC, df)
+        return(df)
+      })
           
-          Rr <- lapply(fractions, function(fr) as.numeric(cropReflect) * fr)
-          Rs <- lapply(fractions, function(fr) as.numeric(soilReflect) * (1-fr))
+    mixed_df <- data.frame()
+    mixed_df <- as.data.frame(do.call(rbind, Rmix))
           
-          Rmix <- mapply(FUN = `+`, Rr, Rs, SIMPLIFY = FALSE)
-          
-          mixed_df <- data.frame()
-          mixed_df <- as.data.frame(do.call(rbind, Rmix))
-          colnames(mixed_df) <- names(rwc_crop)[6:ncol(rwc_crop)]
-          
-          mixed_df$cropType <- rwc_crop$Type[1]
-          mixed_df$soilType <- rwc_soil$Type[1]
-          
-          rwc_crp <- dplyr::filter(rwc_crop, Scan == i)$RWC[1]
-          rwc_sl <- dplyr::filter(rwc_soil, Scan == j)$RWC[1]
-          mixed_df$cropRWC <- rwc_crp
-          mixed_df$soilRWC <- rwc_sl
-          
-          mixed_df$Fr <- sort(fractions)
-          mixed_df$cropScan <- i
-          mixed_df$soilScan <- j
-          
-          mixed_df <- mixed_df %>% 
-            select("cropType", "soilType", "cropRWC", "soilRWC", "Fr", "cropScan", 
-                   "soilScan", everything())
-          
-          mixed_dataframe_scans <- rbind(mixed_dataframe_scans, mixed_df)
-        }
-      }
-      mixed_dataframe_rwcLevels <- rbind(
-          mixed_dataframe_rwcLevels, mixed_dataframe_scans)
-    }
+    mixed_df$cropType <- crp
+    mixed_df$soilType <- sl
+    mixed_df <- cbind(Crop = crp, mixed_df)
+    mixed_df <- cbind(Soil = sl, mixed_df)
+    
     mixed_dataframe <- rbind(
-      mixed_dataframe, mixed_dataframe_rwcLevels)
+      mixed_dataframe, mixed_df)
   }
 }
 
