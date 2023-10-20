@@ -2,53 +2,32 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-mixed_original <- read.csv(paste0(path_to_data, "mixed_original.csv"), check.names = FALSE)
+mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'), check.names = FALSE)
 
 mixed_original$Type <- paste0(
-  mixed_original$cropType, "_", mixed_original$soilType)
-
-# mixed_original$Scan <- paste0(
-#   mixed_original$cropScan, "_", mixed_original$soilScan)
+  mixed_original$Crop, "_", mixed_original$Soil)
 
 mixed_original <- mixed_original %>%
   mutate(RWC_ave = (
-    mixed_original$cropRWC + mixed_original$soilRWC) / 2) 
+    mixed_original$crop_rwc + mixed_original$soil_rwc) / 2) 
+mixed_original$Scan <- mixed_original$Scan
 
 mixed_original <- mixed_original %>% 
-  select(-Fr, everything(), Fr) %>% 
-  select("500":ncol(mixed_original)) %>%
-  select("Type", "RWC_ave", "Fr", everything())
+  select(-Fraction, everything(), Fraction) %>% 
+  select(c("crop_rwc", "soil_rwc", "Scan", "500":ncol(mixed_original))) %>%
+  select("Type", "RWC_ave", "Fraction", "Scan", everything())
 
 mixed_original <- mixed_original %>% 
   pivot_longer(cols = '500':names(mixed_original)[ncol(mixed_original)],
                names_to = 'Wvl',
                values_to = 'Reflect') 
-
-#############################################
-t <- dplyr::filter(mixed_original, Type== "Canola_Athena")
-
-
-
-#############################################
-
-fr1 <- dplyr::filter(mixed_original, Fr == unique(mixed_original$Fr)[1])
-
-fr1 <- fr1 %>% 
-  pivot_wider(names_from = RWC_ave, values_from = Reflect)
-
-fr2 <- dplyr::filter(mixed_original, Fr == unique(mixed_original$Fr)[2])
-
-fr2 <- fr2 %>% 
-  pivot_wider(names_from = RWC_ave, values_from = Reflect)
-
-#######    Pr  & Ps
 
 # Read raw data
 Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
@@ -57,14 +36,6 @@ Residue <- Residue[, -c(1, ncol(Residue))] %>%
 
 Soil <- read.csv(paste0(path_to_data, "Soil.csv"))
 Soil <- Soil[, -c(1, ncol(Soil))]
-
-soil_unique_rwc_count <- Soil %>%
-  group_by(Soil) %>%
-  summarise(Unique_RWC_Count = n_distinct(RWC))
-
-res_unique_rwc_count <- Residue %>%
-  group_by(Crop) %>%
-  summarise(Unique_RWC_Count = n_distinct(RWC))
 
 # Rename Crop and Soil columns to Type
 Residue <- Residue %>%
@@ -78,22 +49,16 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
-
-# Calculate Pr and Ps
-crp <- "Bagdad"
-Residue <- Residue %>% select(-Scan) 
-Soil <- Soil %>% select(-Scan)
-
 # EPO Function
-epo <- function(df, crp){
+epo <- function(df){
   
-  df <- dplyr::filter(df, Type == crp) %>% 
-  pivot_wider(names_from = RWC, values_from = Reflect) 
-
+  df <- df %>% 
+    pivot_wider(names_from = RWC, values_from = Reflect) 
+  
   df <- as.data.frame(df)
   rownames(df) <- df$Wvl
   
-  X <- df[, 4:ncol(df)]/100
+  X <- df[, 4:ncol(df)]
   
   min_col <- which.min(colnames(X))
   X_wet <- X[,-min_col]
@@ -112,36 +77,99 @@ epo <- function(df, crp){
   Vs <- V[, 1:2]
   Q <- Vs %*% t(Vs)
   
-  P <- diag(nrow(Q)) - Q
+  P <- matrix(1, nrow(Q), ncol(Q)) - Q
+  # P <- diag(nrow(Q)) - Q
   return(P)
   
 }
 
+Residue <- Residue %>% select(-Scan) 
+Soil <- Soil %>% select(-Scan)
 
-Pr <- epo(Residue, crp="Peas")
-Ps <- epo(Soil, crp="Athena")
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+# Calculate Xsr_hat
+crops <- unique(Residue$Type)
+soils <- unique(Soil$Type)
+
+Xsr_transformed <- data.frame()
+for (crp in crops){
+  for(sl in soils){
+    # filter original and mixed_original by crop and soil
+    Res_rwc_filtered <- dplyr::filter(Residue, Type==crp)
+    Soil_rwc_filtered <- dplyr::filter(Soil, Type==sl)
+    mixed_original_filtered <- 
+      dplyr::filter(mixed_original, Type== paste0(crp, "_", sl))
+    
+    
+    Res_rwc_filtered <- Res_rwc_filtered[
+      Res_rwc_filtered$RWC %in% mixed_original_filtered$crop_rwc, 
+      ]
+    
+    Soil_rwc_filtered <- Soil_rwc_filtered[
+      Soil_rwc_filtered$RWC %in% mixed_original_filtered$soil_rwc, 
+    ]
+    
+    
+    Pr <- epo(Res_rwc_filtered)
+    Ps <- epo(Soil_rwc_filtered)
+    
+    fr <- unique(mixed_original_filtered$Fraction)[1]
+    
+    Xsr_HAT <- data.frame()
+    for (fr in unique(mixed_original_filtered$Fraction)){
+    
+      Xsr <- dplyr::filter(mixed_original_filtered, Fraction == fr)
+      Xsr <- Xsr %>% 
+        select(-c(Scan, soil_rwc, RWC_ave)) %>% 
+        
+        # rwc values in Xsr would be crop rwc. Therefore, in the Xsr_transformed
+        # we will have crop_rwc not soil 
+        pivot_wider(names_from = crop_rwc, values_from = Reflect) 
+      
+      Xsr <- as.data.frame(Xsr)
+      rownames(Xsr) <- Xsr$Wvl
+      
+      Xsr_ <- Xsr %>% 
+        select(-c("Type", "Fraction", "Wvl"))
+      Xsr_ <- Xsr_ %>% 
+        select(-as.character((min(as.numeric(names(Xsr_))))))
+      
+      Xsr_ <- Xsr_/10
+      
+      Xsr_hat <- 1/2 * 
+        (as.matrix(Xsr_) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
+           as.matrix(Xsr_) %*% as.matrix(Pr) %*% as.matrix(Ps))  
+      colnames(Xsr_hat) <- colnames(Xsr_) 
+      
+      Xsr_hat <- as.data.frame(Xsr_hat)
+      
+      Xsr_hat <-Xsr_hat %>% mutate(Wvl = rownames(Xsr_hat)) %>% 
+        select("Wvl", everything())
+      
+      Xsr_hat <- as_tibble(Xsr_hat)
+      
+      Xsr_hat <- Xsr_hat %>% 
+        reshape2::melt(.,id = "Wvl") %>% 
+        rename(RWC = variable, Reflect = value)
+        # pivot_longer(cols = names(Xsr_hat[,-1]), names_to = 'RWC',
+        #              values_to = 'Reflect') 
+      Xsr_hat <- cbind(Fraction = Xsr$Fraction[1], Xsr_hat) 
+      Xsr_hat <- cbind(Mix = Xsr$Type[1], Xsr_hat)  
+      
+      Xsr_HAT <- rbind(Xsr_HAT, Xsr_hat)
+    }
+    Xsr_transformed <- rbind(Xsr_transformed, Xsr_HAT)
+  }
+}
+
+write.csv(Xsr_transformed, file = paste0(path_to_data, "Xsr_Transformed.csv"),
+          row.names = FALSE)
   
 
+mixed_original <- mixed_original %>% 
+  rename(Mix = Type)
 
-
+write.csv(mixed_original, file = paste0(path_to_data, "Xsr_Original.csv"),
+          row.names = FALSE)
 
 
 

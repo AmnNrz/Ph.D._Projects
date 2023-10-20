@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 
 Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
@@ -59,10 +59,6 @@ soilRWC <- soil_wide %>%
 
 crops <-  unique(cropRWC$Crop)
 soils <- unique(soilRWC$Soil)
-
-
-crp <- "Canola"
-sl <- "Athena"
 
 commonRWC_df <- data.frame()
 for (crp in crops){
@@ -163,9 +159,6 @@ soil_df <- dplyr::filter(soil_wide, Sample == 'Soil')
 crops = unique(res_wide$Type)
 soils = unique(soil_wide$Type)
 
-crp <- "Canola"
-sl <- "Athena"
-
 mixed_dataframe <- data.frame()
 for (crp in crops){
   for (sl in soils){
@@ -197,15 +190,14 @@ for (crp in crops){
         df <- (cropReflect * fr) + (soilReflect * (1-fr))
         df <- cbind(Fraction = fr, df)
         df <- cbind(crop_rwc = crop_filtered$RWC, df)
+        df <- cbind(
+          Scan = paste0(crop_filtered$Scan, "_", soil_filtered$Scan), df)
         df <- cbind(soil_rwc = soil_filtered$RWC, df)
         return(df)
       })
           
     mixed_df <- data.frame()
     mixed_df <- as.data.frame(do.call(rbind, Rmix))
-          
-    mixed_df$cropType <- crp
-    mixed_df$soilType <- sl
     mixed_df <- cbind(Crop = crp, mixed_df)
     mixed_df <- cbind(Soil = sl, mixed_df)
     
