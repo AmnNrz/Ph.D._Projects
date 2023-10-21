@@ -2,19 +2,23 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 library(viridis)
+library(glue)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/',
-                       '10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/',
+#                        '10nm_Senarios_Wangetal/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/mixed_Wangetal/')
+# path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Plots/mixed_Wangetal/')
+
+path_to_plot <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Spectroscopy_Paper/Plots/mixed_Wangetal/')
 
 Xsr_combined_indices <- read.csv(paste0(path_to_data,
                                         "Xsr_Original_Transformed_indices.csv"))
@@ -38,14 +42,16 @@ for (crp in unique(Xsr_combined_indices$Crop)){
   
   
   dry_df_original <- dplyr::filter(subset_df, source == "Original")
-  dry_df_original <- dplyr::filter(dry_df_original, RWC == min(subset_df$RWC))
+  dry_df_original <- dplyr::filter(dry_df_original, RWC == min(dry_df_original$RWC))
   
-  index <- "CAI"
+  index <- "NDTI"
   # Perform linear regression (Fr ~ index)
   lm_fit <- lm(dry_df_original$Fraction ~ dry_df_original[[index]],
                data = dry_df_original)
   slope <- coef(lm_fit)[2]
   intercept <- coef(lm_fit)[1]
+  print(paste(slope, "slope"))
+  print(paste(intercept, "intercept"))
   
   original_df <- dplyr::filter(
     Xsr_combined_indices, source == "Original"
@@ -53,9 +59,6 @@ for (crp in unique(Xsr_combined_indices$Crop)){
   
   original_df$Slope_base <- slope
   original_df$Intercept_base <- intercept
-  original_df$Fr_est <- original_df$Intercept_base + 
-    original_df$Slope_base * original_df[[index]]
-  
   
   # plot fr_act ~fr_est
   original_df <- original_df %>%
@@ -72,36 +75,37 @@ for (crp in unique(Xsr_combined_indices$Crop)){
     original_df$rwc_range, levels = c(
       "RWC < 25%", "25% < RWC < 75%", "RWC > 75%"))
   
-  lm_model <- lm(Fraction ~ Fr_est, data = original_df)
-  
+
   # Add a new column to original_df to store the predicted values
   original_df$Predictions <- NA  # Initialize with NA
   
-  # Populate this column with the predicted values
-  original_df$Predictions[!is.na(original_df$Fr_est)] <- 
-    predict(lm_model,
-            newdata = original_df[!is.na(original_df$Fr_est),])
+  original_df$Predictions <- original_df$Slope_base * original_df[[index]] +
+    original_df$Intercept_base
   
-  # Calculate residuals and RMSE only for the rows for which predictions were actually made
-  valid_rows <- !is.na(original_df$Predictions) & 
-    !is.na(original_df$Fraction)
   
-  # Calculate residuals
-  residuals <- original_df$Fraction[valid_rows] - original_df$Predictions[valid_rows]
+  
+  # # Calculate residuals and RMSE only for the rows for which predictions were actually made
+  # valid_rows <- !is.na(original_df$Predictions) & 
+  #   !is.na(original_df$Fraction)
+  # 
+  # # Calculate residuals
+  # residuals <- original_df$Fraction[valid_rows] - original_df$Predictions[valid_rows]
+  
+  residuals <- original_df$Fraction - original_df$Predictions
   
   # Calculate RMSE
   rmse <- sqrt(mean(residuals^2))
   print(paste("Root Mean Square Error (RMSE):", round(rmse, 4)))
   
-  original_df$RMSE <- round(rmse, 10)
+  original_df$RMSE <- round(rmse, 4)
   
   
   # Create the scatter plot
-  p1 <- ggplot(original_df, aes(y = Fr_est, x = Fraction)) +
+  p1 <- ggplot(original_df, aes(y = Predictions, x = Fraction)) +
     geom_point(aes(color = rwc_range), size = 0.6) +
     geom_smooth(method = 'lm', se = FALSE) +
     geom_abline(intercept = 0, slope = 1, linetype = "dashed", size = 1, color = "red") + 
-    labs(title = paste0("NDTI - ", crp),
+    labs(title = paste0(glue("{index} - "), crp),
          x = "Fraction residue cover", y ="Estimated fraction residue cover") +
     theme(legend.title = "RWC",
           plot.title = element_text(hjust = 0.5))+
@@ -135,9 +139,6 @@ for (crp in unique(Xsr_combined_indices$Crop)){
   
   EPO_df$Slope_base <- slope
   EPO_df$Intercept_base <- intercept
-  EPO_df$Fr_est <- EPO_df$Intercept_base + 
-    EPO_df$Slope_base * EPO_df[[index]]
-  
   
   # plot fr_act ~fr_est
   EPO_df <- EPO_df %>%
@@ -154,13 +155,18 @@ for (crp in unique(Xsr_combined_indices$Crop)){
     EPO_df$rwc_range, levels = c(
       "RWC < 25%", "25% < RWC < 75%", "RWC > 75%"))
   
-  lm_model <- lm(Fraction ~ Fr_est, data = EPO_df)
-  
-  # Add a new column to EPO_df to store the predicted values
+  # Add a new column to original_df to store the predicted values
   EPO_df$Predictions <- NA  # Initialize with NA
   
-  # Populate this column with the predicted values
-  EPO_df$Predictions <- predict(lm_model, newdata = EPO_df)
+  # # Populate this column with the predicted values
+  # original_df$Predictions[!is.na(original_df$Fr_est)] <- 
+  #   predict(lm_fit,
+  #           newdata = data.frame(
+  #             NDTI = original_df[!is.na(original_df$Fr_est),][[index]]))
+  
+  EPO_df$Predictions <- EPO_df$Slope_base * EPO_df[[index]] +
+    EPO_df$Intercept_base
+
   
   # Calculate residuals
   residuals <- EPO_df$Fraction - EPO_df$Predictions
@@ -170,11 +176,11 @@ for (crp in unique(Xsr_combined_indices$Crop)){
   rmse <- sqrt(mean(residuals^2))
   print(paste("Root Mean Square Error (RMSE):", round(rmse, 4)))
   
-  EPO_df$RMSE <- round(rmse, 10)
+  EPO_df$RMSE <- round(rmse, 4)
   
   
   # Create the scatter plot
-  p2 <- ggplot(EPO_df, aes(y = Fr_est, x = Fraction)) +
+  p2 <- ggplot(EPO_df, aes(y = Predictions, x = Fraction)) +
     geom_point(aes(color = rwc_range), size = 0.6) +
     geom_smooth(method = 'lm', se = FALSE) +
     geom_abline(intercept = 0, slope = 1, linetype = "dashed", size = 1, color = "red") + 
@@ -198,13 +204,13 @@ for (crp in unique(Xsr_combined_indices$Crop)){
   
   df$source <- factor(df$source, levels = c("Original", "EPO"))
   
-  p_combined <- ggplot(df, aes(y = Fr_est, x = Fraction)) +
+  p_combined <- ggplot(df, aes(y = Predictions, x = Fraction)) +
     geom_point(aes(color = rwc_range), size = 0.6) +
     geom_smooth(method = 'lm', se = FALSE) +
     geom_abline(
       intercept = 0, slope = 1, linetype = "dashed", size = 1, color = "red") + 
     labs(title = paste0(
-      "NDTI performance before and after EPO using regression for - ", crp),
+      glue("{index} performance before and after EPO using regression for - "), crp),
          x = "Fraction residue cover", y ="Estimated fraction residue cover", 
       color = "RWC range") +
     theme_minimal() +
