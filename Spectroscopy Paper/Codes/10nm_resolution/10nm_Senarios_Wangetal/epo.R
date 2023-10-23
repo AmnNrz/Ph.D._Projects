@@ -4,12 +4,14 @@ library(ggplot2)
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/
+                       10nm_Senarios_Wangetal/')
 
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'), check.names = FALSE)
+mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
+                           check.names = FALSE)
 
 mixed_original$Type <- paste0(
   mixed_original$Crop, "_", mixed_original$Soil)
@@ -63,7 +65,8 @@ epo <- function(df){
   min_col <- which.min(colnames(X))
   X_wet <- X[,-min_col]
   
-  D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)), ncol = ncol(X_wet), byrow = FALSE)
+  D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
+                      ncol = ncol(X_wet), byrow = FALSE)
   D <- -D
   
   D_mat <- as.matrix(D)
