@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'), check.names = FALSE)
 
