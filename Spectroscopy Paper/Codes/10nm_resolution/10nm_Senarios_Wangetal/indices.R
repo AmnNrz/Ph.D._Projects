@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#         'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
 Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_Original.csv"))
 Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_Transformed.csv"))
@@ -46,8 +46,8 @@ Xsr_Original_indices$SINDRI <-
   (Xsr_Original_indices$`2200` + Xsr_Original_indices$`2260`)
 
 Xsr_Original_indices$NDTI <- 
-  (Xsr_Original_indices$`1660` - Xsr_Original_indices$`2330`) / 
-  (Xsr_Original_indices$`1660` + Xsr_Original_indices$`2330`)
+  (Xsr_Original_indices$`1600` - Xsr_Original_indices$`2200`) / 
+  (Xsr_Original_indices$`1600` + Xsr_Original_indices$`2200`)
 
 Xsr_Original_indices$R2220 <- Xsr_Original_indices$`2200`/Xsr_Original_indices$`2000`
 Xsr_Original_indices$R1620 <- Xsr_Original_indices$`1600`/Xsr_Original_indices$`2000`
@@ -73,8 +73,8 @@ Xsr_Transformed_indices$SINDRI <-
   (Xsr_Transformed_indices$`2200` + Xsr_Transformed_indices$`2260`)
 
 Xsr_Transformed_indices$NDTI <- 
-  (Xsr_Transformed_indices$`1660` - Xsr_Transformed_indices$`2330`) / 
-  (Xsr_Transformed_indices$`1660` + Xsr_Transformed_indices$`2330`)
+  (Xsr_Transformed_indices$`1600` - Xsr_Transformed_indices$`2200`) / 
+  (Xsr_Transformed_indices$`1600` + Xsr_Transformed_indices$`2200`)
 
 Xsr_Transformed_indices$R2220 <- Xsr_Transformed_indices$`2200`/Xsr_Transformed_indices$`2000`
 Xsr_Transformed_indices$R1620 <- Xsr_Transformed_indices$`1600`/Xsr_Transformed_indices$`2000`

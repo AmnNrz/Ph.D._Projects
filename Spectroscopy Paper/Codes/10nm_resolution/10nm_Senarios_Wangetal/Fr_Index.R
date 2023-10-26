@@ -7,14 +7,14 @@ library(viridis)
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
                        '/Ph.D/Projects/Spectroscopy_Paper/Data/',
-                       '10nm_Senarios_Wangetal/')
+                       '10nm_Senarios_Wangetal_correct/')
 
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/mixed_Wangetal/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
 
 Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined.csv"))
 Xsr_combined_indices <- read.csv(paste0(path_to_data,
@@ -77,6 +77,8 @@ for (crp in unique(Xsr_combined_indices$Crop)){
       scale_shape_manual(values = named_shapes, name = "RWC Levels") + 
       guides(color = guide_legend(override.aes = list(size = 4))) +
       facet_grid(rows = vars(source), cols = vars(Index), scales = "free_x")
+  
+  print(p)
   
   ggsave(filename = paste0(path_to_plot, "Fr_Index/", crp, "_All", ".png"), plot = p, dpi = 200, width = 10, height = 3.5, units = "in")
   

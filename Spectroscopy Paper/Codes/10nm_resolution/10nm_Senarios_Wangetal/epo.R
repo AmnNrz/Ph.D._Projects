@@ -4,8 +4,8 @@ library(ggplot2)
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/
-                       10nm_Senarios_Wangetal/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/',
+                       '10nm_Senarios_Wangetal_correct/')
 
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
@@ -67,21 +67,20 @@ epo <- function(df){
   
   D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
                       ncol = ncol(X_wet), byrow = FALSE)
-  D <- -D
   
   D_mat <- as.matrix(D)
+  D_mat <- t(D_mat)
   # Perform SVD on t(D) %*% D
-  svd_result <- svd(t(D_mat) %*% D_mat)
+  svd_result <- svd(D_mat)
   
   U <- svd_result$u
   S <- svd_result$d
   V <- svd_result$v
   
-  Vs <- V[, 1:2]
+  Vs <- V[, 1:1]
   Q <- Vs %*% t(Vs)
-  
-  P <- matrix(1, nrow(Q), ncol(Q)) - Q
-  # P <- diag(nrow(Q)) - Q
+
+  P <- diag(nrow(Q)) - Q
   return(P)
   
 }
@@ -92,6 +91,9 @@ Soil <- Soil %>% select(-Scan)
 # Calculate Xsr_hat
 crops <- unique(Residue$Type)
 soils <- unique(Soil$Type)
+
+crp <- crops[1]
+sl <- soils[1]
 
 Xsr_transformed <- data.frame()
 for (crp in crops){
@@ -135,13 +137,17 @@ for (crp in crops){
         select(-c("Type", "Fraction", "Wvl"))
       Xsr_ <- Xsr_ %>% 
         select(-as.character((min(as.numeric(names(Xsr_))))))
-      
-      Xsr_ <- Xsr_/10
+    
       
       Xsr_hat <- 1/2 * 
-        (as.matrix(Xsr_) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
-           as.matrix(Xsr_) %*% as.matrix(Pr) %*% as.matrix(Ps))  
-      colnames(Xsr_hat) <- colnames(Xsr_) 
+        (t(as.matrix(Xsr_)) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
+           t(as.matrix(Xsr_)) %*% as.matrix(Pr) %*% as.matrix(Ps))  
+      
+      Xsr_hat <- t(Xsr_hat)
+      
+      Xsr_hat <- Xsr_hat + abs(min(Xsr_hat))
+      
+      rownames(Xsr_hat) <- rownames(Xsr_) 
       
       Xsr_hat <- as.data.frame(Xsr_hat)
       
@@ -173,14 +179,6 @@ mixed_original <- mixed_original %>%
 
 write.csv(mixed_original, file = paste0(path_to_data, "Xsr_Original.csv"),
           row.names = FALSE)
-
-
-
-
-
-
-
-
 
 
 

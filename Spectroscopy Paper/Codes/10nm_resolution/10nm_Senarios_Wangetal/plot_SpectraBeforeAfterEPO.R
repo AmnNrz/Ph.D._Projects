@@ -6,14 +6,14 @@ library(viridis)
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
 
 path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/mixed_Wangetal/')
+                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
 
 Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined.csv"))
 
@@ -24,9 +24,9 @@ for (mix in unique(Xsr_combined$Mix)){
   fr <- unique(Xsr_mix$Fraction)[2]
   Xsr_filtered <- dplyr::filter(Xsr_mix, Fraction == fr)
   
-  Xsr_mix$source <- factor(Xsr_mix$source, levels = c("Original", "EPO"))
+  Xsr_filtered$source <- factor(Xsr_filtered$source, levels = c("Original", "EPO"))
   
-  plot <- ggplot(Xsr_mix, aes(x = Wvl, y = Reflect, group = RWC)) + 
+  plot <- ggplot(Xsr_filtered, aes(x = Wvl, y = Reflect, group = RWC)) + 
     geom_line(aes(color = RWC), size = 0.18) + 
     facet_wrap(~ source, ncol=2) +  
     scale_color_viridis_c(direction = -1) + 
