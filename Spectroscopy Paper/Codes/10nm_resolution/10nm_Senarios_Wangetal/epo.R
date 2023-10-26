@@ -92,8 +92,8 @@ Soil <- Soil %>% select(-Scan)
 crops <- unique(Residue$Type)
 soils <- unique(Soil$Type)
 
-crp <- crops[1]
-sl <- soils[1]
+# crp <- crops[1]
+# sl <- soils[1]
 
 Xsr_transformed <- data.frame()
 for (crp in crops){
@@ -117,7 +117,7 @@ for (crp in crops){
     Pr <- epo(Res_rwc_filtered)
     Ps <- epo(Soil_rwc_filtered)
     
-    fr <- unique(mixed_original_filtered$Fraction)[1]
+    # fr <- unique(mixed_original_filtered$Fraction)[1]
     
     Xsr_HAT <- data.frame()
     for (fr in unique(mixed_original_filtered$Fraction)){
