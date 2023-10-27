@@ -2,13 +2,13 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/',
-#                        '10nm_Senarios_Wangetal_correct/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/',
+                       '10nm_Senarios_Wangetal_correct/')
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -51,6 +51,8 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
+df <- Res_rwc_filtered
+
 # EPO Function
 epo <- function(df){
   
@@ -92,8 +94,8 @@ Soil <- Soil %>% select(-Scan)
 crops <- unique(Residue$Type)
 soils <- unique(Soil$Type)
 
-# crp <- crops[1]
-# sl <- soils[1]
+crp <- crops[1]
+sl <- soils[1]
 
 Xsr_transformed <- data.frame()
 for (crp in crops){
@@ -117,7 +119,7 @@ for (crp in crops){
     Pr <- epo(Res_rwc_filtered)
     Ps <- epo(Soil_rwc_filtered)
     
-    # fr <- unique(mixed_original_filtered$Fraction)[1]
+    fr <- unique(mixed_original_filtered$Fraction)[1]
     
     Xsr_HAT <- data.frame()
     for (fr in unique(mixed_original_filtered$Fraction)){
