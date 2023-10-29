@@ -3,19 +3,19 @@ library(dplyr)
 library(ggplot2)
 library(viridis)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
 
-# path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
+path_to_plot <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+                       '/Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
 
-path_to_plot <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
+# path_to_plot <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Spectroscopy_Paper/Plots/10nm_Senarios_Wangetal_correct/')
 
 Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined.csv"))
 Xsr_combined_indices <- read.csv(paste0(path_to_data,

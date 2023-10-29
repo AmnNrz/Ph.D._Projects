@@ -18,6 +18,11 @@ Xsr_Original <- Xsr_Original %>%
 
 Xsr_Original <- Xsr_Original[names(Xsr_Transformed)]
 
+
+# filter original for crops and soils in senario
+Xsr_Original <- Xsr_Original[Xsr_Original$Mix %in% Xsr_Transformed$Mix, ]
+
+
 # create dataframe for "Spectra ~ Wvl" before/after EPO plot 
 Xsr_Org <- Xsr_Original
 Xsr_Org$source <- 'Original'
