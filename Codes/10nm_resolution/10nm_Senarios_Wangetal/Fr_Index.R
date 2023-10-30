@@ -61,7 +61,7 @@ for (crp in unique(Xsr_combined_indices$Crop)){
     subset_df_long_ <- dplyr::filter(subset_df_long, Mix == mix)
   
     # 2. Plot with combined legend
-    p <- ggplot(subset_df_long_, aes(x = Index_val, y = Fraction, color = factor(round(RWC, digits = 2)),
+    p <- ggplot(subset_df_long_, aes(x = Index_val, y =Fraction , color = factor(round(RWC, digits = 2)),
                                    shape = factor(RWC))) +
         geom_smooth(method = "lm", se = FALSE, aes(group = factor(RWC))) +
         labs(
@@ -81,7 +81,7 @@ for (crp in unique(Xsr_combined_indices$Crop)){
         scale_color_manual(values = custom_colors, name = "RWC Levels") +
         scale_shape_manual(values = named_shapes, name = "RWC Levels") + 
         guides(color = guide_legend(override.aes = list(size = 4))) +
-        facet_grid(rows = vars(source), cols = vars(Index), scales = "free_x")
+        facet_grid(rows = vars(source), cols = vars(Index) , scales = "free")
     
     print(p)
     

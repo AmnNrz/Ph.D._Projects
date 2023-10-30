@@ -1,6 +1,8 @@
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(viridis)
+library(ComplexUpset)
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
@@ -96,7 +98,7 @@ epo <- function(df, typeList){
   D <- as.matrix(Dm(df, typeList))
   
   # Perform SVD on t(D) %*% D
-  svd_result <- svd(D)
+  svd_result <- svd(t(D) %*% D)
   
   U <- svd_result$u
   S <- svd_result$d
@@ -106,7 +108,7 @@ epo <- function(df, typeList){
   Q <- Vs %*% t(Vs)
 
   P <- diag(nrow(Q)) - Q
-  return(P)
+  return(list(P=P, Q=Q))
   
 }
 
@@ -135,19 +137,23 @@ fresh_dark$mix <- paste(fresh_dark$Var1, fresh_dark$Var2, sep = "_")
 fresh_dark <- fresh_dark %>% select(-c(1,2))
 
 
+results_residue <- epo(Residue, fresh_crops)
+Pr <- results_residue$P
+Qr <- results_residue$Q
+
+results_soil <- epo(Soil, dark_soils)
+Ps <- results_soil$P
+Qs <- results_soil$Q
+
 Xsr_transformed <- data.frame()
 mix <- fresh_dark$mix[1]
 for (mix in sort(fresh_dark$mix)){
   # filter mixed_original by crop and soil
   mixed_original_filtered <-
     dplyr::filter(mixed_original, Type== mix)
-
-  
-  Pr <- epo(Residue, fresh_crops)
-  Ps <- epo(Soil, dark_soils)
   
 
-fr <- unique(mixed_original_filtered$Fraction)[1]
+  fr <- unique(mixed_original_filtered$Fraction)[1]
   
   Xsr_HAT <- data.frame()
   for (fr in unique(mixed_original_filtered$Fraction)){
@@ -210,5 +216,25 @@ write.csv(mixed_original, file = paste0(path_to_data, "Xsr_Original.csv"),
           row.names = FALSE)
 
 
+
+
+#plot heatmap of Q
+row.names(Qs) <- Xsr$Wvl
+colnames(Qs) <- Xsr$Wvl
+
+df <- as.data.frame(as.table(as.matrix(Qs)))
+
+viridis_colors <- viridis(100)
+
+ggplot(df, aes(Var2, Var1, fill = Freq)) +
+  geom_tile() +
+  scale_fill_viridis() +
+  theme_minimal() +
+  theme(
+    axis.text.x = element_text(angle = 0, vjust = 0.5),
+    axis.text.y = element_text(angle = 0)
+  ) +
+  scale_x_discrete(breaks = colnames(Qr)[seq(1, length(colnames(Qr)), by = 20)]) +
+  scale_y_discrete(breaks = rownames(Qr)[seq(1, length(rownames(Qr)), by = 20)])
 
 
