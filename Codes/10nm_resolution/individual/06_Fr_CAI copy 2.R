@@ -1,24 +1,3 @@
-## ---------------------------
-##
-## Script name:
-##
-## Purpose of script:
-##
-## Author: Siddharth Chaudhary
-##
-## Date Created: 2022-09-20
-##
-## Copyright (c) Siddharth Chaudhary, 2022
-## Email: siddharth.chaudhary@wsu.edu
-##
-## ---------------------------
-##
-## Notes:
-##
-##
-## ---------------------------
-
-# Load the reshape2 package
 library(reshape2)
 library(dplyr)
 library(ggplot2)
@@ -33,25 +12,28 @@ library(ggplot2)
 ##################################################################
 ##################################################################
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/')
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 path_to_save <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/',
                        'index_org_trsfed_crp_sl/')
 
 CAI <- read.csv(paste0(path_to_data, "CAI_transformed_Combined.csv"))
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
-"X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
-# Reorder the columns
-CAI <- CAI[, desired_colOrder]
+# desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
+# "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+# # Reorder the columns
+# CAI <- CAI[, desired_colOrder]
 
 crops = unique(CAI[CAI$Sample == "Residue", ]$Crop)
 soils = unique(CAI[CAI$Sample == "Soil", ]$Crop)
 
 fraction_list <- list()
+
+crp <- crops[1]
+sl <- soils[1]
 
 for (crp in sort(crops)) {
   for (sl in sort(soils)) {
@@ -88,7 +70,7 @@ for (crp in sort(crops)) {
     
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
     
-    test3_NDTI <- test2_NDTI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
     test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.y")
     
@@ -146,7 +128,7 @@ for (crp in sort(crops)) {
   
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
     
-    test3_CAI <- test2_CAI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
     test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.y")
     
@@ -204,7 +186,7 @@ for (crp in sort(crops)) {
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
     test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.y")
     
@@ -246,10 +228,10 @@ CAI <- read.csv(paste0(path_to_data, "CAI_Combined.csv"))
 
 
 
-desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
-                      "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
-# Reorder the columns
-CAI <- CAI[, desired_colOrder]
+# desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
+#                       "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
+# # Reorder the columns
+# CAI <- CAI[, desired_colOrder]
 
 for (crp in sort(crops)) {
   for (sl in sort(soils)) {
@@ -284,7 +266,7 @@ for (crp in sort(crops)) {
   
     test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
   
-    test3_NDTI <- test2_NDTI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_NDTI <- test2_NDTI[c(24,43:length(test2_NDTI))] ## select the conven,med,conser colums
   
     test3_NDTI <- reshape2::melt(test3_NDTI, id = "RWC.y")
   
@@ -341,7 +323,7 @@ for (crp in sort(crops)) {
     
     test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
   
-    test3_CAI <- test2_CAI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
   
     test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.y")
   
@@ -399,7 +381,7 @@ for (crp in sort(crops)) {
     
     test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
   
-    test3_SINDRI <- test2_SINDRI[c(21,36:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_SINDRI <- test2_SINDRI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
   
     test3_SINDRI <- reshape2::melt(test3_SINDRI, id = "RWC.y")
   

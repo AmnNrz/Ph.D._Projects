@@ -2,13 +2,9 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal/')
-
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
 Residue <- Residue[, -c(1, ncol(Residue))] %>% 
@@ -23,7 +19,7 @@ res_wide <- Residue %>%
 soil_wide <- Soil %>%
   pivot_wider(names_from = Wvl, values_from = Reflect) 
 
-res_wide <- res_wide %>% rename(Type = Crop)
+res_wide <- res_wide %>% rename(Type = Soil)
 soil_wide <- soil_wide %>% rename(Type = Soil)
 
 ###############################################################

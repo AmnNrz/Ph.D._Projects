@@ -50,8 +50,6 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
-# df <- Res_rwc_filtered
-
 # EPO Function
 epo <- function(df){
   
@@ -78,11 +76,10 @@ epo <- function(df){
   S <- svd_result$d
   V <- svd_result$v
   
-  Vs <- V[, 1:1]
+  Vs <- V[, 1:2]
   Q <- Vs %*% t(Vs)
 
   P <- diag(nrow(Q)) - Q
-  # P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
   return(P)
   
 }
@@ -94,8 +91,8 @@ Soil <- Soil %>% select(-Scan)
 crops <- unique(Residue$Type)
 soils <- unique(Soil$Type)
 
-crp <- crops[1]
-sl <- soils[1]
+# crp <- crops[1]
+# sl <- soils[1]
 
 Xsr_transformed <- data.frame()
 for (crp in crops){

@@ -1,46 +1,29 @@
-## ---------------------------
-##
-## Script name: Create water indices
-##
-## Purpose of script: Filter wavelength which are used for indices like CAI, SINDRI, NDTI and create plots
-##
-## Author: Siddharth Chaudhary
-##
-## Date Created: 2022-08-26
-##
-## Copyright (c) Siddharth Chaudhary, 2022
-## Email: siddharth.chaudhary@wsu.edu
-##
-## ---------------------------
-##
-## Notes:
-##
-##
-## ---------------------------
-
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/')
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
 path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_res_individual/')
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
                            header = TRUE, row.names = NULL)
 Residue_Median <- Residue_Median[-c(1, 8)]
 
-Soil_Median <- read.csv(paste0(path_to_data,
+Soil_Median <- read.csv(paste0(path_to_data, 
                                "soil.csv"),
                         header = TRUE, row.names = NULL)
 Soil_Median <- Soil_Median[-c(1, 8)]
 
-Residue_Median <- rename(Residue_Median, Crop = Soil)
+Residue_Median <- Residue_Median %>%
+  rename(Crop = Soil)
+
 Soil_Median <- rename(Soil_Median, Crop = Soil)
 
 Residue_Median <- Residue_Median %>%
@@ -54,8 +37,20 @@ Soil_Median <- Soil_Median[Soil_Median$Wvl > 1400, ]
 ## Renaming the column to Reflectance
 colnames(Residue_Median)[6] <- "Reflectance"
 
+select_columns_range <- function(df, start_col_name, end_col_name) {
+  start_col <- which(names(df) == start_col_name)
+  end_col <- which(names(df) == end_col_name)
+  if (start_col == 0 || end_col == 0) {
+    stop("One of the specified column names does not exist in the dataframe.")
+  }
+  selected_df <- df[, start_col:end_col]
+  return(selected_df)
+}
+
 CAI <- Residue_Median %>%
-  dplyr::filter(Wvl == 2200 | Wvl == 2000 | Wvl == 2100 | Wvl == 2260 | Wvl == 1660 |Wvl == 1600 | Wvl == 2330)
+  dplyr::filter(Wvl >= 1660 | Wvl <= 2330)
+
+
 
 CAI <- CAI %>%
   spread(Wvl, Reflectance) %>%
@@ -68,13 +63,24 @@ CAI <- CAI %>%
   mutate(ROLI = 2200 / 2000)
 
 
-CAI$CAI <- (0.5 * (CAI$`2000` + CAI$`2200`) - CAI$`2100`)
+# CAI$CAI <- (0.5 * (CAI$`2000` + CAI$`2200`) - CAI$`2100`)
+CAI$CAI <- (0.5 * (CAI$`2000` + CAI$`2250`) - CAI$`2090`)
 CAI$SINDRI <- (CAI$`2200` - CAI$`2260`) / (CAI$`2200` + CAI$`2260`)
-CAI$NDTI <- (CAI$`1660` - CAI$`2330`) / (CAI$`1660` + CAI$`2330`)
-CAI$R2220 <- CAI$`2200`/CAI$`2000`
+CAI$R2220_2260 <-  rowMeans(select_columns_range(CAI, '2240', '2260'))
+CAI$R2260_2280 <-  rowMeans(select_columns_range(CAI, '2295', '2330'))
+# CAI$SINDRI <- (CAI$R2220_2260 - CAI$R2260_2280) / (CAI$R2220_2260 + CAI$R2260_2280)
+# CAI$NDTI <- (CAI$`1660` - CAI$`2330`) / (CAI$`1660` + CAI$`2330`)
+CAI$R1660_1690 <-  rowMeans(select_columns_range(CAI, '1660', '1690'))
+CAI$R2220_2280 <-  rowMeans(select_columns_range(CAI, '2220', '2280'))
+CAI$NDTI <- (CAI$R1660_1690 - CAI$R2220_2280) / (CAI$R1660_1690 + CAI$R2220_2280)
+CAI$R2220 <- CAI$`2250`/CAI$`2000`
 CAI$R1620 <- CAI$`1600`/CAI$`2000`
-CAI$RSWIR <- CAI$`1660`/CAI$`2260`
-CAI$ROLI <- CAI$`1660`/CAI$`2330`
+CAI$RSWIR <- CAI$`1660`/CAI$`R2260_2280`
+CAI$ROLI <- CAI$`1660`/CAI$R2220_2280
+
+desired_column <- c("Sample", "Crop", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI",
+                    "R2220_2260", "R2260_2280", "R1660_1690", "R2220_2280", "2160", "2190", "2180", "2000", "2250", "2090")
+CAI <- CAI[, desired_column]
 
 write.csv(CAI, file = paste0(path_to_data, "CAI_Residue.csv"), row.names = FALSE)
 
@@ -96,7 +102,7 @@ facet_wrap(~Crop, ncol = 2)
 
 colnames(Soil_Median)[6] <- "Reflectance"
 CAI1 <- Soil_Median %>%
-  dplyr::filter(Wvl == 2200 | Wvl == 2000 | Wvl == 2100 | Wvl == 2260 | Wvl == 1660 |Wvl == 1600 | Wvl == 2330)
+  dplyr::filter(Wvl >= 1660 | Wvl <= 2330)
 
 CAI1 <- CAI1 %>%
   spread(Wvl, Reflectance) %>%
@@ -108,13 +114,22 @@ CAI1 <- CAI1 %>%
   mutate(RSWIR = 2200 / 2000)%>%
   mutate(ROLI = 2200 / 2000)
 
-CAI1$CAI <- (0.5 * (CAI1$`2000` + CAI1$`2200`) - CAI1$`2100`)
+# CAI1$CAI1 <- (0.5 * (CAI1$`2000` + CAI1$`2200`) - CAI1$`2100`)
+CAI1$CAI <- (0.5 * (CAI1$`2160` + CAI1$`2190`) - CAI1$`2180`)
 CAI1$SINDRI <- (CAI1$`2200` - CAI1$`2260`) / (CAI1$`2200` + CAI1$`2260`)
-CAI1$NDTI <- (CAI1$`1660` - CAI1$`2330`) / (CAI1$`1660` + CAI1$`2330`)
-CAI1$R2220 <- CAI1$`2200`/CAI1$`2000`
-CAI1$R1620 <- CAI1$`1600`/CAI1$`2200`
-CAI1$RSWIR <- CAI1$`1660`/CAI1$`2260`
-CAI1$ROLI <- CAI1$`1600`/CAI1$`2200`
+CAI1$R2220_2260 <-  rowMeans(select_columns_range(CAI1, '2240', '2260'))
+CAI1$R2260_2280 <-  rowMeans(select_columns_range(CAI1, '2290', '2330'))
+# CAI1$SINDRI <- (CAI1$R2220_2260 - CAI1$R2260_2280) / (CAI1$R2220_2260 + CAI1$R2260_2280)
+# CAI1$NDTI <- (CAI1$`1660` - CAI1$`2330`) / (CAI1$`1660` + CAI1$`2330`)
+CAI1$R1660_1690 <-  rowMeans(select_columns_range(CAI1, '1660', '1690'))
+CAI1$R2220_2280 <-  rowMeans(select_columns_range(CAI1, '2220', '2280'))
+CAI1$NDTI <- (CAI1$R1660_1690 - CAI1$R2220_2280) / (CAI1$R1660_1690 + CAI1$R2220_2280)
+CAI1$R2220 <- CAI1$`2250`/CAI1$`2000`
+CAI1$R1620 <- CAI1$`1600`/CAI1$`2000`
+CAI1$RSWIR <- CAI1$`1660`/CAI1$`R2260_2280`
+CAI1$ROLI <- CAI1$`1660`/CAI1$R2220_2280
+
+CAI1 <- CAI1[, desired_column]
 
 write.csv(CAI1, file = paste0(path_to_data, "CAI_Soil.csv"), row.names = FALSE)
 
@@ -271,7 +286,7 @@ library(patchwork)
 combined_plot <- (p3 + p4 + p5 + p6) + plot_layout(ncol=2, guides='collect')
 print(combined_plot)
 
-ggsave(filename = paste0(path_to_plots, "SpectraR ~ RWC (updated data).png"), plot = combined_plot, width = 8.3, height = 5.8, dpi = 200)
+ggsave(filename = paste0(path_to_plots, "ReflectRatio_RWC.png"), plot = combined_plot, width = 8.3, height = 5.8, dpi = 200)
 
 
 ## Chatgpt's suggestion
@@ -356,7 +371,7 @@ my_plot <- ggplot(tidy_data, aes(x = RWC, y = value, group = Crop)) +
   labs(shape = "Sample", color = "Sample")
 
 ggsave(filename = paste0(path_to_plots
-                         , "Index ~ RWC (Updated data).png"), plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
+                         , "Index_RWC.png"), plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
 
 
 ##########################################################
@@ -371,19 +386,47 @@ CAI$color_var <- factor(CAI$color_var, levels = c("Soil", color_levels[color_lev
 
 write.csv(CAI, file = paste0(path_to_data, "CAI_test.csv"), row.names = FALSE)
 
+
 df_long <- CAI %>%
-  pivot_longer(
-    cols = c(`1600`, `1660`,`2000` , `2200`, `2330`, `2260`), names_to = "Wvl", values_to = "Reflect")
+  pivot_longer(cols = c("2000", "2250", "2090", "R2220_2260",
+             "R1660_1690", "R2220_2280", "R2260_2280"),
+              names_to = "Wvl", values_to = "Reflect")
+
+
+# df_long1 <- CAI %>%
+#   dplyr::filter(Sample == "Soil") %>%
+#   pivot_longer(
+#     cols = c("2160", "2190", "2180"), names_to = "Wvl", values_to = "Reflect")
+
+# df_long2 <- CAI %>%
+#   dplyr::filter(Sample == "Residue") %>%
+#   pivot_longer(
+#     cols = c("2000", "2250", "2090"), names_to = "Wvl", values_to = "Reflect")
+# 
+# df_long3 <- CAI %>%
+#   pivot_longer(
+#     cols = c("R2220_2260", "R1660_1690", "R2220_2280", "R2260_2280"), names_to = "Wvl", values_to = "Reflect")
+# 
+# columns = c("Sample", "Crop", "Scan", "RWC", "color_var","Wvl", "Reflect")
+# 
+# df_long1 <-  df_long1[, columns]
+# df_long2 <-  df_long2[, columns]
+# df_long3 <-  df_long3[, columns]
+# 
+# df_long <- rbind(df_long1, df_long2, df_long3)
 
 df_long <- df_long %>%
   mutate(Wvl = case_when(
-    Wvl == 2200 ~ "R2.2",
-    Wvl == 2000 ~ "R2.0",
-    Wvl == 1600 ~ "R1.6",
-    Wvl == 1660 ~ "SWIR3",
-    Wvl == 2260 ~ "SWIR6",
-    Wvl == 1660 ~ "OLI6",
-    Wvl == 2330 ~ "OLI7",
+    Wvl == 2160 ~ "R2.0",
+    Wvl == 2180 ~ "R2.1",
+    Wvl == 2190 ~ "R2.2",
+    # Wvl == 2000 ~ "R2.0",
+    # Wvl == 2090 ~ "R2.1",
+    # Wvl == 2250 ~ "R2.2",
+    Wvl == "R2220_2260" ~ "SWIR6",
+    Wvl == "R2260_2280" ~ "SWIR7",
+    Wvl == "R1660_1690" ~ "OLI6",
+    Wvl == "R2220_2280" ~ "OLI7",
     TRUE ~ "Other"
   ))
 
@@ -394,7 +437,7 @@ df_Res <- df_long[df_long$Sample %in% "Residue", ]
 
 for (soil in unique(df_Soil$Crop)) {
   for (crp in unique(df_Res$Crop)){
-    # Filter dataframe based on multiple string values in the Gender column
+    # Filter dataframe based on multiple string values in the column
     values_to_include <- c(soil, crp)  # Values to filter for
     df <- df_long[df_long$Crop %in% values_to_include, ]
     
@@ -469,11 +512,13 @@ for (soil in unique(df_Soil$Crop)) {
     
     df_forOLI <- df_new %>%
       mutate(Wvl = case_when(
-        Wvl == "R2.2" ~ "R2.2",
+        
         Wvl == "R2.0" ~ "R2.0",
-        Wvl == "R1.6" ~ "R1.6",
-        Wvl == "SWIR3" ~ "OLI6",
+        Wvl == "R2.1" ~ "R2.1",
+        Wvl == "R2.2" ~ "R2.2",
         Wvl == "SWIR6" ~ "SWIR6",
+        Wvl == "SWIR7" ~ "SWIR7",
+        Wvl == "OLI6" ~ "OLI6",
         Wvl == "OLI7" ~ "OLI7",
         TRUE ~ "Other"
       ))
@@ -513,7 +558,7 @@ for (soil in unique(df_Soil$Crop)) {
     combined_plot <- (p1 + p2 + p3) + plot_layout(ncol=1)
     print(combined_plot)
     
-    ggsave(filename = paste0(path_to_plots, "RWC ~ Reflectance/", soil,"_", crp, ".png"), plot = combined_plot, width = 5, height = 8, dpi = 300)
+    ggsave(filename = paste0(path_to_plots, "RWC_Reflectance_same_CAI_ref_2000_2250_2090/", soil,"_", crp, ".png"), plot = combined_plot, width = 5, height = 8, dpi = 300)
   }
 }
 

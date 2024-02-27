@@ -13,11 +13,13 @@ library(patchwork)
 ###################################################
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/')
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
 path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_res_individual/Before and After EPO spectra/')
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Before_After_epo/')
+
 
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
@@ -150,6 +152,7 @@ ggsave(paste0(path_to_plots, "driest_reflects.png"), combined_plot,
 # # Initialize a patchwork object to hold all plots
 # all_plots <- NULL
 plots_list <- list()
+# crp <- unique(Crop_combined$Type_Name)[1]
 for (crp in unique(Crop_combined$Type_Name)){
   # Combine the two data frames
   Crop_combined <- rbind(Crop_EPO, Crop_original)
@@ -229,8 +232,11 @@ for (crp in unique(Crop_combined$Type_Name)){
     labs(title = paste0(df$Source, " ", "(", crp, ")"),
          x = "Wavelength(nm)", y = "Reflectance",
          color = "RWC Levels") +
-    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 200)) +  # x-axis grid lines every 50 units
-    scale_y_continuous(breaks = y_breaks) +  # custom y-axis grid lines
+    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 100),
+                       minor_breaks = seq(min(df$Wvl), max(df$Wvl), by = 10)) +  # x-axis grid lines every 50 units
+    scale_y_continuous(breaks = y_breaks,
+                       labels = scales::label_number(scale = 1, accuracy = 0.01)
+                       ) +  # custom y-axis grid lines
     scale_color_manual(values = custom_colors,
                        name = "RWC levels") +  # Add legend title here
     theme_minimal() +
@@ -255,9 +261,13 @@ for (crp in unique(Crop_combined$Type_Name)){
     # facet_wrap(~ Source, scales = "free_y") # Facet the plots by the source with free y-axis scales
     
     print(p)
+    # ggsave(paste0(path_to_plots, crp, ".png"), p,
+    #        width = 45, height = 15, units = "cm",dpi = 200)
   })
+  
   combined_plot <- wrap_plots(list_of_plots)
   print(combined_plot)
+  
   # # Main plot
   # p <- ggplot(Crop_combined, aes(Wvl, Reflect, group = factor(RWC))) +
   #   geom_line(aes(color = factor(RWC))) +
@@ -351,7 +361,7 @@ for (crp in unique(Crop_combined$Type_Name)){
   
   # plots_list[[crp]] <- p
   # Save the figure as a PDF with A5 size (width = 14.8 cm, height = 21 cm)
-  ggsave(paste0(path_to_plots, crp, ".png"), combined_plot,
+  ggsave(paste0(path_to_plots, crp, "_org_epo.png"), combined_plot,
          width = 45, height = 15, units = "cm",dpi = 200)
   # 
 }

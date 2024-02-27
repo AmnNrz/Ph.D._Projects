@@ -3,90 +3,58 @@ library(viridis)
 library(reshape2)
 library(dplyr)
 library(gridExtra)
+library(patchwork)
 
-# On my Mac
-setwd(paste0('/Users/aminnorouzi/Library/CloudStorage/',
-      'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/Projects/',
-      'Soil_Residue_Spectroscopy/Data/10nm_resolution/'))
-
-# WheatDuet_original <- read.csv("wheatDuet_sperctra_original.csv")
-# ## On my Ubuntu
-# setwd('/home/amnnrz/GoogleDrive - msaminnorouzi/PhD/Projects/Spectroscopy paper/EPO/')
-# WheatDuet_original <- read.csv("wheatDuet_sperctra_original.csv")
-
-# # Delete rows where RWC is 0.16
-# # WheatDuet_original <- WheatDuet_original[WheatDuet_original$RWC != 0.16, ]
-# WheatDuet_original$Source <- 'Original' # Add a source column
-# 
-# WheatDuet_EPO <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/EPO/WheatDuet_spectra_EpoApplied.csv")
-# WheatDuet_EPO$Source <- 'EPO' # Add a source column
-# 
-# WheatDuet_original <- WheatDuet_original[c("X", "Wvl", "RWC", "Reflect", "Scan", "Source" )]
-# 
-# 
-# # Combine the two data frames
-# WheatDuet_combined <- rbind(WheatDuet_EPO, WheatDuet_original)
-# 
-# # Get all unique RWC levels from the combined dataframes
-# all_rwc_levels <- unique(WheatDuet_combined$RWC)
-# 
-# # Create a color palette with enough colors for all RWC levels
-# custom_colors <- viridis(length(all_rwc_levels))
-# 
-# 
-# # # Define your custom_colors vector
-# # custom_colors <- c("red", "blue")  # Change these to your desired colors
-# 
-# 
-# # Assuming df is your dataframe and 'column_name' is the name of the column
-# # WheatDuet_combined <- WheatDuet_combined %>% filter(RWC != 1.12)
-# 
-# WheatDuet_combined$Source <- factor(WheatDuet_combined$Source, levels =c("Original", "EPO"), order=TRUE)
-# 
-# # Plot code
-# p <- ggplot(WheatDuet_combined, aes(Wvl, Reflect, group = factor(RWC))) +
-#   geom_line(aes(color = factor(RWC))) +
-#   labs(title = paste('WheatDuet'), x = "Wavelength(nm)", y = "Reflectance", 
-#        color = "RWC Levels") +
-#   scale_color_manual(values = custom_colors, 
-#                      name = "RWC levels") +  # Add legend title here
-#   theme_minimal() +
-#   theme(
-#     panel.grid.major = element_line(colour = "gray90"),
-#     panel.grid.minor = element_blank(),
-#     axis.text = element_text(size = 12),
-#     axis.title = element_text(size = 14),
-#     plot.title = element_text(hjust = 0.5, size = 16, face = "plain"),
-#     legend.title = element_text(size = 12),  # Customize legend title appearance
-#     legend.text = element_text(size = 12)
-#   ) +
-#   guides(color = guide_legend(override.aes = list(shape = NA))) +
-#   facet_wrap(~ Source, scales = "free_y") # Facet the plots by the source with free y-axis scales
-# 
-# # p <- p + ggtitle("Your Plot Title")
-# # Print the plot
-# print(p)
 
 ###################################################
 ###################################################
               # Plot for all crops #
 ###################################################
 ###################################################
-library(patchwork)
 
-Crop_original <- read.csv("Soil.csv")
-Crop_original <- select(Crop_original, -c(X, EPO_Reflect))
-Crop_original <- dplyr::rename(Crop_original, Type_Name = Soil)
-# Crop_original <- dplyr::rename(Crop_original, Reflect = Reflect...)
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
+#                        '/Ph.D/Projects/Spectroscopy_Paper/Data/10nm_res_individual/')
 
-# rename(Reflect = Reflect...)
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+                        # 'Ph.D/Projects/Spectroscopy_Paper/Plots/10nm_res_individual/Before and After EPO spectra/')
+
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/Spectra_shift_check/')
+
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/',
+                        'Spectra_shift_check/')
+
+
+Residue_Median <- read.csv(paste0(path_to_data, 
+                                  "Residue_raw.csv"),
+                           header = TRUE, row.names = NULL)
+# Crop_original <- Residue_Median[-c(1, 8)]
+Crop_original <- Residue_Median
+# Crop_original <- rename(Crop_original, Reflect = Reflect...)
+colnames(Crop_original)[5] <- "Reflect"
+# Crop_original <- 
+#   Crop_original[!is.na(Crop_original$Reflect) & 
+#                   Crop_original$Reflect != Inf & Crop_original$Reflect != -Inf, ]
+
+
+Crop_original <- Crop_original %>%
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 Crop_original$Source <- 'Original' # Add a source column
+colnames(Crop_original)[colnames(Crop_original) == "Crop"] <- "Type_Name"
 
-Crop_EPO <- read.csv("Soil_Transformed.csv")
+Crop_EPO <- read.csv(paste0(path_to_data, 'Residue_Transformed.csv'), 
+                     header = TRUE, row.names = NULL)
 Crop_EPO$Source <- 'EPO' # Add a source column
-
+Crop_EPO <- Crop_EPO %>%
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 colnames(Crop_EPO)[colnames(Crop_EPO) == "Crop"] <- "Type_Name"
+# colnames(Crop_EPO)[colnames(Crop_EPO) == "EPO_Reflect"] <- "Reflect"
 
 Crop_EPO <- Crop_EPO %>%
   select(names(Crop_original))
@@ -179,8 +147,8 @@ list_of_plots <- lapply(list_of_dataframes, function(df) {
 combined_plot <- wrap_plots(list_of_plots)
 print(combined_plot)
 
-ggsave(paste0("plots/Before&After_EPO_Spectra/driest_reflects.png"), combined_plot,
-       width = 45, height = 15, units = "cm",dpi = 200)
+# ggsave(paste0(path_to_plots, "driest_reflects_raw.png"), combined_plot,
+#        width = 45, height = 15, units = "cm",dpi = 200)
 
 ###########################################################################
 ###########################################################################
@@ -198,6 +166,7 @@ ggsave(paste0("plots/Before&After_EPO_Spectra/driest_reflects.png"), combined_pl
 # # Initialize a patchwork object to hold all plots
 # all_plots <- NULL
 plots_list <- list()
+# crp <- unique(Crop_combined$Type_Name)[1]
 for (crp in unique(Crop_combined$Type_Name)){
   # Combine the two data frames
   Crop_combined <- rbind(Crop_EPO, Crop_original)
@@ -277,8 +246,11 @@ for (crp in unique(Crop_combined$Type_Name)){
     labs(title = paste0(df$Source, " ", "(", crp, ")"),
          x = "Wavelength(nm)", y = "Reflectance",
          color = "RWC Levels") +
-    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 200)) +  # x-axis grid lines every 50 units
-    scale_y_continuous(breaks = y_breaks) +  # custom y-axis grid lines
+    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 100),
+                       minor_breaks = seq(min(df$Wvl), max(df$Wvl), by = 10)) +  # x-axis grid lines every 50 units
+    scale_y_continuous(breaks = y_breaks,
+                       labels = scales::label_number(scale = 1, accuracy = 0.01)
+                       ) +  # custom y-axis grid lines
     scale_color_manual(values = custom_colors,
                        name = "RWC levels") +  # Add legend title here
     theme_minimal() +
@@ -303,9 +275,13 @@ for (crp in unique(Crop_combined$Type_Name)){
     # facet_wrap(~ Source, scales = "free_y") # Facet the plots by the source with free y-axis scales
     
     print(p)
+    # ggsave(paste0(path_to_plots, crp, ".png"), p,
+    #        width = 45, height = 15, units = "cm",dpi = 200)
   })
+  
   combined_plot <- wrap_plots(list_of_plots)
   print(combined_plot)
+  
   # # Main plot
   # p <- ggplot(Crop_combined, aes(Wvl, Reflect, group = factor(RWC))) +
   #   geom_line(aes(color = factor(RWC))) +
@@ -399,8 +375,8 @@ for (crp in unique(Crop_combined$Type_Name)){
   
   # plots_list[[crp]] <- p
   # Save the figure as a PDF with A5 size (width = 14.8 cm, height = 21 cm)
-  ggsave(paste0("plots/Before&After_EPO_Spectra/", crp, ".png"), combined_plot,
-         width = 45, height = 15, units = "cm",dpi = 200)
+  # ggsave(paste0(path_to_plots, crp, "_org_epo.png"), combined_plot,
+  #        width = 45, height = 15, units = "cm",dpi = 200)
   # 
 }
 # # Print or save the final plot assembly
