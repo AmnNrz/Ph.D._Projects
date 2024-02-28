@@ -1,20 +1,29 @@
+setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+             'Codes/10nm_resolution/individual'))
+# setwd(paste0('/home/amnnrz/Documents/GitHub/',
+#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
+
+
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(reshape2)
+library(tibble)
+source("epo_module.R")
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-setwd('/home/amnnrz/Documents/GitHub/spectroscopy_paper/Codes/10nm_resolution/individual/')
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 ####################################################
 ####################################################
@@ -24,8 +33,7 @@ path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 ####################################################
 ####################################################
 
-source("epo_module.R")
-library(tibble)
+
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
                            header = TRUE, row.names = NULL)
@@ -45,110 +53,12 @@ Soil_Median <- Soil_Median %>%
 Residue_Median <- Residue_Median %>%
   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
-Dataframe <- Residue_Median
-type <- unique(Dataframe$Type)[1]
-num_pc <- 1
-transformed_DF <- data.frame()
-for (type in unique(Dataframe$Type)){
-  df <- dplyr::filter(Dataframe, Type==type)
-  df <- df %>% distinct(Wvl, RWC, .keep_all = TRUE)
-  df <- df %>% select(-Scan)
-  df <- df %>% 
-    pivot_wider(names_from = RWC, values_from = Reflect) 
-  
-  df <- as.data.frame(df)
-  rownames(df) <- df$Wvl
-  
-  X <- df[, 4:ncol(df)]
-  
-  min_col <- which.min(colnames(X))
-  X_wet <- X[,-min_col]
-  
-  D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
-                      ncol = ncol(X_wet), byrow = FALSE)
-  
-  D_mat <- as.matrix(D)
-  D_mat <- t(D_mat)
-  # Perform SVD on t(D) %*% D
-  svd_result <- svd(D_mat)
-  
-  U <- svd_result$u
-  S <- svd_result$d
-  V <- svd_result$v
-  
-  Vs <- V[, 1:num_pc]
-  Q <- Vs %*% t(Vs)
-  
-  # P <- diag(nrow(Q)) - Q
-  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
-  
-  X <- as.matrix(X)
-  P <- as.matrix(P)
-  
-  X_transformed <- t(X) %*% P
-  X_transformed <- t(X_transformed)
-  
-  X <- as.data.frame(X)
-  X_transformed <- as.data.frame(X_transformed)
-  row.names(X_transformed) <- row.names(X)
-  X_transformed <- rownames_to_column(X_transformed, var = 'Wvl')
-  
-  
-  transformed_DF <- rbind(transformed_DF, X_transformed)
-}
 
 
+# Apply EPO
+Residue_Median <- epo(Residue_Median)
+Soil_Median <- epo(Soil_Median)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Residue_Median <- read.csv(paste0(path_to_data, 
-                                  "Residue_Transformed.csv"),
-                           header = TRUE, row.names = NULL)
-# Residue_Median <- Residue_Median[-c(1, 7)]
-
-Soil_Median <- read.csv(paste0(path_to_data,
-                               "Soil_Transformed.csv"),
-                        header = TRUE, row.names = NULL)
-# Soil_Median <- Soil_Median[-c(1, 7)]
-
-# Residue_Median <- rename(Residue_Median, Crop = Type_Name)
-# Soil_Median <- rename(Soil_Median, Crop = Type_Name)
-
-# Residue_Median <- Residue_Median %>%
-#   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 Residue_Median <- Residue_Median[Residue_Median$Wvl > 1400, ]
 Soil_Median <- Soil_Median[Soil_Median$Wvl > 1400, ]
