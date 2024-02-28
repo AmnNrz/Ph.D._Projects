@@ -2,12 +2,12 @@ library(tidyverse)
 library(dplyr)
 library(ggplot2)
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -50,6 +50,8 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
+df <- Res_rwc_filtered
+
 # EPO Function
 epo <- function(df){
   
@@ -78,8 +80,9 @@ epo <- function(df){
   
   Vs <- V[, 1:2]
   Q <- Vs %*% t(Vs)
-
-  P <- diag(nrow(Q)) - Q
+  
+  # P <- diag(nrow(Q)) - Q
+  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
   return(P)
   
 }
@@ -91,8 +94,8 @@ Soil <- Soil %>% select(-Scan)
 crops <- unique(Residue$Type)
 soils <- unique(Soil$Type)
 
-# crp <- crops[1]
-# sl <- soils[1]
+crp <- crops[1]
+sl <- soils[1]
 
 Xsr_transformed <- data.frame()
 for (crp in crops){
@@ -106,7 +109,7 @@ for (crp in crops){
     
     Res_rwc_filtered <- Res_rwc_filtered[
       Res_rwc_filtered$RWC %in% mixed_original_filtered$crop_rwc, 
-      ]
+    ]
     
     Soil_rwc_filtered <- Soil_rwc_filtered[
       Soil_rwc_filtered$RWC %in% mixed_original_filtered$soil_rwc, 
@@ -120,7 +123,7 @@ for (crp in crops){
     
     Xsr_HAT <- data.frame()
     for (fr in unique(mixed_original_filtered$Fraction)){
-    
+      
       Xsr <- dplyr::filter(mixed_original_filtered, Fraction == fr)
       Xsr <- Xsr %>% 
         select(-c(Scan, soil_rwc, RWC_ave)) %>% 
@@ -136,7 +139,7 @@ for (crp in crops){
         select(-c("Type", "Fraction", "Wvl"))
       Xsr_ <- Xsr_ %>% 
         select(-as.character((min(as.numeric(names(Xsr_))))))
-    
+      
       
       Xsr_hat <- 1/2 * 
         (t(as.matrix(Xsr_)) %*% as.matrix(Ps) %*% as.matrix(Pr) + 

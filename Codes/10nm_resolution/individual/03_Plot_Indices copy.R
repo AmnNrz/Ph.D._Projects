@@ -3,12 +3,18 @@ library(dplyr)
 library(ggplot2)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data, 
@@ -17,7 +23,7 @@ Residue_Median <- read.csv(paste0(path_to_data,
 Residue_Median <- Residue_Median[-c(1, 8)]
 
 Soil_Median <- read.csv(paste0(path_to_data, 
-                               "soil.csv"),
+                               "Soil.csv"),
                         header = TRUE, row.names = NULL)
 Soil_Median <- Soil_Median[-c(1, 8)]
 
@@ -65,10 +71,10 @@ CAI <- CAI %>%
 
 # CAI$CAI <- (0.5 * (CAI$`2000` + CAI$`2200`) - CAI$`2100`)
 CAI$CAI <- (0.5 * (CAI$`2000` + CAI$`2250`) - CAI$`2090`)
-CAI$SINDRI <- (CAI$`2200` - CAI$`2260`) / (CAI$`2200` + CAI$`2260`)
+# CAI$SINDRI <- (CAI$`2200` - CAI$`2260`) / (CAI$`2200` + CAI$`2260`)
 CAI$R2220_2260 <-  rowMeans(select_columns_range(CAI, '2240', '2260'))
 CAI$R2260_2280 <-  rowMeans(select_columns_range(CAI, '2295', '2330'))
-# CAI$SINDRI <- (CAI$R2220_2260 - CAI$R2260_2280) / (CAI$R2220_2260 + CAI$R2260_2280)
+CAI$SINDRI <- (CAI$R2220_2260 - CAI$R2260_2280) / (CAI$R2220_2260 + CAI$R2260_2280)
 # CAI$NDTI <- (CAI$`1660` - CAI$`2330`) / (CAI$`1660` + CAI$`2330`)
 CAI$R1660_1690 <-  rowMeans(select_columns_range(CAI, '1660', '1690'))
 CAI$R2220_2280 <-  rowMeans(select_columns_range(CAI, '2220', '2280'))
@@ -116,10 +122,10 @@ CAI1 <- CAI1 %>%
 
 # CAI1$CAI1 <- (0.5 * (CAI1$`2000` + CAI1$`2200`) - CAI1$`2100`)
 CAI1$CAI <- (0.5 * (CAI1$`2160` + CAI1$`2190`) - CAI1$`2180`)
-CAI1$SINDRI <- (CAI1$`2200` - CAI1$`2260`) / (CAI1$`2200` + CAI1$`2260`)
+# CAI1$SINDRI <- (CAI1$`2200` - CAI1$`2260`) / (CAI1$`2200` + CAI1$`2260`)
 CAI1$R2220_2260 <-  rowMeans(select_columns_range(CAI1, '2240', '2260'))
 CAI1$R2260_2280 <-  rowMeans(select_columns_range(CAI1, '2290', '2330'))
-# CAI1$SINDRI <- (CAI1$R2220_2260 - CAI1$R2260_2280) / (CAI1$R2220_2260 + CAI1$R2260_2280)
+CAI1$SINDRI <- (CAI1$R2220_2260 - CAI1$R2260_2280) / (CAI1$R2220_2260 + CAI1$R2260_2280)
 # CAI1$NDTI <- (CAI1$`1660` - CAI1$`2330`) / (CAI1$`1660` + CAI1$`2330`)
 CAI1$R1660_1690 <-  rowMeans(select_columns_range(CAI1, '1660', '1690'))
 CAI1$R2220_2280 <-  rowMeans(select_columns_range(CAI1, '2220', '2280'))
@@ -372,7 +378,6 @@ my_plot <- ggplot(tidy_data, aes(x = RWC, y = value, group = Crop)) +
 
 ggsave(filename = paste0(path_to_plots
                          , "Index_RWC.png"), plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
-
 
 ##########################################################
 ##########################################################
