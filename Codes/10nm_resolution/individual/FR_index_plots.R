@@ -8,13 +8,11 @@ library(scales)
 
 # Set the path to directory
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/index_org_trsfed_crp_sl/')
 
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/FR_Index_oldBands/')
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/FR_Index_newBands2/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = path_to_data, pattern = "\\.csv$", full.names = FALSE)
@@ -197,9 +195,10 @@ print(unique(csv_files))
       legend.text = element_text(size = 12),
       legend.position = "right",
       legend.margin = margin(c(1, 5, 5, 5)),
-      legend.key.size = unit(0.4, "cm")
+      legend.key.size = unit(0.4, "cm"),
+      axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis text to 45 degrees
     ) +
-    facet_grid(index ~ type, scales = "free") +
+      facet_wrap(index ~ type,scales = "free")+
     guides(
       shape = FALSE,  # Remove the shape legend
       color = guide_legend(
@@ -208,7 +207,7 @@ print(unique(csv_files))
     )
   
     # Save the figure as a PDF with A5 size (width = 14.8 cm, height = 21 cm)
-    ggsave(paste0(path_to_plots, name, ".png"), width = 21, height = 14.8, units = "cm")
+    ggsave(paste0(path_to_plots, name, ".png"), width = 22, height = 14.8, units = "cm")
 }
 
 

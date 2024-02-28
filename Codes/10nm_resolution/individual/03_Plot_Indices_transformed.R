@@ -1,7 +1,7 @@
-setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
-             'Codes/10nm_resolution/individual'))
-# setwd(paste0('/home/amnnrz/Documents/GitHub/',
-#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
+# setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+#              'Codes/10nm_resolution/individual'))
+setwd(paste0('/home/amnnrz/Documents/GitHub/',
+             'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 
 
 library(tidyverse)
@@ -11,19 +11,19 @@ library(reshape2)
 library(tibble)
 source("epo_module.R")
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 ####################################################
 ####################################################
@@ -51,7 +51,7 @@ Soil_Median <- Soil_Median %>%
   rename(Type = Soil)
 
 Residue_Median <- Residue_Median %>%
-  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+  mutate(Sample = recode(Sample, "Type Residue" = "Residue"))
 
 
 
@@ -78,10 +78,9 @@ select_columns_range <- function(df, start_col_name, end_col_name) {
   selected_df <- df[, start_col:end_col]
   return(selected_df)
 }
-CAI <- Residue_Median %>%
-  dplyr::filter(Wvl >= 1660 | Wvl <= 2280)
+CAI <- Residue_Median
 
-CAI$X <- NULL
+# CAI$X <- NULL
 
 CAI <- CAI %>%
   spread(Wvl, Reflectance) %>%
@@ -114,32 +113,32 @@ CAI$R1620 <- CAI$`1600`/CAI$`2000`
 CAI$RSWIR <- CAI$`1660`/CAI$`R2260_2280`
 CAI$ROLI <- CAI$`1660`/CAI$R2220_2280
 
-desired_column <- c("Sample", "Crop", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI",
+desired_column <- c("Sample", "Type", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI",
                     "R2220_2260", "R2260_2280", "R1660_1690", "R2220_2280", "2160", "2190", "2180", "2000", "2250", "2090")
 CAI <- CAI[, desired_column]
 
 write.csv(CAI, file = paste0(path_to_data, "CAI_Residue_transformed.csv"), row.names = FALSE)
 
 
-ggplot(CAI, aes(x = RWC, y = CAI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = CAI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
-ggplot(CAI, aes(x = RWC, y = SINDRI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = SINDRI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
-ggplot(CAI, aes(x = RWC, y = NDTI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = NDTI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
 colnames(Soil_Median)[4] <- "Reflectance"
 
-CAI1 <- Soil_Median %>%
-  dplyr::filter(Wvl >= 1660 | Wvl <= 2280)
+CAI1 <- Soil_Median
+
 CAI1$X <- NULL
 
 CAI1 <- CAI1 %>%
@@ -182,22 +181,25 @@ CAI$Scan <- gsub(" ", "", CAI$Scan)
 
 write.csv(CAI, file = paste0(path_to_data, "CAI_transformed_Combined.csv"), row.names = FALSE)
 
+CAI$RWC <- as.numeric(as.character(CAI$RWC))
+CAI$CAI <- as.numeric(as.character(CAI$CAI))
 
-ggplot(CAI, aes(x = RWC, y = CAI, group = Crop, color = Sample)) +
+
+ggplot(CAI, aes(x = RWC, y = CAI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
   labs(x = "RWC", y = "CAI") +
   theme(text = element_text(size = 20))
 
-ggplot(CAI, aes(x = RWC, y = NDTI, group = Crop, color = Sample)) +
+ggplot(CAI, aes(x = RWC, y = NDTI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
   labs(x = "RWC", y = "NDTI") +
   theme(text = element_text(size = 20))
 
-ggplot(CAI, aes(x = RWC, y = SINDRI, group = Crop, color = Sample)) +
+ggplot(CAI, aes(x = RWC, y = SINDRI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
@@ -249,21 +251,21 @@ ggplot(CAI, aes(x = RWC, y = ROLI, group = Sample, color = Sample)) +
   theme(text = element_text(size = 20))+
   coord_flip()
 
-ggplot(dplyr::filter(CAI, Crop == "Wheat Duet" | Crop == "Pomeroy_top"), aes(x = RWC, y = SINDRI, group = Crop, color = Sample)) +
+ggplot(dplyr::filter(CAI, Type == "Wheat Duet" | Type == "Pomeroy_top"), aes(x = RWC, y = SINDRI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
   labs(x = "RWC", y = "SINDRI") +
   theme(axis.text.y = element_blank(), text = element_text(size = 20))
 
-ggplot(dplyr::filter(CAI, Crop == "Wheat Duet" | Crop == "Pomeroy_top"), aes(x = RWC, y = CAI, group = Crop, color = Sample)) +
+ggplot(dplyr::filter(CAI, Type == "Wheat Duet" | Type == "Pomeroy_top"), aes(x = RWC, y = CAI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
   labs(x = "RWC", y = "CAI") +
   theme(axis.text.y = element_blank(), text = element_text(size = 20))
 
-ggplot(dplyr::filter(CAI, Crop == "Wheat Duet" | Crop == "Pomeroy_top"), aes(x = RWC, y = NDTI, group = Crop, color = Sample)) +
+ggplot(dplyr::filter(CAI, Type == "Wheat Duet" | Type == "Pomeroy_top"), aes(x = RWC, y = NDTI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
