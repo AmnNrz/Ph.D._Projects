@@ -8,11 +8,24 @@ library(scales)
 
 # Set the path to directory
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/index_org_trsfed_crp_sl/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/',
+#                        '10nm_resolution/index_org_trsfed_crp_sl/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/',
+#                         '10nm_resolution/FR_Index_newBands2/')
 
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/FR_Index_newBands2/')
+
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/',
+                       '10nm_resolution/index_org_trsfed_crp_sl/')
+
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/',
+                        '10nm_resolution/FR_Index_newBands2/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = path_to_data, pattern = "\\.csv$", full.names = FALSE)

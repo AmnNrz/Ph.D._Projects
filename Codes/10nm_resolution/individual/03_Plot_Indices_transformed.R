@@ -1,7 +1,7 @@
-# setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
-#              'Codes/10nm_resolution/individual'))
-setwd(paste0('/home/amnnrz/Documents/GitHub/',
-             'spectroscopy_paper/Codes/10nm_resolution/individual/'))
+setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+             'Codes/10nm_resolution/individual'))
+# setwd(paste0('/home/amnnrz/Documents/GitHub/',
+#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 
 
 library(tidyverse)
@@ -11,19 +11,19 @@ library(reshape2)
 library(tibble)
 source("epo_module.R")
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 ####################################################
 ####################################################
@@ -51,7 +51,7 @@ Soil_Median <- Soil_Median %>%
   rename(Type = Soil)
 
 Residue_Median <- Residue_Median %>%
-  mutate(Sample = recode(Sample, "Type Residue" = "Residue"))
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 
 

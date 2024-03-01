@@ -3,19 +3,19 @@ library(dplyr)
 library(ggplot2)
 
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
@@ -28,9 +28,9 @@ Soil_Median <- read.csv(paste0(path_to_data,
 Soil_Median <- Soil_Median[-c(1, 8)]
 
 Residue_Median <- Residue_Median %>%
-  rename(Crop = Soil)
+  rename(Type = Soil)
 
-Soil_Median <- rename(Soil_Median, Crop = Soil)
+Soil_Median <- rename(Soil_Median, Type = Soil)
 
 Residue_Median <- Residue_Median %>%
   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
@@ -84,27 +84,27 @@ CAI$R1620 <- CAI$`1600`/CAI$`2000`
 CAI$RSWIR <- CAI$`1660`/CAI$`R2260_2280`
 CAI$ROLI <- CAI$`1660`/CAI$R2220_2280
 
-desired_column <- c("Sample", "Crop", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI",
+desired_column <- c("Sample", "Type", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI",
                     "R2220_2260", "R2260_2280", "R1660_1690", "R2220_2280", "2160", "2190", "2180", "2000", "2250", "2090")
 CAI <- CAI[, desired_column]
 
 write.csv(CAI, file = paste0(path_to_data, "CAI_Residue.csv"), row.names = FALSE)
 
 
-ggplot(CAI, aes(x = RWC, y = CAI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = CAI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
-ggplot(CAI, aes(x = RWC, y = SINDRI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = SINDRI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
-ggplot(CAI, aes(x = RWC, y = NDTI, group = Crop, color = Crop)) +
+ggplot(CAI, aes(x = RWC, y = NDTI, group = Type, color = Type)) +
   geom_point() +
   geom_line()
-facet_wrap(~Crop, ncol = 2)
+facet_wrap(~Type, ncol = 2)
 
 colnames(Soil_Median)[6] <- "Reflectance"
 CAI1 <- Soil_Median %>%
@@ -146,7 +146,7 @@ CAI$Scan <- gsub(" ", "", CAI$Scan)
 write.csv(CAI, file = paste0(path_to_data, "CAI_Combined.csv"), row.names = FALSE)
 
 
-ggplot(CAI, aes(x = RWC, y = CAI, group = Crop, color = Sample)) +
+ggplot(CAI, aes(x = RWC, y = CAI, group = Type, color = Sample)) +
   geom_point() +
   geom_line(size = 1) +
   scale_x_continuous(limits = c(0, 1), breaks = seq(0, 1, by = 0.1)) +
@@ -205,7 +205,7 @@ library(ggplot2)
 library(patchwork)
 library(viridis)
 
-CAI$color_var <- ifelse(CAI$Sample == "Soil", "Soil", CAI$Crop)
+CAI$color_var <- ifelse(CAI$Sample == "Soil", "Soil", CAI$Type)
 color_levels <- unique(CAI$color_var)
 CAI$color_var <- factor(CAI$color_var, levels = c("Soil", color_levels[color_levels != "Soil"]))
 
@@ -318,7 +318,7 @@ tidy_data <- CAI %>%
   gather(variable, value, SINDRI, CAI, NDTI)
 
 tidy_data$color_group <- ifelse(tidy_data$Sample == "Residue", 
-                                paste(tidy_data$Sample, tidy_data$Crop),
+                                paste(tidy_data$Sample, tidy_data$Type),
                                 tidy_data$Sample)
 # Define shapes
 my_shapes <- c(16:25)  # Adjust based on the number of unique values in color_group
@@ -334,7 +334,7 @@ if (length(unique_groups) > length(distinct_shapes)) {
   stop("You need more shapes!")
 }
 
-ggplot(tidy_data, aes(x = RWC, y = value, group = Crop)) +
+ggplot(tidy_data, aes(x = RWC, y = value, group = Type)) +
   geom_point(aes(shape = color_group), size = 1.5) +
   geom_smooth(method = 'loess', se = FALSE, size = 0.7, aes(color = color_group)) + # Smooth line
   # geom_line(color = viridis(1)[1], size = 0.4) +  # Set a fixed viridis color for all lines
@@ -355,7 +355,7 @@ ggplot(tidy_data, aes(x = RWC, y = value, group = Crop)) +
   ) +
   labs(shape = "Sample", color = "Sample")
 
-my_plot <- ggplot(tidy_data, aes(x = RWC, y = value, group = Crop)) +
+my_plot <- ggplot(tidy_data, aes(x = RWC, y = value, group = Type)) +
   geom_point(aes(shape = color_group), size = 1.5) +
   geom_smooth(method = 'loess', se = FALSE, size = 0.4, aes(color = color_group)) + # Smooth line
   # geom_line(color = viridis(1)[1], size = 0.4) +  # Set a fixed viridis color for all lines
@@ -385,7 +385,7 @@ ggsave(filename = paste0(path_to_plots
 library(ggplot2)
 library(patchwork)
 
-CAI$color_var <- ifelse(CAI$Sample == "Soil", "Soil", CAI$Crop)
+CAI$color_var <- ifelse(CAI$Sample == "Soil", "Soil", CAI$Type)
 color_levels <- unique(CAI$color_var)
 CAI$color_var <- factor(CAI$color_var, levels = c("Soil", color_levels[color_levels != "Soil"]))
 
@@ -412,7 +412,7 @@ df_long <- CAI %>%
 #   pivot_longer(
 #     cols = c("R2220_2260", "R1660_1690", "R2220_2280", "R2260_2280"), names_to = "Wvl", values_to = "Reflect")
 # 
-# columns = c("Sample", "Crop", "Scan", "RWC", "color_var","Wvl", "Reflect")
+# columns = c("Sample", "Type", "Scan", "RWC", "color_var","Wvl", "Reflect")
 # 
 # df_long1 <-  df_long1[, columns]
 # df_long2 <-  df_long2[, columns]
@@ -435,16 +435,16 @@ df_long <- df_long %>%
     TRUE ~ "Other"
   ))
 
-df_long$shape_value <- paste(df_long$Crop, as.character(df_long$Wvl))
+df_long$shape_value <- paste(df_long$Type, as.character(df_long$Wvl))
 
 df_Soil <- df_long[df_long$Sample %in% "Soil", ]
 df_Res <- df_long[df_long$Sample %in% "Residue", ]
 
-for (soil in unique(df_Soil$Crop)) {
-  for (crp in unique(df_Res$Crop)){
+for (soil in unique(df_Soil$Type)) {
+  for (crp in unique(df_Res$Type)){
     # Filter dataframe based on multiple string values in the column
     values_to_include <- c(soil, crp)  # Values to filter for
-    df <- df_long[df_long$Crop %in% values_to_include, ]
+    df <- df_long[df_long$Type %in% values_to_include, ]
     
     # List to hold data frames with predictions for each category
     list_of_dfs <- list()
@@ -528,7 +528,7 @@ for (soil in unique(df_Soil$Crop)) {
         TRUE ~ "Other"
       ))
     
-    df_forOLI$shape_value <- paste(df_forOLI$Crop, as.character(df_forOLI$Wvl))
+    df_forOLI$shape_value <- paste(df_forOLI$Type, as.character(df_forOLI$Wvl))
     
     R_values_to_include <- c("OLI6", "OLI7")  # Values to filter for
     df_OLI <- df_forOLI[df_forOLI$Wvl %in% R_values_to_include, ]

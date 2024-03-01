@@ -11,31 +11,31 @@ library(ggplot2)
 ##################################################################
 ##################################################################
 ##################################################################
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_save <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/',
-#                        'index_org_trsfed_crp_sl/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_save <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_save <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/',
                        'index_org_trsfed_crp_sl/')
 
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_save <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/',
+#                        'index_org_trsfed_crp_sl/')
+
 CAI <- read.csv(paste0(path_to_data, "CAI_transformed_Combined.csv"))
 
-# desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
+# desired_colOrder <- c("Sample", "Scan", "Type", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
 # "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
 # # Reorder the columns
 # CAI <- CAI[, desired_colOrder]
 
-crops = unique(CAI[CAI$Sample == "Residue", ]$Crop)
-soils = unique(CAI[CAI$Sample == "Soil", ]$Crop)
+crops = unique(CAI[CAI$Sample == "Residue", ]$Type)
+soils = unique(CAI[CAI$Sample == "Soil", ]$Type)
 
 fraction_list <- list()
 
@@ -60,8 +60,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -75,7 +75,7 @@ for (crp in sort(crops)) {
       test1_NDTI[[colname]] <- test1_NDTI$NDTI.x * (1 - i) + test1_NDTI$NDTI.y * i
     }
     
-    test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
+    test2_NDTI <- dplyr::filter(test1_NDTI, Type.x == sl & Type.y == crp)
     
     test3_NDTI <- test2_NDTI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
@@ -118,8 +118,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -133,7 +133,7 @@ for (crp in sort(crops)) {
       test1_CAI[[colname]] <- test1_CAI$CAI.x * (1 - i) + test1_CAI$CAI.y * i
     }
   
-    test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
+    test2_CAI <- dplyr::filter(test1_CAI, Type.x == sl & Type.y == crp)
     
     test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
@@ -176,8 +176,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -191,7 +191,7 @@ for (crp in sort(crops)) {
       test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i) + test1_SINDRI$SINDRI.y * i
     }
     
-    test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
+    test2_SINDRI <- dplyr::filter(test1_SINDRI, Type.x == sl & Type.y == crp)
   
     test3_SINDRI <- test2_SINDRI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
     
@@ -235,7 +235,7 @@ CAI <- read.csv(paste0(path_to_data, "CAI_Combined.csv"))
 
 
 
-# desired_colOrder <- c("Sample", "Scan", "Crop", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
+# desired_colOrder <- c("Sample", "Scan", "Type", "RWC", "X1600", "X1660", "X2000", "X2100", "X2200",
 #                       "X2260", "X2330", "CAI", "SINDRI", "NDTI", "R2220", "R1620", "RSWIR", "ROLI")
 # # Reorder the columns
 # CAI <- CAI[, desired_colOrder]
@@ -256,8 +256,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -271,7 +271,7 @@ for (crp in sort(crops)) {
       test1_NDTI[[colname]] <- test1_NDTI$NDTI.x * (1 - i) + test1_NDTI$NDTI.y * i
     }
   
-    test2_NDTI <- dplyr::filter(test1_NDTI, Crop.x == sl & Crop.y == crp)
+    test2_NDTI <- dplyr::filter(test1_NDTI, Type.x == sl & Type.y == crp)
   
     test3_NDTI <- test2_NDTI[c(24,43:length(test2_NDTI))] ## select the conven,med,conser colums
   
@@ -312,8 +312,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -328,7 +328,7 @@ for (crp in sort(crops)) {
     }
     
     
-    test2_CAI <- dplyr::filter(test1_CAI, Crop.x == sl & Crop.y == crp)
+    test2_CAI <- dplyr::filter(test1_CAI, Type.x == sl & Type.y == crp)
   
     test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
   
@@ -370,8 +370,8 @@ for (crp in sort(crops)) {
     for (i in length(unique(CAI$Scan))) {
       a <- dplyr::filter(CAI, Sample == "Soil")
       b <- dplyr::filter(CAI, Sample == "Residue")
-      for (j in unique(a$Crop)) {
-        c <- dplyr::filter(a, Crop == j)
+      for (j in unique(a$Type)) {
+        c <- dplyr::filter(a, Type == j)
         d <- merge(c, b, by.x = "Scan", by.y = "Scan")
         e <- rbind(e, d)
       }
@@ -386,7 +386,7 @@ for (crp in sort(crops)) {
       test1_SINDRI[[colname]] <- test1_SINDRI$SINDRI.x * (1 - i) + test1_SINDRI$SINDRI.y * i
     }
     
-    test2_SINDRI <- dplyr::filter(test1_SINDRI, Crop.x == sl & Crop.y == crp)
+    test2_SINDRI <- dplyr::filter(test1_SINDRI, Type.x == sl & Type.y == crp)
   
     test3_SINDRI <- test2_SINDRI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
   
