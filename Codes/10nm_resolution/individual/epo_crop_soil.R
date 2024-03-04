@@ -1,13 +1,26 @@
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+source("epo_module.R")
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+             'Codes/10nm_resolution/individual'))
+# setwd(paste0('/home/amnnrz/Documents/GitHub/',
+#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -31,18 +44,25 @@ mixed_original <- mixed_original %>%
                values_to = 'Reflect') 
 
 # Read raw data
-Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
-Residue <- Residue[, -c(1, ncol(Residue))] %>% 
-  mutate(Sample = ifelse(is.character('Crop Residue'), 'Residue', Sample))
+Residue <- read.csv(paste0(path_to_data, 
+                                  "Residue.csv"),
+                           header = TRUE, row.names = NULL)
+Residue <- Residue[-c(1, 8)]
 
-Soil <- read.csv(paste0(path_to_data, "Soil.csv"))
-Soil <- Soil[, -c(1, ncol(Soil))]
+Soil <- read.csv(paste0(path_to_data, 
+                               "Soil.csv"),
+                        header = TRUE, row.names = NULL)
+Soil <- Soil[-c(1, 8)]
 
-# Rename Crop and Soil columns to Type
 Residue <- Residue %>%
   rename(Type = Soil)
+
 Soil <- Soil %>%
   rename(Type = Soil)
+
+Residue <- Residue %>%
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+
 
 # Select common Wvls
 Residue <- Residue[Residue$Wvl %in% Soil$Wvl, ]
@@ -50,45 +70,8 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
-df <- Res_rwc_filtered
-
-# EPO Function
-epo <- function(df){
-  
-  df <- df %>% 
-    pivot_wider(names_from = RWC, values_from = Reflect) 
-  
-  df <- as.data.frame(df)
-  rownames(df) <- df$Wvl
-  
-  X <- df[, 4:ncol(df)]
-  
-  min_col <- which.min(colnames(X))
-  X_wet <- X[,-min_col]
-  
-  D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
-                      ncol = ncol(X_wet), byrow = FALSE)
-  
-  D_mat <- as.matrix(D)
-  D_mat <- t(D_mat)
-  # Perform SVD on t(D) %*% D
-  svd_result <- svd(D_mat)
-  
-  U <- svd_result$u
-  S <- svd_result$d
-  V <- svd_result$v
-  
-  Vs <- V[, 1:2]
-  Q <- Vs %*% t(Vs)
-  
-  # P <- diag(nrow(Q)) - Q
-  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
-  return(P)
-  
-}
-
-Residue <- Residue %>% select(-Scan) 
-Soil <- Soil %>% select(-Scan)
+# Residue <- Residue %>% select(-Scan) 
+# Soil <- Soil %>% select(-Scan)
 
 # Calculate Xsr_hat
 crops <- unique(Residue$Type)
@@ -116,12 +99,13 @@ for (crp in crops){
     ]
     
     
-    Pr <- epo(Res_rwc_filtered)
-    Ps <- epo(Soil_rwc_filtered)
+    Pr <- project(Res_rwc_filtered)
+    Ps <- project(Soil_rwc_filtered)
     
     fr <- unique(mixed_original_filtered$Fraction)[1]
     
     Xsr_HAT <- data.frame()
+    fr <- unique(mixed_original_filtered$Fraction)[1]
     for (fr in unique(mixed_original_filtered$Fraction)){
       
       Xsr <- dplyr::filter(mixed_original_filtered, Fraction == fr)
@@ -140,20 +124,23 @@ for (crp in crops){
       Xsr_ <- Xsr_ %>% 
         select(-as.character((min(as.numeric(names(Xsr_))))))
       
+      Xsr_ <- Xsr_[, ncol(Xsr_):1]
       
-      Xsr_hat <- 1/2 * 
-        (t(as.matrix(Xsr_)) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
-           t(as.matrix(Xsr_)) %*% as.matrix(Pr) %*% as.matrix(Ps))  
+      Xsr_hat <- 1/2 *
+        (as.matrix(Xsr_) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
+           as.matrix(Xsr_) %*% as.matrix(Pr) %*% as.matrix(Ps))  
       
-      Xsr_hat <- t(Xsr_hat)
+      Xsr_hat <- t(Xsr_hat)/10
       
-      Xsr_hat <- Xsr_hat + abs(min(Xsr_hat))
+      # Xsr_hat <- Xsr_hat + abs(min(Xsr_hat))
       
-      rownames(Xsr_hat) <- rownames(Xsr_) 
+      rownames(Xsr_hat) <- colnames(Xsr_)
       
       Xsr_hat <- as.data.frame(Xsr_hat)
       
-      Xsr_hat <-Xsr_hat %>% mutate(Wvl = rownames(Xsr_hat)) %>% 
+      Xsr_hat <- as.data.frame(t(Xsr_hat))
+      
+      Xsr_hat <- Xsr_hat %>% mutate(Wvl = rownames(Xsr_hat)) %>% 
         select("Wvl", everything())
       
       Xsr_hat <- as_tibble(Xsr_hat)

@@ -38,35 +38,35 @@ library(dplyr)
 library(ggplot2)
 
 # # 
-# # path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-# #                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-# #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# Residue_Median <- read.csv(paste0(path_to_data,
-#                                   "Residue.csv"),
-#                            header = TRUE, row.names = NULL)
-# Residue_Median <- Residue_Median[-c(1, 8)]
-# 
-# Soil_Median <- read.csv(paste0(path_to_data,
-#                                "Soil.csv"),
-#                         header = TRUE, row.names = NULL)
-# Soil_Median <- Soil_Median[-c(1, 8)]
-# 
-# Residue_Median <- Residue_Median %>%
-#   rename(Type = Soil)
-# 
-# Soil_Median <- Soil_Median %>%
-#   rename(Type = Soil)
-# 
-# Residue_Median <- Residue_Median %>%
-#   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
-# Dataframe <- Soil_Median
-# # Dataframe <- Residue_Median
-# type <- 'Athena'
-# # type <- 'Canola'
-# num_pc <- 1
+
+Residue_Median <- read.csv(paste0(path_to_data,
+                                  "Residue.csv"),
+                           header = TRUE, row.names = NULL)
+Residue_Median <- Residue_Median[-c(1, 8)]
+
+Soil_Median <- read.csv(paste0(path_to_data,
+                               "Soil.csv"),
+                        header = TRUE, row.names = NULL)
+Soil_Median <- Soil_Median[-c(1, 8)]
+
+Residue_Median <- Residue_Median %>%
+  rename(Type = Soil)
+
+Soil_Median <- Soil_Median %>%
+  rename(Type = Soil)
+
+Residue_Median <- Residue_Median %>%
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+Dataframe <- Soil_Median
+# Dataframe <- Residue_Median
+type <- 'Athena'
+# type <- 'Canola'
+num_pc <- 1
 
 epo <- function(Dataframe, num_pc = 1){
   transformed_DF <- data.frame()
@@ -142,5 +142,45 @@ epo <- function(Dataframe, num_pc = 1){
     transformed_DF <- rbind(transformed_DF, X_transformed)
   }
   return(transformed_DF)
+}
+
+
+project <- function(df, num_pc = 1){
+  df <- df %>% distinct(Wvl, RWC, .keep_all = TRUE)
+  df <- df %>% select(-Scan)
+  df <- df %>% 
+    pivot_wider(names_from = RWC, values_from = Reflect) 
+  
+  df <- as.data.frame(df)
+  rownames(df) <- df$Wvl
+  
+  X <- df[, 4:ncol(df)]
+  X <- X[, ncol(X):1]
+  
+  min_col <- which.min(colnames(X))
+  X_wet <- X[,-min_col]
+  
+  D <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
+                      ncol = ncol(X_wet), byrow = FALSE)
+  
+  D_mat <- as.matrix(D)
+  D_mat <- -D_mat
+  
+  svd_result <- svd(t(D_mat) %*% D_mat)
+  
+  U <- svd_result$u
+  S <- svd_result$d
+  V <- svd_result$v
+  
+  Vs <- t(V)[, 1:num_pc]
+  Q <- Vs %*% t(Vs)
+  
+  # P <- diag(nrow(Q)) - Q
+  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
+  
+  X_wet <- as.matrix(X_wet)
+  P <- as.matrix(P)
+
+return(P)
 }
 
