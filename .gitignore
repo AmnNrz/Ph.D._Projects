@@ -369,3 +369,4 @@ slprj/
 *.h5
 
 .vscode/
+.Rproj.user
