@@ -16,7 +16,7 @@
 /*.Rcheck/
 
 ## RStudio files
-#.Rproj.user/
+.Rproj.user/
 
 # produced vignettes
 vignettes/*.html
@@ -369,4 +369,4 @@ slprj/
 *.h5
 
 .vscode/
-#.Rproj.user
+.Rproj.user
