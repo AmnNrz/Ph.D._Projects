@@ -3,7 +3,7 @@
     "path": "~/Documents/GitHub/spectroscopy_paper/Codes/10nm_resolution/individual/Fr_Index_wang.R",
     "project_path": "Codes/10nm_resolution/individual/Fr_Index_wang.R",
     "type": "r_source",
-    "hash": "2204615591",
+    "hash": "0",
     "contents": "",
     "dirty": false,
     "created": 1709580060003.0,
@@ -11,7 +11,9 @@
     "relative_order": 5,
     "properties": {
         "source_window_id": "",
-        "Source": "Source"
+        "Source": "Source",
+        "cursorPosition": "14,53",
+        "scrollLine": "0"
     },
     "folds": "",
     "lastKnownWriteTime": 1709576777,
