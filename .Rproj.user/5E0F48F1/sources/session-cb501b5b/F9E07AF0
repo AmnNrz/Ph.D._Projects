@@ -1,0 +1,24 @@
+{
+    "id": "F9E07AF0",
+    "path": "~/Documents/GitHub/spectroscopy_paper/Codes/10nm_resolution/individual/spectralMixing.R",
+    "project_path": "Codes/10nm_resolution/individual/spectralMixing.R",
+    "type": "r_source",
+    "hash": "1321956642",
+    "contents": "",
+    "dirty": false,
+    "created": 1709580039571.0,
+    "source_on_save": false,
+    "relative_order": 2,
+    "properties": {
+        "source_window_id": "",
+        "Source": "Source"
+    },
+    "folds": "",
+    "lastKnownWriteTime": 1709521173,
+    "encoding": "UTF-8",
+    "collab_server": "",
+    "source_window": "",
+    "last_content_update": 1709521173,
+    "read_only": false,
+    "read_only_alternatives": []
+}
