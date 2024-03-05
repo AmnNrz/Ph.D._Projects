@@ -4,13 +4,13 @@ library(ggplot2)
 library(viridis)
 library(ComplexUpset)
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)',
-                       '/Ph.D/Projects/Spectroscopy_Paper/Data/',
-                       '10nm_Senarios_Wangetal_correct/')
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                        'Projects/Spectroscopy_Paper/Data/10nm_Senarios_Wangetal_correct/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -34,18 +34,24 @@ mixed_original <- mixed_original %>%
                values_to = 'Reflect') 
 
 # Read raw data
-Residue <- read.csv(paste0(path_to_data, "Residue.csv"))
-Residue <- Residue[, -c(1, ncol(Residue))] %>% 
-  mutate(Sample = ifelse(is.character('Crop Residue'), 'Residue', Sample))
+Residue <- read.csv(paste0(path_to_data, 
+                           "Residue.csv"),
+                    header = TRUE, row.names = NULL)
+Residue <- Residue[-c(1, 8)]
 
-Soil <- read.csv(paste0(path_to_data, "Soil.csv"))
-Soil <- Soil[, -c(1, ncol(Soil))]
+Soil <- read.csv(paste0(path_to_data, 
+                        "Soil.csv"),
+                 header = TRUE, row.names = NULL)
+Soil <- Soil[-c(1, 8)]
 
-# Rename Crop and Soil columns to Type
 Residue <- Residue %>%
-  rename(Type = Crop)
+  rename(Type = Soil)
+
 Soil <- Soil %>%
   rename(Type = Soil)
+
+Residue <- Residue %>%
+  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 # Select common Wvls
 Residue <- Residue[Residue$Wvl %in% Soil$Wvl, ]
@@ -60,7 +66,7 @@ length(unique(Soil$Wvl))
 # typeList <- fresh_crops
 Dm <- function(df, typeList){
   D <- data.frame()
-  type <- typeList[2]
+  # type <- typeList[2]
   for (type in typeList){
  
     df_filtered <- dplyr::filter(df, Type == type)
@@ -209,7 +215,7 @@ for (mix in sort(fresh_dark$mix)){
   Xsr_transformed <- rbind(Xsr_transformed, Xsr_HAT)
 }
 
-write.csv(Xsr_transformed, file = paste0(path_to_data, "Xsr_Transformed.csv"),
+write.csv(Xsr_transformed, file = paste0(path_to_data, "Xsr_Transformed_.csv"),
           row.names = FALSE)
 
 
