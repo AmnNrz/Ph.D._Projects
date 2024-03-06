@@ -93,6 +93,7 @@ epo <- function(Dataframe, num_pc = 1){
     D_mat <- -D_mat
     
     svd_result <- svd(t(D_mat) %*% D_mat)
+    # svd_result <- svd(D_mat %*% t(D_mat))
     
     U <- svd_result$u
     S <- svd_result$d
@@ -108,6 +109,8 @@ epo <- function(Dataframe, num_pc = 1){
     P <- as.matrix(P)
     
     X_transformed <- X_wet %*% P
+    # X_transformed <- t(X_wet) %*% P
+    # X_transformed <- t(X_transformed)
     X <- as.data.frame(X)
     X_transformed <- as.data.frame(X_transformed)
     row.names(X_transformed) <- row.names(X)
@@ -175,12 +178,71 @@ project <- function(df, num_pc = 1){
   Vs <- t(V)[, 1:num_pc]
   Q <- Vs %*% t(Vs)
   
-  # P <- diag(nrow(Q)) - Q
-  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
+  P <- diag(nrow(Q)) - Q
+  # P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
   
   X_wet <- as.matrix(X_wet)
   P <- as.matrix(P)
 
 return(P)
 }
+
+
+Dm <- function(df, typeList){
+  D <- data.frame()
+  type <- typeList[2]
+  for (type in typeList){
+    
+    df_filtered <- dplyr::filter(df, Type == type)
+    df_filtered <- df_filtered %>% distinct(Wvl, RWC, .keep_all = TRUE)
+    # df_filtered <- df_filtered %>% select(-Scan)
+    df_filtered <- df_filtered %>%
+      pivot_wider(names_from = RWC, values_from = Reflect)
+    
+    df_filtered <- as.data.frame(df_filtered)
+    rownames(df_filtered) <- df_filtered$Wvl
+    
+    X <- df_filtered[, 4:ncol(df_filtered)]
+    X <- X[, ncol(X):1]
+    
+    min_col <- which.min(colnames(X))
+    X_wet <- X[,-min_col]
+    
+    D_ <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
+                         ncol = ncol(X_wet), byrow = FALSE)
+    
+    D_mat <- as.matrix(D_)
+    D_mat <- t(D_mat)
+    
+    D <- rbind(D, D_mat)
+    
+  }
+  return(D)
+}
+
+epo_scenario <- function(df, typeList, num_pc = 1){
+
+  D <- as.matrix(Dm(df, typeList))
+  D <- -D
+  D <- as.data.frame(D)
+  D <- D[order(as.numeric(rownames(D))), ]
+  D <- t(D)
+  
+  # Perform SVD on t(D) %*% D
+  svd_result <- svd(t(D) %*% D)
+  
+  U <- svd_result$u
+  S <- svd_result$d
+  V <- svd_result$v
+  
+  Vs <- t(V)[, 1:num_pc]
+  Q <- Vs %*% t(Vs)
+  
+  # P <- diag(nrow(Q)) - Q
+  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
+  P <- as.matrix(P)
+  return(list(P=P, Q=Q))
+  
+}
+
 

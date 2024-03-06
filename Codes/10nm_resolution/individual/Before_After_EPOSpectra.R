@@ -32,15 +32,14 @@ Crop_original <- Crop_original %>%
   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 Crop_original$Source <- 'Original' # Add a source column
-colnames(Crop_original)[colnames(Crop_original) == "Crop"] <- "Type_Name"
+Crop_original <- Crop_original %>% 
+  rename(Type = Crop)
 
 Crop_EPO <- read.csv(paste0(path_to_data, 'Residue_Transformed.csv'), 
                      header = TRUE, row.names = NULL)
 Crop_EPO$Source <- 'EPO' # Add a source column
 Crop_EPO <- Crop_EPO %>%
   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
-colnames(Crop_EPO)[colnames(Crop_EPO) == "Crop"] <- "Type_Name"
-# colnames(Crop_EPO)[colnames(Crop_EPO) == "EPO_Reflect"] <- "Reflect"
 
 Crop_EPO <- Crop_EPO %>%
   select(names(Crop_original))
@@ -57,15 +56,15 @@ Crop_combined <- rbind(Crop_EPO, Crop_original)
 
 
 original_driest_df <- data.frame()
-for (crp in unique(Crop_original$Type_Name)){
-  crp_df <- Crop_original %>% dplyr:: filter(Type_Name == crp)
+for (crp in unique(Crop_original$Type)){
+  crp_df <- Crop_original %>% dplyr:: filter(Type == crp)
   driest <-   crp_df %>%  dplyr:: filter(RWC == min(crp_df$RWC))
   original_driest_df <- rbind(original_driest_df, driest)
 }
 
 epo_driest_df <- data.frame()
-for (crp in unique(Crop_EPO$Type_Name)){
-  crp_df <- Crop_EPO %>% dplyr:: filter(Type_Name == crp)
+for (crp in unique(Crop_EPO$Type)){
+  crp_df <- Crop_EPO %>% dplyr:: filter(Type == crp)
   driest <-   crp_df %>%  dplyr:: filter(RWC == min(crp_df$RWC))
   epo_driest_df <- rbind(epo_driest_df, driest)
 }
@@ -76,7 +75,7 @@ driest_combined <- rbind(original_driest_df, epo_driest_df)
 library(patchwork)
 
 # Get all unique RWC levels from the combined dataframes
-crop_levels <- unique(driest_combined$Type_Name)
+crop_levels <- unique(driest_combined$Type)
 
 # Create a color palette with enough colors for all RWC levels
 custom_colors <- viridis(length(crop_levels))
@@ -95,8 +94,8 @@ list_of_plots <- lapply(list_of_dataframes, function(df) {
   # Calculate the y-breaks specific to this dataframe
   y_breaks <- seq(min(df$Reflect), max(df$Reflect), by = (max(df$Reflect) - min(df$Reflect))/20)
   # print(y_breaks)
-  p <- ggplot(df, aes(Wvl, Reflect, group = factor(Type_Name))) +
-    geom_line(aes(color = factor(Type_Name))) +
+  p <- ggplot(df, aes(Wvl, Reflect, group = factor(Type))) +
+    geom_line(aes(color = factor(Type))) +
     geom_vline(xintercept = c(2000, 2100, 2200), linetype = "solid", size = 0.6, color = 'red') +  # Add vertical lines
     geom_vline(xintercept = c(1660, 2330), linetype = "solid", size = 0.6, color = 'blue') +  # Add vertical lines
     geom_vline(xintercept = c(2205, 2260), linetype = "solid", size = 0.6, color = 'green') +  # Add vertical lines
@@ -142,7 +141,7 @@ ggsave(paste0(path_to_plots, "driest_reflects.png"), combined_plot,
 ###########################################################################
 
 # Crop_combined <- Crop_combined %>%
-  # mutate(Type_Name = recode(Type_Name,"Almira_bottom"="Almira (bottom)", "Almira_top"="Almira (top)",
+  # mutate(Type = recode(Type,"Almira_bottom"="Almira (bottom)", "Almira_top"="Almira (top)",
                                    # "Bickleton_bottom"="Bickleton (bottom)", "Bickleton_top"="Bickleton (top)",
                                    # "Lind_bottom"="Lind (bottom)", "Lind_top"="Lind (top)",
                                    # "Palouse_conv_till"="Palouse (conventional till)", 
@@ -152,12 +151,12 @@ ggsave(paste0(path_to_plots, "driest_reflects.png"), combined_plot,
 # # Initialize a patchwork object to hold all plots
 # all_plots <- NULL
 plots_list <- list()
-# crp <- unique(Crop_combined$Type_Name)[1]
-for (crp in unique(Crop_combined$Type_Name)){
+# crp <- unique(Crop_combined$Type)[1]
+for (crp in unique(Crop_combined$Type)){
   # Combine the two data frames
   Crop_combined <- rbind(Crop_EPO, Crop_original)
   # Crop_combined <- Crop_combined %>%
-  #   mutate(Type_Name = recode(Type_Name,"Almira_bottom"="Almira (bottom)", "Almira_top"="Almira (top)",
+  #   mutate(Type = recode(Type,"Almira_bottom"="Almira (bottom)", "Almira_top"="Almira (top)",
   #                           "Bickleton_bottom"="Bickleton (bottom)", "Bickleton_top"="Bickleton (top)",
   #                           "Lind_bottom"="Lind (bottom)", "Lind_top"="Lind (top)",
   #                           "Palouse_conv_till"="Palouse (conventional till)", 
@@ -165,7 +164,7 @@ for (crp in unique(Crop_combined$Type_Name)){
   #                           "Pomeroy_top"="Pomeroy (top)", "Wike_bottom"="Wike (bottom)", "Wike_top"="Wike (top)" ))
   # 
   print(crp)
-  Crop_combined <- subset(Crop_combined, Type_Name == crp)
+  Crop_combined <- subset(Crop_combined, Type == crp)
   
   # Get all unique RWC levels from the combined dataframes
   all_rwc_levels <- unique(Crop_combined$RWC)

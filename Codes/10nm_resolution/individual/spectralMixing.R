@@ -177,12 +177,11 @@ soil_df <- dplyr::filter(soil_wide, Sample == 'Soil')
 crops = unique(res_wide$Type)
 soils = unique(soil_wide$Type)
 
+fractions <- sort(runif(10, min = 0, max = 1))
 mixed_dataframe <- data.frame()
 for (crp in crops){
   for (sl in soils){
     print(paste0(crp, "_", sl))
-    fractions <- sort(runif(10, min = 0, max = 1))
-    
     
     # filter commonRWC_df by crop and soil
     filtered_commonRWC_df <- commonRWC_df %>% 

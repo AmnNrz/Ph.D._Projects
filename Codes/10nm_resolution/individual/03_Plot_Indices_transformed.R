@@ -62,7 +62,8 @@ Soil_Median <- epo(Soil_Median)
 
 Residue_Median <- Residue_Median[Residue_Median$Wvl > 1400, ]
 Soil_Median <- Soil_Median[Soil_Median$Wvl > 1400, ]
-
+write.csv(Residue_Median, file = paste0(path_to_data, "Residue_transformed.csv"), row.names = FALSE)
+write.csv(Soil_Median, file = paste0(path_to_data, "Soil_transformed.csv"), row.names = FALSE)
 
 
                     
