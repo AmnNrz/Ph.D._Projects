@@ -1,6 +1,7 @@
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(tidyr)
 
 # path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 #                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
@@ -9,12 +10,8 @@ library(ggplot2)
 path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_Original.csv"))
-Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_Transformed.csv"))
-                            
-Xsr_Original <- Xsr_Original %>% 
-  select(c("Mix", "Fraction", "crop_rwc", "Wvl", "Reflect")) %>% 
-  rename(RWC = crop_rwc)
+Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_freshdark_Original.csv"))
+Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_freshDark_Transformed.csv"))
 
 Xsr_Original <- Xsr_Original[names(Xsr_Transformed)]
 
@@ -25,7 +22,7 @@ Xsr_Trans <- Xsr_Transformed
 Xsr_Trans$source <- 'EPO'
 
 Xsr_combined <- rbind(Xsr_Org, Xsr_Trans)
-write.csv(Xsr_combined, file = paste0(path_to_data, "Xsr_combined.csv"), row.names = FALSE)
+write.csv(Xsr_combined, file = paste0(path_to_data, "Xsr_combined_freshDark.csv"), row.names = FALSE)
 
 select_columns_range <- function(df, start_col_name, end_col_name) {
   start_col <- which(names(df) == start_col_name)
@@ -37,8 +34,20 @@ select_columns_range <- function(df, start_col_name, end_col_name) {
   return(selected_df)
 }
 
+# Function to replace each vector with its mean
+replace_vector_with_mean <- function(x) {
+  sapply(x, function(v) mean(unlist(v)))
+}
+
+# Xsr_Original_indices <- Xsr_Original %>%
+#   spread(Wvl, Reflect) 
+
 Xsr_Original_indices <- Xsr_Original %>%
-  spread(Wvl, Reflect) 
+  pivot_wider(names_from = Wvl, values_from = Reflect)
+Xsr_org_first3 <- Xsr_Original_indices[, 1:3]
+Xsr_org_rest <- Xsr_Original_indices[, 4:ncol(Xsr_Original_indices)]
+Xsr_wide <- apply(Xsr_org_rest, 2, replace_vector_with_mean)
+Xsr_Original_indices <- cbind(Xsr_org_first3, Xsr_wide)
 
 # Xsr_Original_indices$CAI <- 
 #   (0.5 * (Xsr_Original_indices$`2200` + Xsr_Original_indices$`2250`) - 
@@ -110,5 +119,5 @@ Xsr_Transformed_indices$source <- 'EPO'
 
 Xsr_Original_Transformed_indices <- rbind(Xsr_Original_indices, Xsr_Transformed_indices)
 
-write.csv(Xsr_Original_Transformed_indices, file = paste0(path_to_data, "Xsr_Original_Transformed_indices.csv"), 
+write.csv(Xsr_Original_Transformed_indices, file = paste0(path_to_data, "Xsr_Original_Transformed_indices_freshDark.csv"), 
           row.names = FALSE)

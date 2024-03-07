@@ -15,11 +15,11 @@ path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2/')
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Scenarios/freshDark/')
 
-Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined.csv"))
+Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined_freshDark.csv"))
 Xsr_combined_indices <- read.csv(paste0(path_to_data,
-                                        "Xsr_Original_Transformed_indices.csv"))
+                                        "Xsr_Original_Transformed_indices_freshDark.csv"))
 
 
 split_mix <- strsplit(Xsr_combined_indices$Mix, "_")

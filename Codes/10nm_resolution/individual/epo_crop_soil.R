@@ -1,26 +1,25 @@
+# setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+#              'Codes/10nm_resolution/individual'))
+setwd(paste0('/home/amnnrz/Documents/GitHub/',
+             'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
 source("epo_module.R")
 
-setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
-             'Codes/10nm_resolution/individual'))
-# setwd(paste0('/home/amnnrz/Documents/GitHub/',
-#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
-
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 # 
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)

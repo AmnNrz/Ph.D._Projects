@@ -38,11 +38,11 @@ library(dplyr)
 library(ggplot2)
 
 # # 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data,
                                   "Residue.csv"),
@@ -178,8 +178,8 @@ project <- function(df, num_pc = 1){
   Vs <- t(V)[, 1:num_pc]
   Q <- Vs %*% t(Vs)
   
-  P <- diag(nrow(Q)) - Q
-  # P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
+  # P <- diag(nrow(Q)) - Q
+  P <- matrix(1, nrow = nrow(Q), ncol = nrow(Q)) - Q
   
   X_wet <- as.matrix(X_wet)
   P <- as.matrix(P)
@@ -190,7 +190,7 @@ return(P)
 
 Dm <- function(df, typeList){
   D <- data.frame()
-  type <- typeList[2]
+  # type <- typeList[2]
   for (type in typeList){
     
     df_filtered <- dplyr::filter(df, Type == type)

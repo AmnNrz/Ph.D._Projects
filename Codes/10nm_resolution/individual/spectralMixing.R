@@ -3,19 +3,19 @@ library(dplyr)
 library(ggplot2)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 # 
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
@@ -177,7 +177,7 @@ soil_df <- dplyr::filter(soil_wide, Sample == 'Soil')
 crops = unique(res_wide$Type)
 soils = unique(soil_wide$Type)
 
-fractions <- sort(runif(10, min = 0, max = 1))
+fractions <- seq(0, 1, by = 0.1)
 mixed_dataframe <- data.frame()
 for (crp in crops){
   for (sl in soils){
