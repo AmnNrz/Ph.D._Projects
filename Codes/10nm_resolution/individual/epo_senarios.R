@@ -102,14 +102,31 @@ fresh_light <- expand.grid(fresh_crops, light_soils)
 fresh_light$mix <- paste(fresh_light$Var1, fresh_light$Var2, sep = "_")
 fresh_light <- fresh_light %>% select(-c(1,2))
 
+weathered_light <- expand.grid(weathered_crops, light_soils)
+weathered_light$mix <- paste(weathered_light$Var1, weathered_light$Var2, sep = "_")
+weathered_light <- weathered_light %>% select(-c(1,2))
 
-# df <- Residue
-# typeList <- fresh_crops
-# num_pc = 1
-crop_group <- weathered_crops
-soil_group <- dark_soils
-crp <- crop_group[1]
-sl <- soil_group[1]
+weathered_dark <- expand.grid(weathered_crops, dark_soils)
+weathered_dark$mix <- paste(weathered_dark$Var1, weathered_dark$Var2, sep = "_")
+weathered_dark <- weathered_dark %>% select(-c(1,2))
+
+
+select_rwc <- function (more_unique_rwc, less_unique_rwc){
+  selected_rwc <- numeric(length(more_unique_rwc))
+  for (i in 1:length(less_unique_rwc)) {
+    rwc <- less_unique_rwc[i]
+    # Calculate the differences with the current list of soil RWC values
+    differences <- abs(more_unique_rwc - rwc)
+    # Find the index of the closest match
+    closest_index <- which.min(differences)
+    # Store the closest match
+    selected_rwc[i] <- more_unique_rwc[closest_index]
+    # Remove the selected closest RWC from the soil_rwc vector to prevent its future selection
+    more_unique_rwc <- more_unique_rwc[-closest_index]
+  }
+  return(selected_rwc)
+}
+
 RWC_common <- function(Residue, Soil, mixed_original, crop_group, soil_group){
   Res_commonRWC_df <- data.frame()
   Soil_commonRWC_df <- data.frame()
@@ -135,27 +152,70 @@ RWC_common <- function(Residue, Soil, mixed_original, crop_group, soil_group){
       
       Res_commonRWC_df <- rbind(Res_commonRWC_df, Res_rwc_filtered)
       Soil_commonRWC_df <- rbind(Soil_commonRWC_df, Soil_rwc_filtered)
+      
+
     }
   }
-  return(list(df1 = Res_commonRWC_df, df2 = Soil_commonRWC_df))
+  # Step 1: Get unique RWC values
+  res_rwc <- unique(Res_commonRWC_df$RWC)
+  soil_rwc <- unique(Soil_commonRWC_df$RWC)
+  if (length(res_rwc) >= length(soil_rwc)) {
+    more_unique_rwc <- res_rwc
+    less_unique_rwc <- soil_rwc
+    more_rwc_df <- Res_commonRWC_df
+    less_rwc_df <- Soil_commonRWC_df
+  } else {
+    more_unique_rwc <- soil_rwc
+    less_unique_rwc <- res_rwc
+    more_rwc_df <- Soil_commonRWC_df
+    less_rwc_df <- Res_commonRWC_df
+  }
+  
+  selected_rwc <- select_rwc(more_unique_rwc, less_unique_rwc )
+  # Filter Soil_commonRWC_df to keep only rows with the selected closest RWC values
+  more_rwc_df <- more_rwc_df[more_rwc_df$RWC %in% selected_rwc, ]
+  return(list(df1 = less_rwc_df, df2 = more_rwc_df))
 }
 
-result <- RWC_common(Residue, Soil, mixed_original, weathered_crops, dark_soils)
+
+crop_group <- fresh_crops
+soil_group <- dark_soils
+mix_group <- fresh_dark
+mix_group_name <- "fresh_dark"
+
+# crop_group <- fresh_crops
+# soil_group <- light_soils
+# mix_group <- fresh_light
+# mix_group_name <- "fresh_light"
+
+# crop_group <- fresh_crops
+# soil_group <- dark_soils
+# mix_group <- fresh_dark
+# mix_group_name <- "fresh_dark"
+# 
+# crop_group <- fresh_crops
+# soil_group <- dark_soils
+# mix_group <- fresh_dark
+# mix_group_name <- "fresh_dark"
+
+
+
+result <- RWC_common(Residue, Soil, mixed_original, crop_group, soil_group)
 Res_commonRWC_df <- result$df1
 Soil_commonRWC_df <- result$df2
 print(length(unique(Res_commonRWC_df$RWC)))
 print(length(unique(Soil_commonRWC_df$RWC)))
 
-results_residue <- epo_scenario(Res_commonRWC_df, weathered_crops)
+results_residue <- epo_scenario(Res_commonRWC_df, "Residue")
 Pr <- results_residue$P
 Qr <- results_residue$Q
 
-results_soil <- epo_scenario(Soil_commonRWC_df, dark_soils)
+results_soil <- epo_scenario(Soil_commonRWC_df, "Soil")
 Ps <- results_soil$P
 Qs <- results_soil$Q
 
 org_mixes_filtered <- mixed_original[
-  mixed_original$Type %in% fresh_light$mix, 
+  mixed_original$Type %in% mix_group$mix, 
 ]
 
 fr <- unique(org_mixes_filtered$Fraction)[1]
@@ -165,7 +225,7 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   
   Xsr_fr <- dplyr::filter(org_mixes_filtered, Fraction == fr)
   Xsr <- Xsr_fr
-  Xsr$Type <- 'Fresh_Light'
+  Xsr$Type <- paste0(mix_group)
   Xsr <- Xsr %>% 
     select(-c(Scan, soil_rwc, RWC_ave)) %>% 
     
@@ -213,27 +273,30 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   # pivot_longer(cols = names(Xsr_hat[,-1]), names_to = 'RWC',
   #              values_to = 'Reflect') 
   Xsr_hat <- cbind(Fraction = Xsr$Fraction[1], Xsr_hat) 
-  Xsr_hat <- cbind(Mix = Xsr$Type[1], Xsr_hat)  
+  Xsr_hat <- cbind(Mix = mix_group_name, Xsr_hat)  
   
   Xsr_HAT <- rbind(Xsr_HAT, Xsr_hat)
   }
 
-write.csv(Xsr_HAT, file = paste0(path_to_data, "Xsr_freshLight_Transformed.csv"),
+write.csv(Xsr_HAT, file = paste0(path_to_data, "Xsr_", mix_group_name, "_Transformed.csv"),
           row.names = FALSE)
 
 
 mixed_original <- mixed_original %>%
   rename(Mix = Type)
 
-org_mixes_filtered$Type <- 'Fresh_Light'
+org_mixes_filtered$Type <- mix_group_name
 org_mixes_filtered <- org_mixes_filtered %>% 
   select(-c("RWC_ave", "Scan", "soil_rwc")) %>% 
   rename(RWC = crop_rwc) %>% 
   rename(Mix = Type)
 
-write.csv(org_mixes_filtered, file = paste0(path_to_data, "Xsr_freshLight_Original.csv"),
+write.csv(org_mixes_filtered, file = paste0(path_to_data, "Xsr_", mix_group_name, "_Original.csv"),
           row.names = FALSE)
-
+write.csv(as.data.frame(Pr), file = paste0(path_to_data, "Pr_", mix_group_name, ".csv"),
+          row.names = FALSE)
+write.csv(as.data.frame(Ps), file = paste0(path_to_data, "Ps_", mix_group_name, ".csv"),
+          row.names = FALSE)
 
 
 

@@ -188,41 +188,70 @@ return(P)
 }
 
 
-Dm <- function(df, typeList){
-  D <- data.frame()
-  # type <- typeList[2]
-  for (type in typeList){
-    
-    df_filtered <- dplyr::filter(df, Type == type)
-    df_filtered <- df_filtered %>% distinct(Wvl, RWC, .keep_all = TRUE)
-    # df_filtered <- df_filtered %>% select(-Scan)
-    df_filtered <- df_filtered %>%
-      pivot_wider(names_from = RWC, values_from = Reflect)
-    
-    df_filtered <- as.data.frame(df_filtered)
-    rownames(df_filtered) <- df_filtered$Wvl
-    
-    X <- df_filtered[, 4:ncol(df_filtered)]
-    X <- X[, ncol(X):1]
-    
-    min_col <- which.min(colnames(X))
-    X_wet <- X[,-min_col]
-    
-    D_ <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
-                         ncol = ncol(X_wet), byrow = FALSE)
-    
-    D_mat <- as.matrix(D_)
-    D_mat <- t(D_mat)
-    
-    D <- rbind(D, D_mat)
-    
-  }
+# Dm <- function(df, typeList){
+#   D <- data.frame()
+#   # type <- typeList[2]
+#   for (type in typeList){
+#     
+#     df_filtered <- dplyr::filter(df, Type == type)
+#     df_filtered <- df_filtered %>% distinct(Wvl, RWC, .keep_all = TRUE)
+#     # df_filtered <- df_filtered %>% select(-Scan)
+#     df_filtered <- df_filtered %>%
+#       pivot_wider(names_from = RWC, values_from = Reflect)
+#     
+#     df_filtered <- as.data.frame(df_filtered)
+#     rownames(df_filtered) <- df_filtered$Wvl
+#     
+#     X <- df_filtered[, 4:ncol(df_filtered)]
+#     X <- X[, ncol(X):1]
+#     
+#     min_col <- which.min(colnames(X))
+#     X_wet <- X[,-min_col]
+#     
+#     D_ <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
+#                          ncol = ncol(X_wet), byrow = FALSE)
+#     
+#     D_mat <- as.matrix(D_)
+#     D_mat <- t(D_mat)
+#     
+#     D <- rbind(D, D_mat)
+#     
+#   }
+#   return(D)
+# }
+
+Dm <- function(df, sample){
+  
+  df$Type <- sample
+  df <- df %>% distinct(Wvl, RWC, .keep_all = TRUE)
+  # df_filtered <- df_filtered %>% select(-Scan)
+  df <- df %>%
+    pivot_wider(names_from = RWC, values_from = Reflect)
+  
+  df <- as.data.frame(df)
+  rownames(df) <- df$Wvl
+  
+  X <- df[, 4:ncol(df)]
+  X <- X[, ncol(X):1]
+  
+  min_col <- which.min(colnames(X))
+  X_wet <- X[,-min_col]
+  
+  D_ <- X_wet - matrix(rep(X[,min_col], ncol(X_wet)),
+                       ncol = ncol(X_wet), byrow = FALSE)
+  
+  D_mat <- as.matrix(D_)
+  D_mat <- t(D_mat)
+  
+  D <- D_mat
+  
+  
   return(D)
 }
 
-epo_scenario <- function(df, typeList, num_pc = 1){
+epo_scenario <- function(df, sample, num_pc = 1){
 
-  D <- as.matrix(Dm(df, typeList))
+  D <- as.matrix(Dm(df, sample))
   D <- -D
   D <- as.data.frame(D)
   D <- D[order(as.numeric(rownames(D))), ]
