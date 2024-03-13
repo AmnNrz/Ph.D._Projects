@@ -41,32 +41,32 @@ library(ggplot2)
 # path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 #                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-Residue_Median <- read.csv(paste0(path_to_data,
-                                  "Residue.csv"),
-                           header = TRUE, row.names = NULL)
-Residue_Median <- Residue_Median[-c(1, 8)]
-
-Soil_Median <- read.csv(paste0(path_to_data,
-                               "Soil.csv"),
-                        header = TRUE, row.names = NULL)
-Soil_Median <- Soil_Median[-c(1, 8)]
-
-Residue_Median <- Residue_Median %>%
-  rename(Type = Soil)
-
-Soil_Median <- Soil_Median %>%
-  rename(Type = Soil)
-
-Residue_Median <- Residue_Median %>%
-  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
-Dataframe <- Soil_Median
-# Dataframe <- Residue_Median
-type <- 'Athena'
-# type <- 'Canola'
-num_pc <- 1
+# Residue_Median <- read.csv(paste0(path_to_data,
+#                                   "Residue.csv"),
+#                            header = TRUE, row.names = NULL)
+# Residue_Median <- Residue_Median[-c(1, 8)]
+# 
+# Soil_Median <- read.csv(paste0(path_to_data,
+#                                "Soil.csv"),
+#                         header = TRUE, row.names = NULL)
+# Soil_Median <- Soil_Median[-c(1, 8)]
+# 
+# Residue_Median <- Residue_Median %>%
+#   rename(Type = Soil)
+# 
+# Soil_Median <- Soil_Median %>%
+#   rename(Type = Soil)
+# 
+# Residue_Median <- Residue_Median %>%
+#   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+# Dataframe <- Soil_Median
+# # Dataframe <- Residue_Median
+# type <- 'Athena'
+# # type <- 'Canola'
+# num_pc <- 1
 
 epo <- function(Dataframe, num_pc = 1){
   transformed_DF <- data.frame()

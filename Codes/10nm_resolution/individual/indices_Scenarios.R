@@ -3,12 +3,12 @@ library(dplyr)
 library(ggplot2)
 library(tidyr)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
 Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_fresh_dark_Original.csv"))
 Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_fresh_dark_Transformed.csv"))

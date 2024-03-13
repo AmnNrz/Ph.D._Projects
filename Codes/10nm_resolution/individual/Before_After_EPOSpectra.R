@@ -22,24 +22,24 @@ path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 
 
 Residue_Median <- read.csv(paste0(path_to_data, 
-                                  "Residue.csv"),
+                                  "Soil.csv"),
                            header = TRUE, row.names = NULL)
 Crop_original <- Residue_Median[-c(1, 8)]
 
 Crop_original <- rename(Crop_original, Crop = Soil)
 
-Crop_original <- Crop_original %>%
-  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+# Crop_original <- Crop_original %>%
+#   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 Crop_original$Source <- 'Original' # Add a source column
 Crop_original <- Crop_original %>% 
   rename(Type = Crop)
 
-Crop_EPO <- read.csv(paste0(path_to_data, 'Residue_Transformed.csv'), 
+Crop_EPO <- read.csv(paste0(path_to_data, 'Soil_Transformed.csv'), 
                      header = TRUE, row.names = NULL)
 Crop_EPO$Source <- 'EPO' # Add a source column
-Crop_EPO <- Crop_EPO %>%
-  mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
+# Crop_EPO <- Crop_EPO %>%
+#   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
 
 Crop_EPO <- Crop_EPO %>%
   select(names(Crop_original))
@@ -56,7 +56,7 @@ Crop_combined <- rbind(Crop_EPO, Crop_original)
 
 
 original_driest_df <- data.frame()
-for (crp in unique(Crop_original$Type)){
+for (crp in unique(Crop_original$Type)[1]){
   crp_df <- Crop_original %>% dplyr:: filter(Type == crp)
   driest <-   crp_df %>%  dplyr:: filter(RWC == min(crp_df$RWC))
   original_driest_df <- rbind(original_driest_df, driest)
@@ -96,13 +96,13 @@ list_of_plots <- lapply(list_of_dataframes, function(df) {
   # print(y_breaks)
   p <- ggplot(df, aes(Wvl, Reflect, group = factor(Type))) +
     geom_line(aes(color = factor(Type))) +
-    geom_vline(xintercept = c(2000, 2100, 2200), linetype = "solid", size = 0.6, color = 'red') +  # Add vertical lines
-    geom_vline(xintercept = c(1660, 2330), linetype = "solid", size = 0.6, color = 'blue') +  # Add vertical lines
-    geom_vline(xintercept = c(2205, 2260), linetype = "solid", size = 0.6, color = 'green') +  # Add vertical lines
+    # geom_vline(xintercept = c(2000, 2100, 2200), linetype = "solid", size = 0.6, color = 'red') +  # Add vertical lines
+    # geom_vline(xintercept = c(1660, 2330), linetype = "solid", size = 0.6, color = 'blue') +  # Add vertical lines
+    # geom_vline(xintercept = c(2205, 2260), linetype = "solid", size = 0.6, color = 'green') +  # Add vertical lines
     labs(title = paste0(df$Source),
          x = "Wavelength(nm)", y = "Reflectance",
          color = "Crops") +
-    scale_x_continuous(breaks = seq(min(driest_combined$Wvl), max(driest_combined$Wvl), by = 200)) +  # x-axis grid lines every 50 units
+    scale_x_continuous(breaks = seq(min(driest_combined$Wvl), max(driest_combined$Wvl), by = 500)) +  # x-axis grid lines every 50 units
     scale_y_continuous(breaks = y_breaks) +  # custom y-axis grid lines
     scale_color_manual(values = custom_colors,
                        name = "Crops") +  # Add legend title here
@@ -219,21 +219,21 @@ for (crp in unique(Crop_combined$Type)){
   list_of_dataframes <- split(Crop_combined, Crop_combined$Source)
   list_of_plots <- lapply(list_of_dataframes, function(df) {
     
-    
+    df$RWC <- round(df$RWC, 2) 
   # Calculate the y-breaks specific to this dataframe
     y_breaks <- seq(min(df$Reflect), max(df$Reflect), by = (max(df$Reflect) - min(df$Reflect))/20)
     # print(y_breaks)
   p <- ggplot(df, aes(Wvl, Reflect, group = factor(RWC))) +
     geom_line(aes(color = factor(RWC))) +
-    geom_vline(xintercept = c(2000, 2100, 2200), linetype = "solid", size = 0.6, color = 'red') +  # Add vertical lines
-    geom_vline(xintercept = c(1660, 2330), linetype = "solid", size = 0.6, color = 'blue') +  # Add vertical lines
-    geom_vline(xintercept = c(2205, 2260), linetype = "solid", size = 0.6, color = 'green') +  # Add vertical lines
+    # geom_vline(xintercept = c(2000, 2100, 2200), linetype = "solid", size = 0.6, color = 'red') +  # Add vertical lines
+    # geom_vline(xintercept = c(1660, 2330), linetype = "solid", size = 0.6, color = 'blue') +  # Add vertical lines
+    # geom_vline(xintercept = c(2205, 2260), linetype = "solid", size = 0.6, color = 'green') +  # Add vertical lines
     labs(title = paste0(df$Source, " ", "(", crp, ")"),
          x = "Wavelength(nm)", y = "Reflectance",
          color = "RWC Levels") +
-    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 100),
-                       minor_breaks = seq(min(df$Wvl), max(df$Wvl), by = 10)) +  # x-axis grid lines every 50 units
-    scale_y_continuous(breaks = y_breaks,
+    scale_x_continuous(breaks = seq(min(Crop_combined$Wvl), max(Crop_combined$Wvl), by = 200),
+                       minor_breaks = seq(min(df$Wvl), max(df$Wvl), by = 100)) +  # x-axis grid lines every 50 units
+    scale_y_continuous(breaks = seq(0, 100, by = 20),
                        labels = scales::label_number(scale = 1, accuracy = 0.01)
                        ) +  # custom y-axis grid lines
     scale_color_manual(values = custom_colors,

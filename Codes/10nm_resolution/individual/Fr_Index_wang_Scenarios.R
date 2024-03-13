@@ -3,19 +3,19 @@ library(dplyr)
 library(ggplot2)
 library(viridis)
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Scenarios/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Scenarios/')
 
 Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined_fresh_dark.csv"))
 Xsr_combined_indices <- read.csv(paste0(path_to_data,
@@ -133,12 +133,12 @@ for (src in unique(subset_df_long$source)){
     residuals <- model$residuals
     rmse <- sqrt(mean(residuals^2))
     
-    subset_df_$slope <- slope
-    subset_df_$intercept <- intercept
-    subset_df_$r2 <- r_squared
-    subset_df_$rmse <- rmse
+    subset_df_idx$slope <- slope
+    subset_df_idx$intercept <- intercept
+    subset_df_idx$R_squared <- r_squared
+    subset_df_idx$RMSE <- rmse
     
-    source_df <- rbind(source_df, subset_df_)
+    source_df <- rbind(source_df, subset_df_idx)
     
     cat("R-squared:", r_squared, "\n")
     cat("RMSE:", rmse, "\n")

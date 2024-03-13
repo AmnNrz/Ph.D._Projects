@@ -4,27 +4,27 @@ library(ggplot2)
 library(viridis)
 library(ComplexUpset)
 
-# setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
-#              'Codes/10nm_resolution/individual'))
-setwd(paste0('/home/amnnrz/Documents/GitHub/',
-             'spectroscopy_paper/Codes/10nm_resolution/individual/'))
+setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
+             'Codes/10nm_resolution/individual'))
+# setwd(paste0('/home/amnnrz/Documents/GitHub/',
+#              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 source("epo_module.R")
 
 
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -188,16 +188,15 @@ mix_group_name <- "fresh_dark"
 # mix_group <- fresh_light
 # mix_group_name <- "fresh_light"
 
-# crop_group <- fresh_crops
+# crop_group <- weathered_crops
 # soil_group <- dark_soils
-# mix_group <- fresh_dark
-# mix_group_name <- "fresh_dark"
-# 
-# crop_group <- fresh_crops
-# soil_group <- dark_soils
-# mix_group <- fresh_dark
-# mix_group_name <- "fresh_dark"
+# mix_group <- weathered_dark
+# mix_group_name <- "weathered_dark"
 
+# crop_group <- weathered_crops
+# soil_group <- light_soils
+# mix_group <- weathered_light
+# mix_group_name <- "weathered_light"
 
 
 result <- RWC_common(Residue, Soil, mixed_original, crop_group, soil_group)
@@ -252,7 +251,26 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   
   Xsr_hat <- 1/2 * 
     (as.matrix(Xsr_) %*% as.matrix(Ps) %*% as.matrix(Pr) + 
-       as.matrix(Xsr_) %*% as.matrix(Pr) %*% as.matrix(Ps))  
+       as.matrix(Xsr_) %*% as.matrix(Pr) %*% as.matrix(Ps)) 
+  
+  
+  
+  ##################################
+  
+  
+  # Transpose A and B
+  Xsr_t <- t(Xsr_)
+  Xsr_hat_t <- t(Xsr_hat)
+  
+  # Solve for X using the pseudo-inverse of A_t
+  Xsr_t_pinv <- ginv(Xsr_t) # Using ginv() from the MASS package for pseudo-inverse
+  P <- Xsr_t_pinv %*% Xsr_hat_t
+  
+  
+  #################################
+  
+  
+  
   
   # Xsr_hat <- t(Xsr_hat)
   
@@ -296,6 +314,9 @@ write.csv(org_mixes_filtered, file = paste0(path_to_data, "Xsr_", mix_group_name
 write.csv(as.data.frame(Pr), file = paste0(path_to_data, "Pr_", mix_group_name, ".csv"),
           row.names = FALSE)
 write.csv(as.data.frame(Ps), file = paste0(path_to_data, "Ps_", mix_group_name, ".csv"),
+          row.names = FALSE)
+
+write.csv(as.data.frame(P), file = paste0(path_to_data, "P_", mix_group_name, ".csv"),
           row.names = FALSE)
 
 
