@@ -10,8 +10,8 @@ path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_fresh_dark_Original.csv"))
-Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_fresh_dark_Transformed.csv"))
+Xsr_Original <- read.csv(paste0(path_to_data, "Xsr_weathered_dark_Original.csv"))
+Xsr_Transformed <- read.csv(paste0(path_to_data, "Xsr_weathered_dark_Transformed.csv"))
 
 Xsr_Original <- Xsr_Original[names(Xsr_Transformed)]
 
@@ -22,7 +22,7 @@ Xsr_Trans <- Xsr_Transformed
 Xsr_Trans$source <- 'EPO'
 
 Xsr_combined <- rbind(Xsr_Org, Xsr_Trans)
-write.csv(Xsr_combined, file = paste0(path_to_data, "Xsr_combined_fresh_dark.csv"), row.names = FALSE)
+write.csv(Xsr_combined, file = paste0(path_to_data, "Xsr_combined_weathered_dark.csv"), row.names = FALSE)
 
 select_columns_range <- function(df, start_col_name, end_col_name) {
   start_col <- which(names(df) == start_col_name)
@@ -114,5 +114,5 @@ Xsr_Transformed_indices$source <- 'EPO'
 
 Xsr_Original_Transformed_indices <- rbind(Xsr_Original_indices, Xsr_Transformed_indices)
 
-write.csv(Xsr_Original_Transformed_indices, file = paste0(path_to_data, "Xsr_Original_Transformed_indices_fresh_dark.csv"), 
+write.csv(Xsr_Original_Transformed_indices, file = paste0(path_to_data, "Xsr_Original_Transformed_indices_weathered_dark.csv"), 
           row.names = FALSE)

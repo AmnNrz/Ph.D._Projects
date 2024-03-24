@@ -10,9 +10,9 @@ path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 # path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-Pr <- read.csv(paste0(path_to_data, "Pr_fresh_dark.csv"), check.names = FALSE)
-Ps <- read.csv(paste0(path_to_data, "Ps_fresh_dark.csv"), check.names = FALSE)
-fitted_df <- read.csv(paste0(path_to_data, "fitted_df_fresh_dark.csv"),
+Pr <- read.csv(paste0(path_to_data, "Pr_weathered_dark.csv"), check.names = FALSE)
+Ps <- read.csv(paste0(path_to_data, "Ps_weathered_dark.csv"), check.names = FALSE)
+fitted_df <- read.csv(paste0(path_to_data, "fitted_df_weathered_dark.csv"),
                       check.names = FALSE)
 mixed_original <- read.csv(paste0(path_to_data, 'mixed_original.csv'),
                            check.names = FALSE)
@@ -24,10 +24,21 @@ mixed_original <- mixed_original %>%
     mixed_original$crop_rwc + mixed_original$soil_rwc) / 2) 
 mixed_original$Scan <- mixed_original$Scan
 
+# mixed_original <- mixed_original %>% 
+#   dplyr::select(-Fraction, everything(), Fraction) %>% 
+#   dplyr::select(c("crop_rwc", "soil_rwc", "Scan", paste("500", ncol(mixed_original), sep = ":"))) %>%
+#   dplyr::select("Type", "RWC_ave", "Fraction", "Scan", everything())
+
+
+
+
+
 mixed_original <- mixed_original %>% 
-  select(-Fraction, everything(), Fraction) %>% 
-  select(c("crop_rwc", "soil_rwc", "Scan", "500":ncol(mixed_original))) %>%
-  select("Type", "RWC_ave", "Fraction", "Scan", everything())
+  dplyr::select(-Fraction, everything(), Fraction) %>% 
+  dplyr::select(c("crop_rwc", "soil_rwc", "Scan", "500":ncol(mixed_original))) %>%
+  dplyr::select("Type", "RWC_ave", "Fraction", "Scan", everything())
+
+
 
 mixed_original <- mixed_original %>% 
   pivot_longer(cols = '500':names(mixed_original)[ncol(mixed_original)],
@@ -46,19 +57,19 @@ light_soils <- c("Benwy", "Shano", "Lance")
 
 fresh_dark <- expand.grid(fresh_crops, dark_soils)
 fresh_dark$mix <- paste(fresh_dark$Var1, fresh_dark$Var2, sep = "_")
-fresh_dark <- fresh_dark %>% select(-c(1,2))
+fresh_dark <- fresh_dark %>% dplyr::select(-c(1,2))
 
 fresh_light <- expand.grid(fresh_crops, light_soils)
 fresh_light$mix <- paste(fresh_light$Var1, fresh_light$Var2, sep = "_")
-fresh_light <- fresh_light %>% select(-c(1,2))
+fresh_light <- fresh_light %>% dplyr::select(-c(1,2))
 
 weathered_light <- expand.grid(weathered_crops, light_soils)
 weathered_light$mix <- paste(weathered_light$Var1, weathered_light$Var2, sep = "_")
-weathered_light <- weathered_light %>% select(-c(1,2))
+weathered_light <- weathered_light %>% dplyr::select(-c(1,2))
 
 weathered_dark <- expand.grid(weathered_crops, dark_soils)
 weathered_dark$mix <- paste(weathered_dark$Var1, weathered_dark$Var2, sep = "_")
-weathered_dark <- weathered_dark %>% select(-c(1,2))
+weathered_dark <- weathered_dark %>% dplyr::select(-c(1,2))
 
 mix_group <- weathered_dark
 # mix_group_name <- "fresh_dark"
@@ -87,7 +98,7 @@ for (mix in unique(mixed_original$Type)){
 }
 
 combined_df <- combined_df %>% 
-  select(-c("RWC_ave", "Scan", "soil_rwc", "Reflect"))
+  dplyr::select(-c("RWC_ave", "Scan", "soil_rwc", "Reflect"))
 
 combined_df <- combined_df %>%
   pivot_wider(names_from = Wvl, values_from = Reflect_val)

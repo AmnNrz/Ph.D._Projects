@@ -1,4 +1,3 @@
-source("epo_module.R")
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
@@ -9,7 +8,7 @@ setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
              'Codes/10nm_resolution/individual_copy'))
 # setwd(paste0('/home/amnnrz/Documents/GitHub/',
 #              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
-
+source("epo_module.R")
 
 
 
@@ -39,9 +38,9 @@ mixed_original <- mixed_original %>%
 mixed_original$Scan <- mixed_original$Scan
 
 mixed_original <- mixed_original %>% 
-  select(-Fraction, everything(), Fraction) %>% 
-  select(c("crop_rwc", "soil_rwc", "Scan", "1600":ncol(mixed_original))) %>%
-  select("Type", "RWC_ave", "Fraction", "Scan", everything())
+  dplyr::select(-Fraction, everything(), Fraction) %>% 
+  dplyr::select(c("crop_rwc", "soil_rwc", "Scan", "1600":ncol(mixed_original))) %>%
+  dplyr::select("Type", "RWC_ave", "Fraction", "Scan", everything())
 
 mixed_original <- mixed_original %>% 
   pivot_longer(cols = '1600':names(mixed_original)[ncol(mixed_original)],
@@ -63,10 +62,10 @@ Soil <- Soil[-c(1, 8)]
 Soil <- subset(Soil, Wvl >= 1600)
 
 Residue <- Residue %>%
-  rename(Type = Soil)
+  dplyr::rename(Type = Soil)
 
 Soil <- Soil %>%
-  rename(Type = Soil)
+  dplyr::rename(Type = Soil)
 
 Residue <- Residue %>%
   mutate(Sample = recode(Sample, "Crop Residue" = "Residue"))
@@ -78,8 +77,8 @@ Soil <- Soil[Soil$Wvl %in% Residue$Wvl, ]
 length(unique(Residue$Wvl))
 length(unique(Soil$Wvl))
 
-Residue <- Residue %>% select(-Scan) 
-Soil <- Soil %>% select(-Scan)
+Residue <- Residue %>% dplyr::select(-Scan) 
+Soil <- Soil %>% dplyr::select(-Scan)
 
 # Calculate Xsr_hat
 crops <- unique(Residue$Type)
@@ -100,19 +99,19 @@ light_soils <- c("Benwy", "Shano", "Lance")
 
 fresh_dark <- expand.grid(fresh_crops, dark_soils)
 fresh_dark$mix <- paste(fresh_dark$Var1, fresh_dark$Var2, sep = "_")
-fresh_dark <- fresh_dark %>% select(-c(1,2))
+fresh_dark <- fresh_dark %>% dplyr::select(-c(1,2))
 
 fresh_light <- expand.grid(fresh_crops, light_soils)
 fresh_light$mix <- paste(fresh_light$Var1, fresh_light$Var2, sep = "_")
-fresh_light <- fresh_light %>% select(-c(1,2))
+fresh_light <- fresh_light %>% dplyr::select(-c(1,2))
 
 weathered_light <- expand.grid(weathered_crops, light_soils)
 weathered_light$mix <- paste(weathered_light$Var1, weathered_light$Var2, sep = "_")
-weathered_light <- weathered_light %>% select(-c(1,2))
+weathered_light <- weathered_light %>% dplyr::select(-c(1,2))
 
 weathered_dark <- expand.grid(weathered_crops, dark_soils)
 weathered_dark$mix <- paste(weathered_dark$Var1, weathered_dark$Var2, sep = "_")
-weathered_dark <- weathered_dark %>% select(-c(1,2))
+weathered_dark <- weathered_dark %>% dplyr::select(-c(1,2))
 
 
 select_rwc <- function (more_unique_rwc, less_unique_rwc){
@@ -230,7 +229,7 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   Xsr <- Xsr_fr
   Xsr$Type <- paste0(mix_group)
   Xsr <- Xsr %>% 
-    select(-c(Scan, soil_rwc, RWC_ave)) %>% 
+    dplyr::select(-c(Scan, soil_rwc, RWC_ave)) %>% 
     
     # rwc values in Xsr would be crop rwc. Therefore, in the Xsr_transformed
     # we will have crop_rwc not soil 
@@ -240,7 +239,7 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   rownames(Xsr) <- Xsr$Wvl
 
   Xsr_ <- Xsr %>% 
-    select(-c("Type", "Fraction", "Wvl"))
+    dplyr::select(-c("Type", "Fraction", "Wvl"))
   Xsr_ <- Xsr_[, order(as.numeric(colnames(Xsr_)))]
   min_col <- which.min(colnames(Xsr_))
   Xsr_ <- Xsr_[, -min_col]
@@ -266,7 +265,7 @@ for (fr in unique(org_mixes_filtered$Fraction)){
   Xsr_hat <- as.data.frame(Xsr_hat)
   
   Xsr_hat <-Xsr_hat %>% mutate(Wvl = rownames(Xsr_hat)) %>% 
-    select("Wvl", everything())
+    dplyr::select("Wvl", everything())
   
   Xsr_hat <- as_tibble(Xsr_hat)
   
@@ -290,7 +289,7 @@ mixed_original <- mixed_original %>%
 
 org_mixes_filtered$Type <- mix_group_name
 org_mixes_filtered <- org_mixes_filtered %>% 
-  select(-c("RWC_ave", "Scan", "soil_rwc")) %>% 
+  dplyr::select(-c("RWC_ave", "Scan", "soil_rwc")) %>% 
   rename(RWC = crop_rwc) %>% 
   rename(Mix = Type)
 

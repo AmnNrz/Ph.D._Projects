@@ -17,9 +17,9 @@ path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
 # path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Scenarios/')
 
-Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined_fresh_dark.csv"))
+Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined_weathered_dark.csv"))
 Xsr_combined_indices <- read.csv(paste0(path_to_data,
-                                        "Xsr_Original_Transformed_indices_fresh_dark.csv"))
+                                        "Xsr_Original_Transformed_indices_weathered_dark.csv"))
 
 
 split_mix <- strsplit(Xsr_combined_indices$Mix, "_")

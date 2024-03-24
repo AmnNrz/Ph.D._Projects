@@ -252,7 +252,7 @@ Dm <- function(df, sample){
 epo_scenario <- function(df, sample, num_pc = 1){
 
   D <- as.matrix(Dm(df, sample))
-  D <- -D
+  # D <- -D
   D <- as.data.frame(D)
   D <- D[order(as.numeric(rownames(D))), ]
   D <- t(D)

@@ -3,19 +3,19 @@ library(dplyr)
 library(ggplot2)
 
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-# 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
-
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
+
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+# 
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/')
 
 Residue_Median <- read.csv(paste0(path_to_data, 
                                   "Residue.csv"),
@@ -69,10 +69,10 @@ common_cols <- intersect(names(res_wide), names(soil_wide))
 res_wide <- res_wide[, common_cols]
 
 cropRWC <- res_wide %>%
-  select("Type", "RWC") %>% 
+  dplyr::select("Type", "RWC") %>% 
   rename(Crop = Type, Crop_RWC = RWC)
 soilRWC <- soil_wide %>%
-  select("Type", "RWC") %>% 
+  dplyr::select("Type", "RWC") %>% 
   rename(Soil = Type, Soil_RWC = RWC)
 
 crops <-  unique(cropRWC$Crop)
@@ -198,9 +198,9 @@ for (crp in crops){
       filter(Type == sl) %>% 
       filter(RWC %in% filtered_commonRWC_df$Soil_RWC)
           
-    cropReflect <- crop_filtered %>% select("500":ncol(crop_filtered))
+    cropReflect <- crop_filtered %>%  dplyr::select("500":ncol(crop_filtered))
     
-    soilReflect <- soil_filtered %>%select("500":ncol(soil_filtered))
+    soilReflect <- soil_filtered %>%  dplyr::select("500":ncol(soil_filtered))
           
     Rmix <- lapply(
       fractions, function(fr) {
