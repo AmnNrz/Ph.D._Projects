@@ -11,8 +11,6 @@ setwd(paste0('/Users/aminnorouzi/Documents/GitHub/spectroscopy_paper/',
 #              'spectroscopy_paper/Codes/10nm_resolution/individual/'))
 source("epo_module.R")
 
-
-
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')

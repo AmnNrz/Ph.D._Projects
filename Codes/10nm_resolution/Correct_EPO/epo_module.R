@@ -312,6 +312,7 @@ Dm2 <- function(df, sample){
     D_type <- min_max_normalize(D_type)
     D <- rbind(D, D_type)
     D <- as.matrix(D)
+
     # D <- min_max_normalize(D)
   }
   return(D)

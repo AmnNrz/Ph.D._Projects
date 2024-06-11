@@ -49,7 +49,7 @@ print(unique(csv_files))
 ##################################################################
 ##################################################################
 ##################################################################
-
+name <- unique(csv_files)[1]
   for (name in unique(csv_files)) {
 
   NDTI_transformed <- read.csv(paste0(path_to_data, 'NDTI_transformed_',name, '.csv'))

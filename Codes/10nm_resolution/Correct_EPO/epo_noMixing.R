@@ -108,6 +108,12 @@ Dm2 <- function(df, sample){
     
     # D_type <- min_max_normalize(D_type)
     D <- rbind(D, D_type)
+    
+    
+    D_ordered_column_indices <- order(as.numeric(rownames(D)))
+    D <- D[D_ordered_column_indices, ]
+    
+    
     D <- as.matrix(D)
     
   }
@@ -208,7 +214,7 @@ for (type in unique(Soil$Type)){
 
 
 write.csv(X_original_normal, file = paste0(path_to_data, "Soil_original_normal.csv"),
-          row.names = FALSE)
+row.names = FALSE)
 
 write.csv(X_transformed, file = paste0(path_to_data, "Soil_Transformed.csv"),
           row.names = FALSE)
