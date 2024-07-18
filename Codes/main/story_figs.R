@@ -10,4 +10,5 @@ path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 # path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
 #                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2')
 
-residue = read.csv("")
+residue = read.csv(paste0(path_to_data, "Residue.csv"))
+
