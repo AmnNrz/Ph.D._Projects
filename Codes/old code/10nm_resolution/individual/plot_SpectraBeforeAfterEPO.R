@@ -5,19 +5,19 @@ library(viridis)
 library(RColorBrewer)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
-
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2000/')
-
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
 #                        'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
 # 
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2')
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2000/')
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/10nm_resolution/Wangetal2')
 
 Xsr_combined <- read.csv(paste0(path_to_data, "Xsr_combined.csv"))
 
@@ -69,5 +69,5 @@ for (mix in unique(Xsr_combined$Mix)){
   
   
   # Assuming your plot is named 'plot'
-  ggsave(filename = paste0(path_to_plots, "BeforeAfterEPO_Reflect_wang/", mix, ".png"), plot = plot, dpi = 200, width = 10, height = 3.5, units = "in")
+  # ggsave(filename = paste0(path_to_plots, "BeforeAfterEPO_Reflect_wang/", mix, ".png"), plot = plot, dpi = 200, width = 10, height = 3.5, units = "in")
 }

@@ -1,0 +1,141 @@
+setwd(paste0('/home/amnnrz/Documents/GitHub/spectroscopy_paper/Codes/main/'))
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+library(patchwork)
+library(viridis)
+source("epo_module_new.R")
+
+
+
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                       'Projects/Soil_Residue_Spectroscopy/Data/10nm_resolution/')
+
+residue_df <- read.csv(paste0(path_to_data,
+                                  "Residue.csv"),
+                           header = TRUE, row.names = NULL)
+
+# Remove 'scan' while keeping all other columns
+
+
+residue_df <- residue_df[-c(1, 8)]
+residue_df <- subset(residue_df, select = -Scan)
+
+residue_df <- rename(residue_df, Crop = Soil)
+
+residue_df <- residue_df %>%
+  rename(Type = Crop)
+
+
+
+
+
+library(tibble)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+
+type <- "Weathered Wheat"
+Dataframe <- residue_df
+# EPO function
+
+
+
+
+library(tibble)
+library(reshape2)
+library(tidyverse)
+library(dplyr)
+library(ggplot2)
+
+
+# epo
+residue_transformed <- epo(residue_df)
+
+
+# Plot the Spectra before and after epo
+residue_df$source <- 'Original'
+residue_transformed$source <- 'EPO'
+
+df_combined <- rbind(residue_df, residue_transformed)
+df_combined
+
+df_combined$RWC <- as.numeric(as.character(df_combined$RWC))
+
+crp <- "Weathered Wheat"
+
+df_toplot <- dplyr::filter(df_combined, Type == crp)
+
+df_toplot$source <- factor(df_toplot$source, levels = c("Original", "EPO"))
+
+
+library(scales)
+library(RColorBrewer)
+# Define the number of colors you want from the palette
+num_colors <- 11  # Typically, ColorBrewer palettes have up to 9 or 11 distinct colors for the best granularity
+
+# Get the 'Spectral' palette colors and reverse them
+spectral_colors <- brewer.pal(num_colors, "Spectral")
+reversed_colors <- spectral_colors
+
+
+plot <- ggplot(df_toplot, aes(x = Wvl, y = Reflect, group = RWC)) + 
+  geom_line(aes(color = RWC), size = 0.18) + 
+  facet_wrap(~ source, ncol=2, scales = "free_y") +  
+  scale_color_gradientn(colors = reversed_colors) + 
+  labs(
+    title = "Reflectance ~ Wavelength",
+    x = "Wavelength", y = "Reflectance",
+    color = "RWC"
+  ) +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5),
+        panel.grid.major = element_blank(),        
+        panel.grid.minor = element_blank(),       
+        panel.background = element_rect(fill = "white"),
+        axis.ticks = element_line(color = "black"),
+        strip.background = element_rect(fill = "white"),
+        plot.background = element_rect(fill = "white")
+  )
+
+print(plot)
+
+
+
+
+# # # Plot Q/P matrix
+# M  <-  P
+# #plot heatmap of P
+# row.names(M) <- unique(residue_df$Wvl)
+# colnames(M) <- unique(residue_df$Wvl)
+# 
+# # Step 1: Load libraries
+# library(ggplot2)
+# library(reshape2)
+# 
+# # Assuming 'P' is your matrix and already loaded
+# # Step 2: Prepare data (if your matrix is named 'P')
+# data_long <- melt(M)
+# names(data_long) <- c("X", "Y", "Value")
+# 
+# # Assume data_long is your dataframe and Value is the column you're visualizing
+# quantiles <- quantile(data_long$Value, probs = seq(0, 1, by = 0.1))  # Adjust sequence as needed
+# # Creating breakpoints from quantiles
+# breakpoints <- c(min(data_long$Value), quantiles, max(data_long$Value))
+# 
+# # Creating the heatmap with defined breakpoints
+# ggplot(data_long, aes(x = X, y = Y, fill = Value)) +
+#   geom_tile() +
+#   scale_fill_gradientn(colors = colorRampPalette(c("white", "blue", "red", "green"))(length(breakpoints) - 1),
+#                        values = rescale(breakpoints)) +
+#   scale_x_continuous(breaks = seq(500, 2450, by = 400)) +
+#   scale_y_continuous(breaks = seq(500, 2450, by = 400)) +
+#   theme_minimal() +
+#   theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+#   labs(fill = "Value", x = "Pr", y = "")
+# 
+# 
+# 
+# 
