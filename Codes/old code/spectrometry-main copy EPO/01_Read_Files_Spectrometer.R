@@ -23,6 +23,8 @@
 library(tidyverse)
 library(magrittr)
 library(plyr)
+library(dplyr)
+library(pracma)
 
 ## Reading spectral refleactance of crop resideus
 
@@ -41,19 +43,22 @@ Residue <- ldply(Data.in, read_csv_filename)
 Residue <- separate(data = Residue, col = Source, into = c(NA, NA, NA, NA,
                                                            NA, NA, NA, NA,
                                                            NA, NA, NA, NA, NA,
-                                                          "Sample", "Scan", "Crop", NA, NA), sep = "/")
+                                                          "Sample", "Scan", "Type", NA, NA), sep = "/")
 Residue$`Reflect. %` <- as.double(Residue$`Reflect. %`)
+names(Residue)[names(Residue) == "Reflect. %"] <- "Reflect"
+  
 Residue$Wvl <- as.double(Residue$Wvl)
 # 
 ## Details about RWC for each scan
 CropMoisture <- read.csv("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Updated_data/Data/CropMoisture.csv")
 CropMoisture$RWC <- ifelse(CropMoisture$RWC > 1, 1, CropMoisture$RWC)
+names(CropMoisture)[names(CropMoisture) == "Crop"] <- "Type"
 # 
-Residue <- merge(Residue, CropMoisture, by = c("Scan", "Crop"))
+Residue <- merge(Residue, CropMoisture, by = c("Scan", "Type"))
 # 
 Residue_Median <- Residue %>%
-  group_by(Wvl, Sample, Scan, Crop) %>%
-  # mutate(SmoothRef = savgol((Residue$`Reflect. %`), 51, 2,0)) %>%
+  group_by(Wvl, Sample, Scan, Type) %>%
+  mutate(SmoothRef = savgol((Residue$Reflect), 51, 2,0)) %>% 
   summarise_all(.funs = c("median"))
 # 
 setwd("/Users/aminnorouzi/Library/CloudStorage/GoogleDrive-msaminnorouzi@gmail.com/My Drive/PhD/Projects/Spectroscopy paper/Spectrometry-main")

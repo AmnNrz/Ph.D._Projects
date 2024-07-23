@@ -88,7 +88,7 @@ desired_column <- c("Sample", "Type", "Scan", "RWC", "CAI", "SINDRI", "NDTI", "R
                     "R2220_2260", "R2260_2280", "R1660_1690", "R2220_2280", "2160", "2190", "2180", "2000", "2250", "2090")
 CAI <- CAI[, desired_column]
 
-write.csv(CAI, file = paste0(path_to_data, "CAI_Residue.csv"), row.names = FALSE)
+# write.csv(CAI, file = paste0(path_to_data, "CAI_Residue.csv"), row.names = FALSE)
 
 
 ggplot(CAI, aes(x = RWC, y = CAI, group = Type, color = Type)) +
@@ -289,7 +289,9 @@ p6 <- ggplot(CAI, aes(x = RWC, y = ROLI, group = Sample, shape = Sample, color =
 
 library(patchwork)
 
-combined_plot <- (p3 + p4 + p5 + p6) + plot_layout(ncol=2, guides='collect')
+print(p6)
+combined_plot <- (p3 + p4 + p5 + p6) + plot_layout(ncol=2)
+combined_plot <- combined_plot & theme(legend.position = "bottom")
 print(combined_plot)
 
 ggsave(filename = paste0(path_to_plots, "ReflectRatio_RWC.png"), plot = combined_plot, width = 8.3, height = 5.8, dpi = 200)
@@ -375,7 +377,7 @@ my_plot <- ggplot(tidy_data, aes(x = RWC, y = value, group = Type)) +
     text = element_text(size = 12)
   ) +
   labs(shape = "Sample", color = "Sample")
-
+print(my_plot)
 ggsave(filename = paste0(path_to_plots
                          , "Index_RWC.png"), plot = my_plot, width = 8.3, height = 5.8, dpi = 200)
 
