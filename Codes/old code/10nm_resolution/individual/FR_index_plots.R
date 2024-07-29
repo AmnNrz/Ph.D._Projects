@@ -313,7 +313,7 @@ heatmap_data <- combined_df %>%
 
 
 # Plotting the heatmap
-heatmap_plot <- ggplot(heatmap_data, aes(x = RWC.y.binned, y = Type, fill = Average_Slope)) +
+hea35tmap_plot <- ggplot(heatmap_data, aes(x = RWC.y.binned, y = Type, fill = Average_Slope)) +
   geom_tile() +  # Use geom_tile for heatmap squares
   scale_fill_gradient2(low = "blue", high = "red", mid = "white", midpoint = 0,
                        limit = c(min(heatmap_data$Average_Slope),

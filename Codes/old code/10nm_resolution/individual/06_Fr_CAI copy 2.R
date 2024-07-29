@@ -330,7 +330,7 @@ for (crp in sort(crops)) {
     
     test2_CAI <- dplyr::filter(test1_CAI, Type.x == sl & Type.y == crp)
   
-    test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))] ## select the conven,med,conser colums
+    test3_CAI <- test2_CAI[c(24,42:length(test2_NDTI))]
   
     test3_CAI <- reshape2::melt(test3_CAI, id = "RWC.y")
   

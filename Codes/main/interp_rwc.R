@@ -26,7 +26,7 @@ residue <- subset(residue, select = -c(EPO_Reflect, Scan))
 # # R_(r,lambda) = D + E * RWC_r        (eq.10) Wang et al. 2013
 # Define the RWC values for prediction
 data <- residue
-rwc_values <- c(0.2, 0.4, 0.6, 0.8)
+rwc_values <- c(0, 0.2, 0.4, 0.6, 0.8)
 
 # Perform operations by group
 results <- data %>%
@@ -51,13 +51,20 @@ results <- data %>%
 new_df <- results %>%
   pull(Predictions) %>%    # Extracts the column as a list
   bind_rows() 
-new_df$Sample <- "Residue"
+new_df$Sample <- "Crop Residue"
 
 # merge new values with residue df
 new_df <- new_df[, names(residue)]
 
 residue_new <- rbind(residue, new_df)
-write.csv(residue_new, paste0(path_to_data, "Residue_RWCinterpolated.csv"))
+
+# remove duplicated rows
+residue_new <- residue_new %>%
+  group_by(Wvl, RWC, Sample, Type) %>%
+  slice_max(order_by = Reflect, with_ties = FALSE) %>%
+  ungroup()
+
+write.csv(residue_new, paste0(path_to_data, "Residue_RWCinterpolated.csv"),  row.names = FALSE)
 
 # Extract plot data directly
 plot_data <- results %>%
@@ -67,10 +74,11 @@ base_size = 14
 # Create the plot
 r2_plot <- ggplot(plot_data, aes(x = Wvl, y = R2, color = Type, group = Type)) +
   geom_line() +
-  labs(title = "R-squared vs. Wavelength for Each Type",
+  labs(title = "R-squared vs. Wavelength",
        x = "Wavelength (Wvl)",
        y = "R-squared (R2)",
        color = "Type") +
+  scale_y_continuous(limits = c(0, 1)) + 
   theme_minimal() +
   theme(legend.position = "right",
         legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
@@ -88,10 +96,6 @@ r2_plot <- ggplot(plot_data, aes(x = Wvl, y = R2, color = Type, group = Type)) +
 # Display the plot
 print(r2_plot)
 ggsave(paste0(path_to_plots, 'rwc_inerpolation/', 'residue.png'), r2_plot, width = 10, height = 7, dpi = 300)
-
-
-
-
 
 
 ####################################
@@ -146,7 +150,15 @@ new_df$Sample <- "Soil"
 new_df <- new_df[, names(soil)]
 
 soil_new <- rbind(soil, new_df)
-write.csv(soil_new, paste0(path_to_data, "Soil_RWCinterpolated.csv"))
+
+
+soil_new <- soil_new %>%
+  group_by(Wvl, RWC, Sample, Type) %>%
+  slice_max(order_by = Reflect, with_ties = FALSE) %>%
+  ungroup()
+
+
+write.csv(soil_new, paste0(path_to_data, "Soil_RWCinterpolated.csv"),  row.names = FALSE)
 
 # Extract plot data directly
 plot_data <- results %>%
@@ -156,10 +168,11 @@ base_size = 14
 # Create the plot
 r2_plot <- ggplot(plot_data, aes(x = Wvl, y = R2, color = Type, group = Type)) +
   geom_line() +
-  labs(title = "R-squared vs. Wavelength for Each Type",
+  labs(title = "R-squared vs. Wavelength",
        x = "Wavelength (Wvl)",
        y = "R-squared (R2)",
        color = "Type") +
+  scale_y_continuous(limits = c(0, 1)) + 
   theme_minimal() +
   theme(legend.position = "right",
         legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
