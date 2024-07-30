@@ -5,6 +5,8 @@ library(tidyverse)
 library(viridis)
 library(scales)
 library(broom)
+library(ggpattern)
+library(gridExtra)
 
 
 path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
@@ -59,8 +61,26 @@ for (name in unique(csv_files)) {
 
 df <- rbind(NDTI_df, CAI_df, SINDRI_df)
 
-df <- df %>% dplyr::filter(!(crop == "Weathered Canola" & index_name == "NDTI"))
+# Add fresh/weathered column 
+fresh <- c("Canola", "Garbanzo Beans", "Peas", "Wheat Norwest Duet", 
+           "Wheat Pritchett")
 
+weathered <- c("Weathered Canola", "Weathered Wheat")
+df <- df %>% 
+  mutate(age = case_when(
+    crop %in% fresh ~ "fresh", 
+    crop %in% weathered ~ "weathered"
+  ))
+
+# # Remove weathered wheat and weathered canola
+# df <- df %>% dplyr::filter(!(crop == "Weathered Canola" & index_name == "NDTI"))
+# df <- df %>% dplyr::filter(!(crop == "Weathered Canola" & index_name == "SINDRI"))
+# df <- df %>% dplyr::filter(!(crop == "Weathered Canola" & index_name == "CAI"))
+# 
+# 
+# df <- df %>% dplyr::filter(!(crop == "Weathered Wheat" & index_name == "NDTI"))
+# df <- df %>% dplyr::filter(!(crop == "Weathered Wheat" & index_name == "SINDRI"))
+# df <- df %>% dplyr::filter(!(crop == "Weathered Wheat" & index_name == "CAI"))
 
 
 process_group <- function(data) {
@@ -102,57 +122,6 @@ results3 <- df %>%
 results3 <- results3 %>%
   filter(RWC %in% c(0, 0.2, 0.6, 0.8, 1))
 
-
-
-
-#######################################
-#######################################
-#           Plot Fr ~ index 
-#######################################
-#######################################
-
-idx = "SINDRI"
-
-fr_idx_df <- results3 %>% dplyr::filter(index_name == idx)
-fr_idx_df <- fr_idx_df %>% dplyr::filter(RWC == 0)
-
-
-# Filter out canola
-fr_idx_df <- fr_idx_df %>% dplyr::filter(crop != "Weathered Canola")
-
-base_size = 14
-sl <- unique(fr_idx_df$soil)[1]
-for (sl in unique(fr_idx_df$soil)){
-  
-  filtered <- fr_idx_df %>% dplyr::filter(soil == sl)
-
-  p <- ggplot(filtered, aes(x = index, y = Fraction_Residue_Cover, color = as.factor(RWC), shape = as.factor(crop))) +
-    geom_point() + # Adds points to the plot
-    geom_smooth(aes(group = 1), method = "lm", color = "red", se = FALSE) +
-    facet_wrap(~index_name, scales = "free") + # Creates a separate plot for each level of index_name
-    scale_color_discrete(name = "RWC") +
-    scale_shape_discrete(name = "Crop") + # Adds a legend for RWC
-    labs(x = "Index", y = "Fraction Residue Cover") + # Labels for axes
-    theme_minimal() + # Minimal theme for cleaner look
-    theme(legend.position = "right",
-          legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
-          legend.text = element_text(size = base_size), # Legend text at base size
-          plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
-          axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
-          axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
-          panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
-          plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
-          panel.grid = element_blank(),
-          axis.ticks = element_line(color = "black"),
-          axis.line = element_line(color = "black"),
-          legend.key.size = unit(0.5, "cm")) 
-  
-  # Print the plot
-  print(p)
-  ggsave(paste0(path_to_plots, 'Fr_index_dry_fits/',"without_canola_", sl, idx, '.png'), p, width = 10, height = 7, dpi = 300)
-
-}
-
 #######################################
 #######################################
 #######################################
@@ -176,52 +145,56 @@ results3_fr$pred_fr <- results3_fr$Predicted_Fraction_Residue_Cover
 results3_fr$fr_ratio_ <- results3_fr$Predicted_Fraction_Residue_Cover/results3_fr$Fraction_Residue_Cover
 results3_fr$fr_dif <- results3_fr$Predicted_Fraction_Residue_Cover - results3_fr$Fraction_Residue_Cover
 
-# Plotting
+# Filter for one soil type
 sl <- unique(results3$soil)[1]
+unfiltered_df <- results3_fr
 results3_fr <- results3_fr %>% dplyr::filter(soil == sl)
 
-# Filter for RWC
-results3_fr <- results3_fr %>% dplyr::filter(RWC == 0)
 
 NDTI_df <- results3_fr %>% dplyr::filter(index_name == "NDTI")
 CAI_df <- results3_fr %>% dplyr::filter(index_name == "CAI")
 SINDRI_df <- results3_fr %>% dplyr::filter(index_name == "SINDRI")
 
 
-# fr_ratio_plot <- ggplot(NDTI_df, aes(x = factor(act_fr), y = fr_dif, color = crop, shape = crop)) +
 
-# df_ <- SINDRI_df
-base_size <- 14
-fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = fr_dif)) +
-  geom_boxplot(alpha = 0.6, outlier.size = 2) +  # Setting alpha directly for point transparency
-  labs(x = "actual fraction", y = "fr_difference", title = paste0(df_$index_name[1], "_across_crops")) +
-  theme_minimal() +
-  scale_color_brewer(palette = "Set1") +  # Setting a color palette for the crops
-  scale_shape_manual(values = c(1, 2, 3, 4, 5, 6, 7)) +
-  theme(legend.position = "right",
-        legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
-        legend.text = element_text(size = base_size), # Legend text at base size
-        plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
-        axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
-        axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
-        panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
-        plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
-        panel.grid = element_blank(),
-        axis.ticks = element_line(color = "black"),
-        axis.line = element_line(color = "black"),
-        legend.key.size = unit(0.5, "cm")) 
-  # geom_hline(yintercept=1)
-print(fr_ratio_plot)
-ggsave(paste0(path_to_plots, 'FR_differene_fr_act_box/', 'fr_fitted_box_', df_$index_name[1], '.png'), fr_ratio_plot, width = 10, height = 7, dpi = 300)
+# fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = fr_dif)) +
+#   geom_boxplot(alpha = 0.6, outlier.size = 2) +  # Setting alpha directly for point transparency
+#   labs(x = "actual fraction", y = "fr_difference", title = paste0(df_$index_name[1], "_across_crops")) +
+#   theme_minimal() +
+#   scale_color_brewer(palette = "Set1") +  # Setting a color palette for the crops
+#   scale_shape_manual(values = c(1, 2, 3, 4, 5, 6, 7)) +
+#   theme(legend.position = "right",
+#         legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
+#         legend.text = element_text(size = base_size), # Legend text at base size
+#         plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
+#         axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
+#         axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
+#         panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
+#         plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
+#         panel.grid = element_blank(),
+#         axis.ticks = element_line(color = "black"),
+#         axis.line = element_line(color = "black"),
+#         legend.key.size = unit(0.5, "cm")) 
+#   # geom_hline(yintercept=1)
+# print(fr_ratio_plot)
+# ggsave(paste0(path_to_plots, 'FR_differene_fr_act_box/', 'fr_fitted_box_', df_$index_name[1], '.png'), fr_ratio_plot, width = 10, height = 7, dpi = 300)
 
 
+df_ <- CAI_df
+fr_idx_df <- CAI_df
+####################################
+# Creating the custom labeller function
+custom_labeller <- function(variable, value) {
+  return(paste("RWC =", value))
+}
 
 ### Fr_difference facet across RWCs
-df_ <- CAI_df
+base_size <- 14
 # Creating the plot
 fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = fr_dif, color = factor(RWC))) +
   geom_boxplot(alpha = 0.6, outlier.size = 2) +  # Setting alpha directly for point transparency
-  labs(x = "Actual Fraction", y = "FR Difference", title = paste0(df_$index_name[1], " across crops")) +
+  labs(x = "Actual Fraction", y = expression(f[r] * " difference"), 
+       title = paste0(df_$index_name[1], "_", df_$soil[1]), color = "RWC") +
   theme_minimal() +
   scale_color_brewer(palette = "Set1") +  # Setting a color palette
   theme(legend.position = "right",
@@ -235,20 +208,208 @@ fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = fr_dif, color = factor(
         panel.grid = element_blank(),
         axis.ticks = element_line(color = "black"),
         axis.line = element_line(color = "black"),
-        legend.key.size = unit(0.5, "cm")) +
-  facet_wrap(~RWC, scales = "free")  # Add this line to facet by RWC
+        legend.key.size = unit(0.5, "cm"),
+        strip.text = element_text(size = base_size * 1.1)) + # Adjusting facet title size
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller) 
 
 print(fr_ratio_plot)
 
-ggsave(paste0(path_to_plots, 'FR_differene_fr_act_box_FACET_RWC/', 'fr_fitted_box_', df_$index_name[1], '.png'), fr_ratio_plot, width = 15, height = 7, dpi = 300)
+# ggsave(paste0(path_to_plots, 'fr_differene_range/', df_$index_name[1], '.png'), fr_ratio_plot, width = 15, height = 7, dpi = 300)
 
 
-df_ <- SINDRI_df
+
+# Plot for all soils
+fr_ratio_plot_allsoils <- ggplot(unfiltered_df, aes(x = factor(act_fr), y = fr_dif, color = factor(RWC))) +
+  geom_boxplot(alpha = 0.6, outlier.size = 2) +  # Setting alpha directly for point transparency
+  labs(x = "Actual Fraction", y = expression(f[r] * " difference"), 
+       title = paste0(df_$index_name[1], "_all_soils"), color = "RWC") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +  # Setting a color palette
+  theme(legend.position = "right",
+        legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
+        legend.text = element_text(size = base_size), # Legend text at base size
+        plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
+        axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
+        axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
+        panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
+        plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
+        panel.grid = element_blank(),
+        axis.ticks = element_line(color = "black"),
+        axis.line = element_line(color = "black"),
+        legend.key.size = unit(0.5, "cm"),
+        strip.text = element_text(size = base_size * 1.1)) + # Adjusting facet title size
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller) 
+
+combined_plot <- grid.arrange(fr_ratio_plot, fr_ratio_plot_allsoils, ncol = 1)
+
+print(combined_plot)
+ggsave(paste0(path_to_plots, 'fr_differene_range_all_soils/', df_$index_name[1], '.png'), combined_plot, width = 15, height = 7, dpi = 300)
+
+# Fresh/weathered separated
+
+fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = fr_dif, fill = factor(age))) +
+  geom_boxplot_pattern(alpha = 0.6, outlier.size = 2, color = "black", pattern_angle = 45) +  # Setting alpha directly for point transparency
+  scale_fill_brewer(palette = "Set1") +  # Use a discrete color palette for fills
+  labs(x = "Actual Fraction", y = expression(f[r] * " difference"), 
+       title = paste0(df_$index_name[1]), color = "RWC", fill = "Age") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +  # Setting a color palette
+  theme(legend.position = "right",
+        legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
+        legend.text = element_text(size = base_size), # Legend text at base size
+        plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
+        axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
+        axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
+        panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
+        plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
+        panel.grid = element_blank(),
+        axis.ticks = element_line(color = "black"),
+        axis.line = element_line(color = "black"),
+        legend.key.size = unit(0.5, "cm"),
+        strip.text = element_text(size = base_size * 1.1)) + # Adjusting facet title size
+  # scale_pattern_manual(values = c("crosshatch", "dots")) +
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller) 
+
+print(fr_ratio_plot)
+
+# ggsave(paste0(path_to_plots, 'fr_differene_by_age/', df_$index_name[1], '.png'), fr_ratio_plot, width = 15, height = 7, dpi = 300)
+
+####################################
+### Fr_prediction range facet across RWCs
+
+base_size <- 14
+# Calculate min and max per group
+summary_df <- df_ %>%
+  group_by(act_fr, RWC, age) %>%
+  summarise(
+    min_pred_fr = round(min(pred_fr), 2),
+    max_pred_fr = round(max(pred_fr), 2),
+    .groups = 'drop'
+  )
+
+# Creating the plot
+fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = pred_fr, color = factor(RWC))) +
+  geom_boxplot(alpha = 0.6, outlier.size = 2) +
+  geom_text(data = summary_df, aes(label = format(min_pred_fr, digits = 3), y = min_pred_fr), 
+            vjust = 1.1, color = "blue", position = position_dodge(width = 0.75)) +
+  geom_text(data = summary_df, aes(label = format(max_pred_fr, digits = 3), y = max_pred_fr), 
+            vjust = -0.3, color = "red", position = position_dodge(width = 0.75)) +
+  labs(x = "Actual Fraction", y = expression("Predicted " * f[r]), 
+       title = paste0(df_$index_name[1], "_fresh"), color = "RWC") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "right",
+        legend.title = element_text(size = base_size * 1.2),
+        legend.text = element_text(size = base_size),
+        plot.title = element_text(size = base_size * 1.5, hjust = 0.5),
+        axis.title = element_text(size = base_size * 1.2),
+        axis.text = element_text(size = base_size, color = "black"),
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+        panel.grid = element_blank(),
+        axis.ticks = element_line(color = "black"),
+        axis.line = element_line(color = "black"),
+        legend.key.size = unit(0.5, "cm"),
+        strip.text = element_text(size = base_size * 1.1)) +
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller)
+
+print(fr_ratio_plot)
+# ggsave(paste0(path_to_plots, 'fr_pred_range/',
+#               df_$index_name[1], '.png'), fr_ratio_plot, width = 15, height = 10,
+#        dpi = 300)
+
+### Fr_prediction range facet across RWCs separated by age
+fr_ratio_plot <- ggplot(df_, aes(x = factor(act_fr), y = pred_fr, fill = factor(age))) +
+  geom_boxplot_pattern(alpha = 0.6, outlier.size = 2, color = "black", pattern_angle = 45) +
+  geom_text(data = summary_df, aes(x = factor(act_fr), label = format(min_pred_fr, digits = 3), y = min_pred_fr), 
+            vjust = 1.1, color = "blue", position = position_dodge(width = 0.75)) +
+  geom_text(data = summary_df, aes(x = factor(act_fr), label = format(max_pred_fr, digits = 3), y = max_pred_fr), 
+            vjust = -0.3, color = "red", position = position_dodge(width = 0.75)) +
+  labs(x = "Actual Fraction", y = expression("Predicted " * f[r]), 
+       title = paste0(df_$index_name[1]), color = "RWC", fill = "Age") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1") +
+  theme(legend.position = "right",
+        legend.title = element_text(size = base_size * 1.2),
+        legend.text = element_text(size = base_size),
+        plot.title = element_text(size = base_size * 1.5, hjust = 0.5),
+        axis.title = element_text(size = base_size * 1.2),
+        axis.text = element_text(size = base_size, color = "black"),
+        panel.background = element_rect(fill = "white", colour = "white"),
+        plot.background = element_rect(fill = "white", colour = "white"),
+        panel.grid = element_blank(),
+        axis.ticks = element_line(color = "black"),
+        axis.line = element_line(color = "black"),
+        legend.key.size = unit(0.5, "cm"),
+        strip.text = element_text(size = base_size * 1.1)) +
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller)
+
+print(fr_ratio_plot)
+
+# ggsave(paste0(path_to_plots, 'fr_pred_range_by_age/',
+#               df_$index_name[1], '.png'), fr_ratio_plot, width = 21, height = 10,
+#        dpi = 300)
+
+#######################################
+#######################################
+#######################################
+#######################################
+#           Plot Fr ~ index 
+#######################################
+#######################################
+
+
+########## Dry fits
+fr_idx_df <- fr_idx_df %>% dplyr::filter(RWC == 0)
+base_size = 14
+sl <- unique(fr_idx_df$soil)[1]
+for (sl in unique(fr_idx_df$soil)){
+  
+  filtered <- fr_idx_df %>% dplyr::filter(soil == sl)
+  
+  p <- ggplot(filtered, aes(x = index, y = Fraction_Residue_Cover, color = as.factor(RWC), shape = as.factor(crop))) +
+    geom_point() + # Adds points to the plot
+    geom_smooth(aes(group = 1), method = "lm", color = "red", se = FALSE) +
+    facet_wrap(~index_name, scales = "free") + # Creates a separate plot for each level of index_name
+    scale_color_discrete(name = "RWC") +
+    scale_shape_discrete(name = "Crop") + # Adds a legend for RWC
+    labs(x = "Index", y = "Fraction Residue Cover") + # Labels for axes
+    theme_minimal() + # Minimal theme for cleaner look
+    theme(legend.position = "right",
+          legend.title = element_text(size = base_size * 1.2), # Legend title larger than base size
+          legend.text = element_text(size = base_size), # Legend text at base size
+          plot.title = element_text(size = base_size * 1.5, hjust = 0.5), # Title larger than base size
+          axis.title = element_text(size = base_size * 1.2), # Axis titles larger than base size
+          axis.text = element_text(size = base_size, color = "black"), # Axis text at base size
+          panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
+          plot.background = element_rect(fill = "white", colour = "white"), # Set plot background to white
+          panel.grid = element_blank(),
+          axis.ticks = element_line(color = "black"),
+          axis.line = element_line(color = "black"),
+          legend.key.size = unit(0.5, "cm")) 
+  
+  # Print the plot
+  print(p)
+  # ggsave(paste0(path_to_plots, 'Fr_index_dry_fits/',"fresh_", sl, "_", filtered$index_name[1], '.png'), p, width = 10, height = 7, dpi = 300)
+  
+}
+
+
+
+#######################################
+#######################################
+#######################################
+#######################################
+
+######### Across crops and RWCs
+
 # Creating the scatter plot
-fr_ratio_plot <- ggplot(df_, aes(x = pred_fr, y = act_fr, color = factor(RWC), shape = factor(crop))) +
+fr_ratio_plot <- ggplot(df_, aes(x = act_fr, y = pred_fr, color = factor(RWC), shape = factor(crop))) +
   geom_point(alpha = 0.6, size = 2) +  # Plot points with some transparency
   geom_abline(intercept = 0, slope = 1, color = "red", linetype = "dashed") +  # Add a 1:1 line in red
-  labs(x = "Predicted Fraction", y = "Actual Fraction", title = paste0(df_$index_name[1], " Comparison of Predicted vs. Actual Fraction")) +
+  labs(x = "Predicted Fraction", y = "Actual Fraction",
+       title = paste0(df_$index_name[1], " Comparison of Predicted vs. Actual Fraction"),
+       color = "RWC", shape = "Crop") +
   theme_minimal() +
   scale_color_brewer(palette = "Set1") +  # Setting a color palette for RWC
   scale_shape_manual(values = c(0, 1, 2, 3, 4, 6, 8)) +  # Define shapes for each crop type
@@ -266,10 +427,11 @@ fr_ratio_plot <- ggplot(df_, aes(x = pred_fr, y = act_fr, color = factor(RWC), s
     panel.grid = element_blank(),
     axis.ticks = element_line(color = "black"),
     axis.line = element_line(color = "black"),
-    legend.key.size = unit(0.5, "cm")
+    legend.key.size = unit(0.5, "cm"),
+    strip.text = element_text(size = base_size * 1.1)
   ) +
-  facet_wrap(~RWC, scales = "free")  # Facet by RWC
+  facet_wrap(~RWC, scales = "free", labeller = custom_labeller)  # Facet by RWC
 
 print(fr_ratio_plot)
-ggsave(paste0(path_to_plots, 'FR_pred_fr_act_FACET_/', 'FR_pred_fr_act_FACET_', df_$index_name[1], '.png'), fr_ratio_plot, width = 13, height = 7, dpi = 300)
+# ggsave(paste0(path_to_plots, 'fr_pred_act_fits/', df_$index_name[1], '.png'), fr_ratio_plot, width = 13, height = 7, dpi = 300)
 
