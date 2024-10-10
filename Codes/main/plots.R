@@ -136,32 +136,43 @@ df_to_plot <- results_fr %>% dplyr::filter(RWC == 0)
 df_to_plot <- df_to_plot %>% dplyr::filter(age == "fresh")
 base_size = 14
 
+
 # Define custom colors (one for each crop)
 custom_colors <- c("Canola" = "#fcca46", "Garbanzo Beans" = "#233d4d", "Peas" = "#fe7f2d", 
                    "Wheat Norwest Duet" = "#619b8a", "Wheat Pritchett" = "#a1c181")  
 
 
-for (sl in unique(df_to_plot$soil)){
-  for (idx_ in unique(df_to_plot$index_name)){
-    filtered <- df_to_plot %>% dplyr::filter(soil == sl)
-    filtered <- filtered %>% dplyr::filter(index_name == idx_)
+for (sl in unique(df_to_plot$soil)) {
+  for (idx_ in unique(df_to_plot$index_name)) {
+    filtered <- df_to_plot %>%
+      filter(soil == sl, index_name == idx_)
     
-    # Calculate slopes for each crop
+    # Calculate slopes for each crop and rename slope to avoid conflicts
     slopes <- filtered %>%
       group_by(crop) %>%
-      summarise(slope = coef(lm(Fraction_Residue_Cover ~ index))[2])
+      summarise(slope_value = coef(lm(Fraction_Residue_Cover ~ index))[2]) %>%
+      ungroup()
     
     # Modify the crop labels to include the slope
     filtered <- filtered %>%
       left_join(slopes, by = "crop") %>%
-      mutate(crop_label = paste0(crop, " (", round(slope, 2), ")"))
+      mutate(crop_label = paste0(crop, " (", round(slope_value, 2), ")"))
+    
+    # Print filtered data after the join to check if slope_value has been joined correctly
+    print("Filtered Data after left_join:")
+    print(head(filtered))
+    
+    # Dynamically create the labels for the legend
+    local_crop_labels <- filtered %>%
+      distinct(crop, crop_label) %>%
+      pull(crop_label, crop)
     
     p <- ggplot(filtered, aes(x = index, y = Fraction_Residue_Cover, color = as.factor(crop))) +
       geom_point(size = 4) + # Adds points to the plot
       geom_smooth(aes(group = 1), method = "lm", color = "red", se = FALSE) +
       facet_wrap(~index_name, scales = "free") + # Creates a separate plot for each level of index_name
       scale_color_manual(name = "Crop residue (slope)", values = custom_colors,
-                         labels = filtered$crop_label) +
+                         labels = local_crop_labels) +
       labs(x = idx_, y = "Fraction Residue Cover") + # Labels for axes
       theme_minimal() + # Minimal theme for cleaner look
       theme(legend.position = "right",
@@ -181,7 +192,9 @@ for (sl in unique(df_to_plot$soil)){
     
     # Print the plot
     print(p)
-    ggsave(paste0(path_to_plots, 'fr_index_dry_fits/', sl, "_", filtered$index_name[1], '.png'), p, width = 10, height = 7, dpi = 300)
+    ggsave(paste0(path_to_plots, 'fr_index_dry_fits/', sl, "_", filtered$index_name[1], '.png'), 
+           p, width = 10, height = 7, dpi = 300)
   }
 }
+
 
