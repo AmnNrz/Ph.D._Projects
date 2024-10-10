@@ -9,12 +9,18 @@ library(ggpattern)
 library(gridExtra)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+#                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/01/')
+
+
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+#                         'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/01/')
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/01/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = paste0(path_to_data, "crp_sl_index_fr/"), pattern = "\\.csv$", full.names = FALSE)
