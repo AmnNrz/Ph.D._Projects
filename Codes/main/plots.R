@@ -5,7 +5,6 @@ library(tidyverse)
 library(viridis)
 library(scales)
 library(broom)
-library(ggpattern)
 library(gridExtra)
 
 
@@ -129,26 +128,45 @@ results_fr$pred_fr <- results_fr$Predicted_Fraction_Residue_Cover
 results_fr$fr_ratio_ <- results_fr$Predicted_Fraction_Residue_Cover/results_fr$Fraction_Residue_Cover
 results_fr$fr_dif <- results_fr$Predicted_Fraction_Residue_Cover - results_fr$Fraction_Residue_Cover
 
-plot_df <- results_fr %>% dplyr::filter(RWC == 0)
+
+# Filter for RWC = 0
+df_to_plot <- results_fr %>% dplyr::filter(RWC == 0)
+
+# Filter for fresh crops
+df_to_plot <- df_to_plot %>% dplyr::filter(age == "fresh")
 base_size = 14
-# sl <- unique(plot_df$soil)[1]
-for (sl in unique(plot_df$soil)){
-  for (idx_ in unique(plot_df$index_name)){
-    filtered <- plot_df %>% dplyr::filter(soil == sl)
+
+# Define custom colors (one for each crop)
+custom_colors <- c("Canola" = "#fcca46", "Garbanzo Beans" = "#233d4d", "Peas" = "#fe7f2d", 
+                   "Wheat Norwest Duet" = "#619b8a", "Wheat Pritchett" = "#a1c181")  
+
+
+for (sl in unique(df_to_plot$soil)){
+  for (idx_ in unique(df_to_plot$index_name)){
+    filtered <- df_to_plot %>% dplyr::filter(soil == sl)
     filtered <- filtered %>% dplyr::filter(index_name == idx_)
     
-    p <- ggplot(filtered, aes(x = index, y = Fraction_Residue_Cover, color = as.factor(RWC), shape = as.factor(crop))) +
+    # Calculate slopes for each crop
+    slopes <- filtered %>%
+      group_by(crop) %>%
+      summarise(slope = coef(lm(Fraction_Residue_Cover ~ index))[2])
+    
+    # Modify the crop labels to include the slope
+    filtered <- filtered %>%
+      left_join(slopes, by = "crop") %>%
+      mutate(crop_label = paste0(crop, " (", round(slope, 2), ")"))
+    
+    p <- ggplot(filtered, aes(x = index, y = Fraction_Residue_Cover, color = as.factor(crop))) +
       geom_point(size = 4) + # Adds points to the plot
       geom_smooth(aes(group = 1), method = "lm", color = "red", se = FALSE) +
       facet_wrap(~index_name, scales = "free") + # Creates a separate plot for each level of index_name
-      scale_color_discrete(name = "RWC") +
-      scale_shape_discrete(name = "Crop") + # Adds a legend for RWC
+      scale_color_manual(name = "Crop residue (slope)", values = custom_colors,
+                         labels = filtered$crop_label) +
       labs(x = idx_, y = "Fraction Residue Cover") + # Labels for axes
       theme_minimal() + # Minimal theme for cleaner look
       theme(legend.position = "right",
             legend.title = element_text(size = base_size * 2), # Legend title larger than base size
-            legend.text = element_text(size = base_size *1.5), # Legend text at base size
-            # plot.title = element_text(size = base_size * 2, hjust = 0.5), # Title larger than base size
+            legend.text = element_text(size = base_size * 1.5), # Legend text at base size
             axis.title = element_text(size = base_size * 2), # Axis titles larger than base size
             axis.text = element_text(size = base_size * 1.5, color = "black"), # Axis text at base size
             panel.background = element_rect(fill = "white", colour = "white"), # Set panel background to white
@@ -156,7 +174,9 @@ for (sl in unique(plot_df$soil)){
             panel.grid = element_blank(),
             axis.ticks = element_line(color = "black"),
             axis.line = element_line(color = "black"),
-            legend.key.size = unit(0.5, "cm")) +
+            legend.key.size = unit(0.5, "cm"),
+            plot.title = element_blank(),
+            strip.text = element_blank()) +
       scale_y_continuous(limits = c(0, 1)) 
     
     # Print the plot
@@ -164,3 +184,4 @@ for (sl in unique(plot_df$soil)){
     ggsave(paste0(path_to_plots, 'fr_index_dry_fits/', sl, "_", filtered$index_name[1], '.png'), p, width = 10, height = 7, dpi = 300)
   }
 }
+
