@@ -64,7 +64,6 @@ for (crp in sort(crops)) {
     for (i in fractions){
       pattern <- paste0("index_comb_", i)
       test3_NDTI$variable <- gsub(pattern, i, test3_NDTI$variable)
-      # test3_NDTI$variable <- as.numeric(test3_NDTI$variable)
     }
     names(test3_NDTI)[2] <- "Fraction_Residue_Cover"
     names(test3_NDTI)[3] <- "index"
@@ -111,7 +110,6 @@ for (crp in sort(crops)) {
     for (i in fractions){
       pattern <- paste0("index_comb_", i)
       test3_CAI$variable <- gsub(pattern, i, test3_CAI$variable)
-      # test3_index_comb$variable <- as.numeric(test3_index_comb$variable)
     }
     
     names(test3_CAI)[2] <- "Fraction_Residue_Cover"

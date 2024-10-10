@@ -88,7 +88,7 @@ soil_index <- soil %>%
   mutate(ROLI = 2200 / 2000)
 
 # soil_index$soil_index <- (0.5 * (soil_index$`2000` + soil_index$`2200`) - soil_index$`2100`)
-soil_index$res_index <- (0.5 * (soil_index$`2160` + soil_index$`2190`) - soil_index$`2180`)
+soil_index$CAI <- (0.5 * (soil_index$`2160` + soil_index$`2190`) - soil_index$`2180`)
 # soil_index$SINDRI <- (soil_index$`2200` - soil_index$`2260`) / (soil_index$`2200` + soil_index$`2260`)
 soil_index$R2220_2260 <-  rowMeans(select_columns_range(soil_index, '2240', '2260'))
 soil_index$R2260_2280 <-  rowMeans(select_columns_range(soil_index, '2290', '2330'))
@@ -105,7 +105,6 @@ soil_index$ROLI <- soil_index$`1660`/soil_index$R2220_2280
 soil_index <- soil_index[, desired_column]
 
 write.csv(soil_index, file = paste0(path_to_data, "soil_index_df.csv"), row.names = FALSE)
-
 
 comb_index <- rbind(soil_index, res_index)
 
