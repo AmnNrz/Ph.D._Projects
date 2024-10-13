@@ -266,7 +266,9 @@ for (sl in unique(df_to_plot$soil)) {
 ###########################
 # Plot fr ~ index across soils
 ###########################
-
+# Filter for RWC = 0
+dry_df <- df %>% dplyr::filter(RWC == 0)
+df_to_plot <- dry_df
 custom_colors <- c("Athena" = "#582f0e", "Bagdad" = "#7f4f24", "Benwy"= "#936639",
                    "Broadax"= "#a68a64", "Endicott"= "#b6ad90", "Lance"= "#c2c5aa",
                    "Mondovi 1" = "#a4ac86", "Mondovi 2" = "#656d4a", "Oxy" = "#414833",
