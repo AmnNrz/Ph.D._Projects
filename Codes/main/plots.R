@@ -324,9 +324,10 @@ for (crp in unique(df_to_plot$crop)) {
 #       Plot bias by crop
 ###########################
 
-fit_on_dry_wheat <- function(data) {
+fit_on_dry_wheat_Athena <- function(data) {
   # Find the minimum RWC in this subset
-  min_rwc_data <- data %>% filter((crop == "Wheat Norwest Duet") & (RWC == min(RWC)))
+  min_rwc_data <- data %>%
+    filter((crop == "Wheat Norwest Duet") & (RWC == min(RWC)) & soil == "Athena")
   
   # Fit linear model to the data with minimum RWC
   model <- lm(Fraction_Residue_Cover ~ index, data = min_rwc_data)
@@ -358,10 +359,12 @@ fit_on_dry_wheat <- function(data) {
 # Filter for fresh crops
 fresh_df <- df %>% dplyr::filter(age == "fresh")
 
-# Fit on driest wheat
-results <- fresh_df %>%
-  group_by(index_name, soil) %>%
-  group_modify(~ fit_on_dry_wheat(.x))
+fresh_df_Athena <- fresh_df %>% 
+  dplyr::filter(soil == "Athena")
+# Fit on driest wheat on Athena
+results <- fresh_df_Athena %>%
+  group_by(index_name) %>%
+  group_modify(~ fit_on_dry_wheat_Athena(.x))
 
 
 results_fr <-  results
@@ -375,31 +378,35 @@ results_fr <- results_fr %>%
   group_by(index_name) %>%
   mutate(index_normalized = (index - min(index)) / (max(index) - min(index)))
 
-# Create the index_range column based on index_normalized values
-results_fr <- results_fr %>%
-  mutate(index_range_4groups = cut(index_normalized,
-                           breaks = c(0, 0.25, 0.5, 0.75, 1),
-                           labels = c("0-0.25", "0.25-0.5", "0.5-0.75", "0.75-1"),
-                           include.lowest = TRUE))
 
-# Create the index_range column based on index_normalized values
+# # Create the index_range column based on index_normalized values
+# results_fr <- results_fr %>%
+#   mutate(index_range_3groups = cut(index_normalized,
+#                                    breaks = c(0, 0.15, 0.3, 1),
+#                                    labels = c("0-0.15", "0.15-0.3", "0.3-1"),
+#                                    include.lowest = TRUE))
+
+# # Create the index_range column based on index_normalized values
+# results_fr <- results_fr %>%
+#   mutate(index_range_4groups = cut(index_normalized,
+#                            breaks = c(0, 0.25, 0.5, 0.75, 1),
+#                            labels = c("0-0.25", "0.25-0.5", "0.5-0.75", "0.75-1"),
+#                            include.lowest = TRUE))
+
+# Create the fr_range column
 results_fr <- results_fr %>%
-  mutate(index_range_3groups = cut(index_normalized,
-                           breaks = c(0, 0.15, 0.3, 1),
-                           labels = c("0-0.15", "0.15-0.3", "0.3-1"),
+  mutate(fr_range_4groups = cut(act_fr,
+                           breaks = c(0, 0.15, 0.3, 0.75, 1),
+                           labels = c("0-0.15", "0.15-0.3", "0.3-0.75", "0.75-1"),
                            include.lowest = TRUE))
 
 fr_table_4groups <- results_fr %>% 
-  group_by(index_name, soil, RWC, crop, index_range_4groups) %>% 
-  summarise(mae = round(mean(fr_ae), 2))
+  group_by(index_name, RWC, crop, fr_range_4groups) %>% 
+  summarise(mae = round(mean(fr_ae), 2), 
+            normalized_index_range = paste0(round(min(index_normalized), 2), "-", round(max(index_normalized), 2)))
 
-fr_table_3groups_byCrop <- results_fr %>% 
-  group_by(index_name, soil, RWC, crop, index_range_3groups) %>% 
-  summarise(mae = round(mean(fr_ae), 3))
+view(fr_table_4groups)
 
-fr_table_3groups_bySoil <- results_fr %>% 
-  group_by(index_name, soil, RWC, crop, index_range_3groups) %>% 
-  summarise(fr_range = paste0(min(round(pred_fr, 2)), "-", max(round(pred_fr, 2))))
 
 error_summary <- results_fr %>%
   group_by(index_name, soil, RWC, crop) %>%
