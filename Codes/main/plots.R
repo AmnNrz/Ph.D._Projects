@@ -9,18 +9,18 @@ library(gridExtra)
 library(stringr)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                       'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
 #                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
+path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
+                       'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
 
 
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/01/')
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+#                         'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
+path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+                        'Projects/Soil_Residue_Spectroscopy/Plots/01/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = paste0(path_to_data, "crp_sl_index_fr/"), pattern = "\\.csv$", full.names = FALSE)
@@ -410,13 +410,62 @@ for (sl in unique(df_to_plot$soil)) {
          final_plot, width = 14, height = 7, dpi = 300)
 }
 
+################
+# Plot fr range with shade
+################
+################
+df_to_plot_a_soil <- df_to_plot %>% dplyr::filter(soil == "Athena") 
+df_to_plot_a_soil <- df_to_plot_a_soil %>% dplyr::filter(RWC == 0)
+
+library(dplyr)
+library(tidyr)
+library(purrr)
+library(ggplot2)
+
+# Assuming `df_to_plot_a_soil` is your dataset
+interpolated_data <- df_to_plot_a_soil %>%
+  group_by(index_name, crop) %>%
+  nest() %>%
+  mutate(
+    model = map(data, ~ lm(Fraction_Residue_Cover ~ index, data = .x)), # Fit regression model
+    continuous_index = map(data, ~ seq(min(.x$index), max(.x$index), length.out = 100)), # Generate continuous index
+    predicted = map2(model, continuous_index, ~ data.frame(
+      index = .y,
+      Fraction_Residue_Cover = predict(.x, newdata = data.frame(index = .y))
+    )) # Predict using the model
+  ) %>%
+  select(-data, -model, -continuous_index) %>%
+  unnest(predicted)
+
+
 
 
 ######################################################
 ######################################################
 ######################################################
 
+# Create bins for each index_name
+binned_data <- interpolated_data %>%
+  group_by(index_name) %>%
+  mutate(
+    # Create 10 bins using the overall min and max of each index_name
+    bin = cut(index, breaks = seq(min(index), max(index), length.out = 11), include.lowest = TRUE, labels = FALSE),
+    # Calculate bin midpoints
+    bin_midpoint = cut(index, breaks = seq(min(index), max(index), length.out = 11), include.lowest = TRUE) %>%
+      as.character() %>%
+      str_extract_all("-?\\d+\\.?\\d*") %>%
+      map_dbl(~ mean(as.numeric(.)))
+  ) %>%
+  filter(!is.na(bin)) %>% # Exclude any rows not falling in bins
+  group_by(index_name, crop, bin, bin_midpoint) %>%
+  summarise(
+    avg_fraction_residue_cover = mean(Fraction_Residue_Cover, na.rm = TRUE),
+    .groups = "drop"
+  )
 
+######################################################
+######################################################
+######################################################
 ###########################
 # Plot Fresh vs weathered for canola and wheat
 ###########################
