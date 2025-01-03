@@ -9,18 +9,18 @@ library(gridExtra)
 library(stringr)
 
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-#                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
-path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
+# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
+#                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
 
 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-#                         'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
-path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-                        'Projects/Soil_Residue_Spectroscopy/Plots/01/')
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
+# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
+#                         'Projects/Soil_Residue_Spectroscopy/Plots/01/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = paste0(path_to_data, "crp_sl_index_fr/"), pattern = "\\.csv$", full.names = FALSE)
@@ -417,55 +417,190 @@ for (sl in unique(df_to_plot$soil)) {
 df_to_plot_a_soil <- df_to_plot %>% dplyr::filter(soil == "Athena") 
 df_to_plot_a_soil <- df_to_plot_a_soil %>% dplyr::filter(RWC == 0)
 
-library(dplyr)
-library(tidyr)
-library(purrr)
-library(ggplot2)
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
 
-# Assuming `df_to_plot_a_soil` is your dataset
-interpolated_data <- df_to_plot_a_soil %>%
-  group_by(index_name, crop) %>%
-  nest() %>%
-  mutate(
-    model = map(data, ~ lm(Fraction_Residue_Cover ~ index, data = .x)), # Fit regression model
-    continuous_index = map(data, ~ seq(min(.x$index), max(.x$index), length.out = 100)), # Generate continuous index
-    predicted = map2(model, continuous_index, ~ data.frame(
-      index = .y,
-      Fraction_Residue_Cover = predict(.x, newdata = data.frame(index = .y))
-    )) # Predict using the model
-  ) %>%
-  select(-data, -model, -continuous_index) %>%
-  unnest(predicted)
-
-
-
-
-######################################################
-######################################################
-######################################################
-
-# Create bins for each index_name
-binned_data <- interpolated_data %>%
-  group_by(index_name) %>%
-  mutate(
-    # Create 10 bins using the overall min and max of each index_name
-    bin = cut(index, breaks = seq(min(index), max(index), length.out = 11), include.lowest = TRUE, labels = FALSE),
-    # Calculate bin midpoints
-    bin_midpoint = cut(index, breaks = seq(min(index), max(index), length.out = 11), include.lowest = TRUE) %>%
-      as.character() %>%
-      str_extract_all("-?\\d+\\.?\\d*") %>%
-      map_dbl(~ mean(as.numeric(.)))
-  ) %>%
-  filter(!is.na(bin)) %>% # Exclude any rows not falling in bins
-  group_by(index_name, crop, bin, bin_midpoint) %>%
-  summarise(
-    avg_fraction_residue_cover = mean(Fraction_Residue_Cover, na.rm = TRUE),
-    .groups = "drop"
+# For clarity, define short variable names
+df <- df_to_plot_a_soil
+df <- df %>%
+  rename(
+    FR = Fraction_Residue_Cover
   )
+thresholds <- c(0, 0.15, 0.30, 0.75, 1)
 
-######################################################
-######################################################
-######################################################
+# 3a. Nest data by (crop, index_name)
+df_nested <- df %>%
+  group_by(crop, index_name) %>%
+  nest()
+
+# 3b. Define a function to fit the linear model and return slope & intercept
+fit_linear_model <- function(data) {
+  # Fit FR ~ index
+  m <- lm(FR ~ index, data = data)
+  coefs <- coef(m)  # intercept = coefs[1], slope = coefs[2]
+  
+  tibble(
+    intercept = coefs[1],
+    slope     = coefs[2]
+  )
+}
+
+# 3c. Apply the model fitting to each nested group
+df_models <- df_nested %>%
+  mutate(model_info = map(data, fit_linear_model)) %>%
+  select(-data) %>%
+  unnest(model_info)
+
+# 4a. Create a helper function to compute boundary index for a single threshold
+compute_boundary <- function(intercept, slope, threshold) {
+  # If slope == 0, the model is degenerate. For safety, handle that edge case:
+  if(abs(slope) < 1e-12) return(NA_real_)
+  
+  (threshold - intercept) / slope
+}
+
+# 4b. Expand df_models with all thresholds
+df_boundaries <- df_models %>%
+  crossing(threshold = thresholds) %>%
+  rowwise() %>%
+  mutate(
+    boundary_index = compute_boundary(intercept, slope, threshold)
+  ) %>%
+  ungroup()
+
+
+df_boundaries
+# This data frame has columns: crop, index_name, intercept, slope, threshold, boundary_index
+write.csv(df_boundaries, file = paste0(path_to_plots, "df_index_boundaries.csv"), row.names = FALSE)
+
+
+
+df <- df_boundaries
+df$boundary_index <- round(df$boundary_index, 3)
+index_names <- unique(df$index_name)
+
+for(idx in index_names) {
+  
+  # 1) Subset and arrange
+  df_sub <- df %>%
+    filter(index_name == idx) %>%
+    arrange(crop, threshold)
+  
+  # 2) Build the base intervals
+  df_intervals <- df_sub %>%
+    group_by(crop) %>%
+    arrange(threshold, .by_group = TRUE) %>%
+    mutate(
+      xmin = boundary_index,
+      xmax = lead(boundary_index),
+      ymin = threshold,
+      ymax = lead(threshold)
+    ) %>%
+    filter(!is.na(xmax), !is.na(ymax)) %>%
+    ungroup()
+  
+  # 3) Sub-divide overlapping fraction bands
+  #    We group by (index_name + the fraction-band), i.e. (ymin, ymax).
+  #    Then within each group we count how many crops (rows) are in that band,
+  #    and assign each crop a sub_ymin..sub_ymax so they do NOT overlap.
+  df_intervals_sub <- df_intervals %>%
+    # create a label or ID for the fraction band
+    mutate(fr_band = paste0(ymin, "-", ymax)) %>%
+    group_by(index_name, fr_band) %>%
+    mutate(
+      # number of crops in this band
+      band_count = n(),
+      # index of this crop in that band
+      band_rank  = row_number(),
+      # sub-divide [ymin, ymax] into 'band_count' slices
+      sub_ymin = ymin + (band_rank - 1) * (ymax - ymin) / band_count,
+      sub_ymax = ymin + band_rank       * (ymax - ymin) / band_count
+    ) %>%
+    ungroup()
+  
+  # 4) Plot, but use sub_ymin/sub_ymax instead of ymin/ymax
+  p <- ggplot(df_intervals_sub, 
+              aes(xmin = xmin, xmax = xmax, 
+                  ymin = sub_ymin, ymax = sub_ymax, 
+                  fill = crop)) +
+    geom_rect(alpha = 0.4, color = "black") +
+    scale_y_continuous(
+      breaks = c(0, 0.15, 0.3, 0.75, 1),
+      limits = c(0, 1)
+    ) +
+    # Add custom x-axis breaks.  
+    # custom_colors <- c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46", "Peas" = "#ff7d00", 
+    # "Wheat" = "#78290f", "Wheat Pritchett" = "#a1c181") 
+    scale_x_continuous(
+      breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
+      limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+    ) +
+    # Manually set legend key colors
+    scale_fill_manual(
+      values = c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46",
+                 "Peas" = "#ff7d00", "Wheat Norwest Duet" = "#78290f")
+      ) +
+    labs(
+      # title = paste("Index:", idx),
+      x = paste0(idx),
+      y = expression("Fractional residue cover (" * f[r] * ")")
+    ) +
+    theme_minimal() +
+    theme(
+      # panel.grid.major.x = element_blank(),  # Remove major vertical grid lines
+      panel.grid.minor.x = element_blank(),   # Remove minor vertical grid lines
+      axis.text.x = element_blank(),
+      panel.border = element_blank(),
+      axis.line = element_line(color = "black")
+    )
+  # 5) Add text labels for left (xmin) and right (xmax) edges
+  #    We'll place them vertically in the middle of the rectangle,
+  #    and nudge them slightly inside so they’re not on the exact edge.
+  
+  # Left edge label:
+  p <- p +
+    geom_text(
+      data = df_intervals_sub,
+      aes(
+        x = xmin - 0.0004,  # small nudge so the text is just inside the rectangle
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmin, 4)  # or use sprintf to format
+      ),
+      inherit.aes = FALSE,  # so it doesn't try to use 'xmin'/'ymin' in the main aes()
+      size = 3,
+      hjust = 1  # anchor text at the left (inside)
+    )
+  
+  # Right edge label:
+  p <- p +
+    geom_text(
+      data = df_intervals_sub,
+      aes(
+        x = xmax + 0.0004,  # small nudge inside
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmax, 4)
+      ),
+      inherit.aes = FALSE,
+      size = 3,
+      hjust = 0  # anchor text at the right (inside)
+    )
+  p <- p +
+    # Add horizontal lines at specified thresholds
+    geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8)
+  
+  
+  print(p)
+}
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+
 ###########################
 # Plot Fresh vs weathered for canola and wheat
 ###########################
@@ -789,10 +924,26 @@ for (sl in unique(df_to_plot$soil)) {
 
 
 
-################################################
-################################################
-################################################
-
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
+######################################################
 
 ###########################
 # Plot fr ~ index across soils
