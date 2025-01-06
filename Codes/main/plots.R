@@ -410,8 +410,9 @@ for (sl in unique(df_to_plot$soil)) {
          final_plot, width = 14, height = 7, dpi = 300)
 }
 
-################
-# Plot fr range with shade
+
+##############################################################################
+#               Plot index range vs fr bars
 ################
 ################
 df_to_plot_a_soil <- df_to_plot %>% dplyr::filter(soil == "Athena") 
@@ -473,8 +474,8 @@ df_boundaries <- df_models %>%
 
 
 df_boundaries
-# This data frame has columns: crop, index_name, intercept, slope, threshold, boundary_index
-write.csv(df_boundaries, file = paste0(path_to_plots, "df_index_boundaries.csv"), row.names = FALSE)
+# # This data frame has columns: crop, index_name, intercept, slope, threshold, boundary_index
+# write.csv(df_boundaries, file = paste0(path_to_plots, "df_index_boundaries.csv"), row.names = FALSE)
 
 
 
@@ -482,14 +483,155 @@ df <- df_boundaries
 df$boundary_index <- round(df$boundary_index, 3)
 index_names <- unique(df$index_name)
 
-for(idx in index_names) {
+# for(idx in index_names) {
+#   
+#   # 1) Subset and arrange
+#   df_sub <- df %>%
+#     filter(index_name == idx) %>%
+#     arrange(crop, threshold)
+#   
+#   # 2) Build the base intervals
+#   df_intervals <- df_sub %>%
+#     group_by(crop) %>%
+#     arrange(threshold, .by_group = TRUE) %>%
+#     mutate(
+#       xmin = boundary_index,
+#       xmax = lead(boundary_index),
+#       ymin = threshold,
+#       ymax = lead(threshold)
+#     ) %>%
+#     filter(!is.na(xmax), !is.na(ymax)) %>%
+#     ungroup()
+#   
+#   # 3) Sub-divide overlapping fraction bands
+#   #    We group by (index_name + the fraction-band), i.e. (ymin, ymax).
+#   #    Then within each group we count how many crops (rows) are in that band,
+#   #    and assign each crop a sub_ymin..sub_ymax so they do NOT overlap.
+#   df_intervals_sub <- df_intervals %>%
+#     # create a label or ID for the fraction band
+#     mutate(fr_band = paste0(ymin, "-", ymax)) %>%
+#     group_by(index_name, fr_band) %>%
+#     mutate(
+#       # number of crops in this band
+#       band_count = n(),
+#       # index of this crop in that band
+#       band_rank  = row_number(),
+#       # sub-divide [ymin, ymax] into 'band_count' slices
+#       sub_ymin = ymin + (band_rank - 1) * (ymax - ymin) / band_count,
+#       sub_ymax = ymin + band_rank       * (ymax - ymin) / band_count
+#     ) %>%
+#     ungroup()
+#   
+#   # 4) Plot, but use sub_ymin/sub_ymax instead of ymin/ymax
+#   p <- ggplot(df_intervals_sub, 
+#               aes(xmin = xmin, xmax = xmax, 
+#                   ymin = sub_ymin, ymax = sub_ymax, 
+#                   fill = crop)) +
+#     geom_rect(alpha = 0.4, color = "black") +
+#     scale_y_continuous(
+#       breaks = c(0, 0.15, 0.3, 0.75, 1),
+#       limits = c(0, 1)
+#     ) +
+#     # Add custom x-axis breaks.  
+#     # custom_colors <- c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46", "Peas" = "#ff7d00", 
+#     # "Wheat" = "#78290f", "Wheat Pritchett" = "#a1c181") 
+#     scale_x_continuous(
+#       breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
+#       limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+#     ) +
+#     # Manually set legend key colors
+#     scale_fill_manual(
+#       values = c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46",
+#                  "Peas" = "#ff7d00", "Wheat Norwest Duet" = "#78290f")
+#       ) +
+#     labs(
+#       # title = paste("Index:", idx),
+#       x = paste0(idx),
+#       y = expression("Fractional residue cover (" * f[r] * ")")
+#     ) +
+#     theme_minimal() +
+#     theme(
+#       # panel.grid.major.x = element_blank(),  # Remove major vertical grid lines
+#       panel.grid.minor.x = element_blank(),   # Remove minor vertical grid lines
+#       axis.text.x = element_blank(),
+#       panel.border = element_blank(),
+#       axis.line = element_line(color = "black")
+#     )
+#   # 5) Add text labels for left (xmin) and right (xmax) edges
+#   #    We'll place them vertically in the middle of the rectangle,
+#   #    and nudge them slightly inside so they’re not on the exact edge.
+#   
+#   # Left edge label:
+#   p <- p +
+#     geom_text(
+#       data = df_intervals_sub,
+#       aes(
+#         x = xmin - 0.0004,  # small nudge so the text is just inside the rectangle
+#         y = (sub_ymin + sub_ymax) / 2,
+#         label = round(xmin, 4)  # or use sprintf to format
+#       ),
+#       inherit.aes = FALSE,  # so it doesn't try to use 'xmin'/'ymin' in the main aes()
+#       size = 3,
+#       hjust = 1  # anchor text at the left (inside)
+#     )
+#   
+#   # Right edge label:
+#   p <- p +
+#     geom_text(
+#       data = df_intervals_sub,
+#       aes(
+#         x = xmax + 0.0004,  # small nudge inside
+#         y = (sub_ymin + sub_ymax) / 2,
+#         label = round(xmax, 4)
+#       ),
+#       inherit.aes = FALSE,
+#       size = 3,
+#       hjust = 0  # anchor text at the right (inside)
+#     )
+#   p <- p +
+#     # Add horizontal lines at specified thresholds
+#     geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8)
+#   
+#   
+#   print(p)
+# }
+# 
+# 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(ggpubr)
+
+
+
+df <- df %>%
+  mutate(crop = recode(crop,
+                       "Wheat Norwest Duet" = "Wheat"))
+# Initialize an empty list to store individual plots
+plot_list <- list()
+
+# Loop through each index_name and create individual plots
+for (idx in index_names) {
   
-  # 1) Subset and arrange
+  # Subset, arrange, and build intervals as before
   df_sub <- df %>%
     filter(index_name == idx) %>%
     arrange(crop, threshold)
   
-  # 2) Build the base intervals
   df_intervals <- df_sub %>%
     group_by(crop) %>%
     arrange(threshold, .by_group = TRUE) %>%
@@ -502,98 +644,107 @@ for(idx in index_names) {
     filter(!is.na(xmax), !is.na(ymax)) %>%
     ungroup()
   
-  # 3) Sub-divide overlapping fraction bands
-  #    We group by (index_name + the fraction-band), i.e. (ymin, ymax).
-  #    Then within each group we count how many crops (rows) are in that band,
-  #    and assign each crop a sub_ymin..sub_ymax so they do NOT overlap.
   df_intervals_sub <- df_intervals %>%
-    # create a label or ID for the fraction band
     mutate(fr_band = paste0(ymin, "-", ymax)) %>%
     group_by(index_name, fr_band) %>%
     mutate(
-      # number of crops in this band
       band_count = n(),
-      # index of this crop in that band
       band_rank  = row_number(),
-      # sub-divide [ymin, ymax] into 'band_count' slices
       sub_ymin = ymin + (band_rank - 1) * (ymax - ymin) / band_count,
       sub_ymax = ymin + band_rank       * (ymax - ymin) / band_count
     ) %>%
     ungroup()
   
-  # 4) Plot, but use sub_ymin/sub_ymax instead of ymin/ymax
+  df_intervals_sub <- df_intervals_sub %>%
+    mutate(
+      label_xmin = xmin - 0.03 * (xmax - xmin),   # 3% of bar width left
+      label_xmax = xmax + 0.03 * (xmax - xmin)    # 3% of bar width right
+    )
+  # # Calculate the range of the x-axis for relative positioning
+  # x_range <- range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+  # x_offset <- 0.01 * diff(x_range)  # 1% of the x-axis width as offset
+  # 
+  # Create the plot for the current index_name
   p <- ggplot(df_intervals_sub, 
               aes(xmin = xmin, xmax = xmax, 
                   ymin = sub_ymin, ymax = sub_ymax, 
                   fill = crop)) +
     geom_rect(alpha = 0.4, color = "black") +
+    geom_text(
+      aes(
+        x = label_xmin,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmin, 4)
+      ),
+      size = 4, 
+      hjust = 1
+    ) +
+    geom_text(
+      aes(
+        x = label_xmax,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmax, 4)
+      ),
+      size = 4,
+      hjust = 0
+    ) +
+    geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8) +
     scale_y_continuous(
       breaks = c(0, 0.15, 0.3, 0.75, 1),
       limits = c(0, 1)
     ) +
-    # Add custom x-axis breaks.  
-    # custom_colors <- c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46", "Peas" = "#ff7d00", 
-    # "Wheat" = "#78290f", "Wheat Pritchett" = "#a1c181") 
     scale_x_continuous(
       breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
       limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
     ) +
-    # Manually set legend key colors
     scale_fill_manual(
       values = c("Canola" = "#15616d", "Garbanzo Beans" = "#fcca46",
-                 "Peas" = "#ff7d00", "Wheat Norwest Duet" = "#78290f")
-      ) +
+                 "Peas" = "#ff7d00", "Wheat" = "#78290f")
+    ) +
     labs(
-      # title = paste("Index:", idx),
-      x = paste0(idx),
-      y = expression("Fractional residue cover (" * f[r] * ")")
+      x = idx,
+      y = expression("Fractional residue cover (" * f[r] * ")"),
+      fill = ""
     ) +
     theme_minimal() +
     theme(
-      # panel.grid.major.x = element_blank(),  # Remove major vertical grid lines
-      panel.grid.minor.x = element_blank(),   # Remove minor vertical grid lines
+      panel.grid.minor.x = element_blank(),
       axis.text.x = element_blank(),
       panel.border = element_blank(),
-      axis.line = element_line(color = "black")
-    )
-  # 5) Add text labels for left (xmin) and right (xmax) edges
-  #    We'll place them vertically in the middle of the rectangle,
-  #    and nudge them slightly inside so they’re not on the exact edge.
-  
-  # Left edge label:
-  p <- p +
-    geom_text(
-      data = df_intervals_sub,
-      aes(
-        x = xmin - 0.0004,  # small nudge so the text is just inside the rectangle
-        y = (sub_ymin + sub_ymax) / 2,
-        label = round(xmin, 4)  # or use sprintf to format
-      ),
-      inherit.aes = FALSE,  # so it doesn't try to use 'xmin'/'ymin' in the main aes()
-      size = 3,
-      hjust = 1  # anchor text at the left (inside)
+      axis.line = element_line(color = "black"),
+      legend.position = "bottom",  # Keep legend position for extraction
+      
+      
+      # Manual text size control
+      plot.title = element_text(size = 12, face = "bold"),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      axis.text = element_text(size = 12),
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      strip.text = element_text(size = 12)  # For facet strip text if used
+      
     )
   
-  # Right edge label:
-  p <- p +
-    geom_text(
-      data = df_intervals_sub,
-      aes(
-        x = xmax + 0.0004,  # small nudge inside
-        y = (sub_ymin + sub_ymax) / 2,
-        label = round(xmax, 4)
-      ),
-      inherit.aes = FALSE,
-      size = 3,
-      hjust = 0  # anchor text at the right (inside)
-    )
-  p <- p +
-    # Add horizontal lines at specified thresholds
-    geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8)
-  
-  
-  print(p)
+  # Add the plot to the list
+  plot_list[[idx]] <- p
 }
+
+# Use ggpubr::ggarrange() to arrange the plots and keep a single shared legend
+final_plot <- ggarrange(
+  plotlist = plot_list,
+  nrow = 1,
+  common.legend = TRUE,    # Ensure a single shared legend
+  legend = "bottom"        # Place the legend at the bottom
+)
+
+# Print the final combined plot
+print(final_plot)
+
+# Save the combined plot
+ggsave(paste0(path_to_plots, 'index_ranges/fresh/index_range_plot.png'),
+       final_plot, width = 15, height = 6, dpi = 300)
+
 
 ##############################################################################
 ##############################################################################
@@ -804,8 +955,6 @@ for (sl in unique(df_to_plot$soil)) {
 }
 
 
-
-
 ################
 # For AGU poster
 ################
@@ -921,6 +1070,218 @@ for (sl in unique(df_to_plot$soil)) {
 }
 
 
+
+##############################################################################
+#               Plot index range vs fr bars
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+
+df_to_plot_a_soil <- df_to_plot %>% dplyr::filter(soil == "Athena") 
+
+df <- df_to_plot_a_soil
+
+df <- df %>%
+  rename(
+    FR = Fraction_Residue_Cover
+  )
+thresholds <- c(0, 0.15, 0.30, 0.75, 1)
+
+# 3a. Nest data by (crop, index_name)
+df_nested <- df %>%
+  group_by(crop, index_name) %>%
+  nest()
+
+# 3b. Define a function to fit the linear model and return slope & intercept
+fit_linear_model <- function(data) {
+  # Fit FR ~ index
+  m <- lm(FR ~ index, data = data)
+  coefs <- coef(m)  # intercept = coefs[1], slope = coefs[2]
+  
+  tibble(
+    intercept = coefs[1],
+    slope     = coefs[2]
+  )
+}
+
+# 3c. Apply the model fitting to each nested group
+df_models <- df_nested %>%
+  mutate(model_info = map(data, fit_linear_model)) %>%
+  select(-data) %>%
+  unnest(model_info)
+
+# 4a. Create a helper function to compute boundary index for a single threshold
+compute_boundary <- function(intercept, slope, threshold) {
+  # If slope == 0, the model is degenerate. For safety, handle that edge case:
+  if(abs(slope) < 1e-12) return(NA_real_)
+  
+  (threshold - intercept) / slope
+}
+
+# 4b. Expand df_models with all thresholds
+df_boundaries <- df_models %>%
+  crossing(threshold = thresholds) %>%
+  rowwise() %>%
+  mutate(
+    boundary_index = compute_boundary(intercept, slope, threshold)
+  ) %>%
+  ungroup()
+
+
+df_boundaries
+# # This data frame has columns: crop, index_name, intercept, slope, threshold, boundary_index
+# write.csv(df_boundaries, file = paste0(path_to_plots, "df_index_boundaries.csv"), row.names = FALSE)
+
+
+
+df <- df_boundaries
+df$boundary_index <- round(df$boundary_index, 3)
+index_names <- unique(df$index_name)
+
+
+
+
+
+
+library(dplyr)
+library(ggplot2)
+library(cowplot)
+library(ggpubr)
+
+df <- df %>%
+  mutate(crop = recode(crop,
+                       "Canola" = "Fresh canola",
+                       "Weathered Canola" = "Weathered canola",
+                       "Wheat Norwest Duet" = "Fresh wheat",
+                       "Weathered Wheat" = "Weathered wheat"))
+
+# Initialize an empty list to store individual plots
+plot_list <- list()
+
+# Loop through each index_name and create individual plots
+for (idx in index_names) {
+  
+  # Subset, arrange, and build intervals as before
+  df_sub <- df %>%
+    filter(index_name == idx) %>%
+    arrange(crop, threshold)
+  
+  df_intervals <- df_sub %>%
+    group_by(crop) %>%
+    arrange(threshold, .by_group = TRUE) %>%
+    mutate(
+      xmin = boundary_index,
+      xmax = lead(boundary_index),
+      ymin = threshold,
+      ymax = lead(threshold)
+    ) %>%
+    filter(!is.na(xmax), !is.na(ymax)) %>%
+    ungroup()
+  
+  df_intervals_sub <- df_intervals %>%
+    mutate(fr_band = paste0(ymin, "-", ymax)) %>%
+    group_by(index_name, fr_band) %>%
+    mutate(
+      band_count = n(),
+      band_rank  = row_number(),
+      sub_ymin = ymin + (band_rank - 1) * (ymax - ymin) / band_count,
+      sub_ymax = ymin + band_rank       * (ymax - ymin) / band_count
+    ) %>%
+    ungroup()
+  
+  df_intervals_sub <- df_intervals_sub %>%
+    mutate(
+      label_xmin = xmin - 0.03 * (xmax - xmin),   # 3% of bar width left
+      label_xmax = xmax + 0.03 * (xmax - xmin)    # 3% of bar width right
+    )
+  # # Calculate the range of the x-axis for relative positioning
+  # x_range <- range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+  # x_offset <- 0.01 * diff(x_range)  # 1% of the x-axis width as offset
+  # 
+  # Create the plot for the current index_name
+  p <- ggplot(df_intervals_sub, 
+              aes(xmin = xmin, xmax = xmax, 
+                  ymin = sub_ymin, ymax = sub_ymax, 
+                  fill = crop)) +
+    geom_rect(alpha = 0.4, color = "black") +
+    geom_text(
+      aes(
+        x = label_xmin,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmin, 4)
+      ),
+      size = 4, 
+      hjust = 1
+    ) +
+    geom_text(
+      aes(
+        x = label_xmax,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmax, 4)
+      ),
+      size = 4,
+      hjust = 0
+    ) + 
+    geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8) +
+    scale_y_continuous(
+      breaks = c(0, 0.15, 0.3, 0.75, 1),
+      limits = c(0, 1)
+    ) + 
+    scale_x_continuous(
+      breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
+      limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+    ) + 
+    scale_fill_manual(
+      values = c("Fresh canola" = "#0e9594", "Weathered canola" = "#f5dfbb",
+                 "Fresh wheat" = "#562c2c", "Weathered wheat" = "#f2542d")
+    ) + 
+    labs(
+      x = idx,
+      y = expression("Fractional residue cover (" * f[r] * ")"),
+      fill = ""
+    ) + 
+    theme_minimal() +
+    theme(
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_blank(),
+      panel.border = element_blank(),
+      axis.line = element_line(color = "black"),
+      legend.position = "bottom",  # Keep legend position for extraction
+      # Manual text size control
+      plot.title = element_text(size = 12, face = "bold"),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      axis.text = element_text(size = 12),
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      strip.text = element_text(size = 12)  # For facet strip text if used
+    )
+  # Add the plot to the list
+  plot_list[[idx]] <- p
+}
+
+# Use ggpubr::ggarrange() to arrange the plots and keep a single shared legend
+final_plot <- ggarrange(
+  plotlist = plot_list,
+  nrow = 1,
+  common.legend = TRUE,    # Ensure a single shared legend
+  legend = "bottom"        # Place the legend at the bottom
+)
+
+# Print the final combined plot
+print(final_plot)
+
+# Save the combined plot
+ggsave(paste0(path_to_plots, 'index_ranges/age/index_range_plot.png'),
+       final_plot, width = 15, height = 6, dpi = 300)
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
 
 
 
@@ -1238,9 +1599,223 @@ for (crp in unique(df_to_plot$crop)) {
 
 
 
-################################################
-################################################
-################################################
+
+
+##############################################################################
+#               Plot index range vs fr bars
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+
+dry_df <- df %>% dplyr::filter(RWC == 0)
+df_to_plot <- dry_df
+# custom_colors <- c("Athena" = "#582f0e", "Bagdad" = "#7f4f24", "Benwy"= "#936639",
+#                    "Broadax"= "#a68a64", "Endicott"= "#b6ad90", "Lance"= "#c2c5aa",
+#                    "Mondovi 1" = "#a4ac86", "Mondovi 2" = "#656d4a", "Oxy" = "#414833",
+#                    "Palouse" = "#333d29", "Ritzville" = "#774936", "Shano" =  "#580c1f")  
+
+df_to_plot_a_crop <- df_to_plot %>% dplyr::filter(crop == "Wheat Norwest Duet") 
+
+
+
+
+
+# For clarity, define short variable names
+df <- df_to_plot_a_crop
+df <- df %>%
+  rename(
+    FR = Fraction_Residue_Cover
+  )
+thresholds <- c(0, 0.15, 0.30, 0.75, 1)
+
+# 3a. Nest data by (crop, index_name)
+df_nested <- df %>%
+  group_by(soil, index_name) %>%
+  nest()
+
+# 3b. Define a function to fit the linear model and return slope & intercept
+fit_linear_model <- function(data) {
+  # Fit FR ~ index
+  m <- lm(FR ~ index, data = data)
+  coefs <- coef(m)  # intercept = coefs[1], slope = coefs[2]
+  
+  tibble(
+    intercept = coefs[1],
+    slope     = coefs[2]
+  )
+}
+
+# 3c. Apply the model fitting to each nested group
+df_models <- df_nested %>%
+  mutate(model_info = map(data, fit_linear_model)) %>%
+  select(-data) %>%
+  unnest(model_info)
+
+# 4a. Create a helper function to compute boundary index for a single threshold
+compute_boundary <- function(intercept, slope, threshold) {
+  # If slope == 0, the model is degenerate. For safety, handle that edge case:
+  if(abs(slope) < 1e-12) return(NA_real_)
+  
+  (threshold - intercept) / slope
+}
+
+# 4b. Expand df_models with all thresholds
+df_boundaries <- df_models %>%
+  crossing(threshold = thresholds) %>%
+  rowwise() %>%
+  mutate(
+    boundary_index = compute_boundary(intercept, slope, threshold)
+  ) %>%
+  ungroup()
+
+
+
+df <- df_boundaries
+df$boundary_index <- round(df$boundary_index, 3)
+index_names <- unique(df$index_name)
+
+
+
+library(ggbreak)
+
+# Initialize an empty list to store individual plots
+plot_list <- list()
+
+# Loop through each index_name and create individual plots
+for (idx in index_names) {
+  
+  # Subset, arrange, and build intervals as before
+  df_sub <- df %>%
+    filter(index_name == idx) %>%
+    arrange(soil, threshold)
+  
+  df_intervals <- df_sub %>%
+    group_by(soil) %>%
+    arrange(threshold, .by_group = TRUE) %>%
+    mutate(
+      xmin = boundary_index,
+      xmax = lead(boundary_index),
+      ymin = threshold,
+      ymax = lead(threshold)
+    ) %>%
+    filter(!is.na(xmax), !is.na(ymax)) %>%
+    ungroup()
+  
+  df_intervals_sub <- df_intervals %>%
+    mutate(fr_band = paste0(ymin, "-", ymax)) %>%
+    group_by(index_name, fr_band) %>%
+    mutate(
+      band_count = n(),
+      band_rank  = row_number(),
+      sub_ymin = ymin + (band_rank - 1) * (ymax - ymin) / band_count,
+      sub_ymax = ymin + band_rank       * (ymax - ymin) / band_count
+    ) %>%
+    ungroup()
+  
+  df_intervals_sub <- df_intervals_sub %>%
+    mutate(
+      label_xmin = xmin - 0.03 * (xmax - xmin),   # 3% of bar width left
+      label_xmax = xmax + 0.03 * (xmax - xmin)    # 3% of bar width right
+    )
+  # 
+  # Create the plot for the current index_name
+  p <- ggplot(df_intervals_sub, 
+              aes(xmin = xmin, xmax = xmax, 
+                  ymin = sub_ymin, ymax = sub_ymax, 
+                  fill = soil)) +
+    geom_rect(alpha = 0.4, color = "black") +
+    geom_text(
+      aes(
+        x = label_xmin,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmin, 4)
+      ),
+      size = 2.7, 
+      hjust = 1
+    ) +
+    geom_text(
+      aes(
+        x = label_xmax,
+        y = (sub_ymin + sub_ymax) / 2,
+        label = round(xmax, 4)
+      ),
+      size = 2.7,
+      hjust = 0
+    ) +
+    geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8) +
+    # scale_y_continuous(
+    #   breaks = c(0, 0.15, 0.3, 0.75, 1),
+    #   limits = c(0, 1)
+    # ) +
+    scale_y_break(
+      breaks = c(0.15, 0.3),  # Define breakpoints at 0.15 and 0.3
+      scale = c(2, 2, 0.8),   # Relative heights of segments: [0-0.15], [0.15-0.3], [0.3-1]
+      ticklabels = c(0, 0.15, 0.3, 0.75, 1)  # Custom tick labels
+    ) +
+    scale_x_continuous(
+      breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
+      limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
+    ) +
+    scale_fill_manual(
+      values = c("Athena" = "#582f0e", "Bagdad" = "#7f4f24", "Benwy"= "#936639",
+                 "Broadax"= "#a68a64", "Endicott"= "#b6ad90", "Lance"= "#c2c5aa",
+                 "Mondovi 1" = "#a4ac86", "Mondovi 2" = "#656d4a", "Oxy" = "#414833",
+                 "Palouse" = "#333d29", "Ritzville" = "#774936", "Shano" =  "#580c1f")
+    ) +
+    labs(
+      x = idx,
+      y = expression("Fractional residue cover (" * f[r] * ")"),
+      fill = ""
+    ) +
+    theme_minimal() +
+    theme(
+      panel.grid.minor.x = element_blank(),
+      axis.text.x = element_blank(),
+      panel.border = element_blank(),
+      axis.line = element_line(color = "black"),
+      legend.position = "bottom",  # Keep legend position for extraction
+      
+      
+      # Manual text size control
+      plot.title = element_text(size = 12, face = "bold"),
+      axis.title.x = element_text(size = 12),
+      axis.title.y = element_text(size = 12),
+      axis.text = element_text(size = 12),
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      strip.text = element_text(size = 12)  # For facet strip text if used
+      
+    )
+  
+  # Add the plot to the list
+  plot_list[[idx]] <- p
+}
+
+# Use ggpubr::ggarrange() to arrange the plots and keep a single shared legend
+final_plot <- ggarrange(
+  plotlist = plot_list,
+  nrow = 1,
+  common.legend = TRUE,    # Ensure a single shared legend
+  legend = "bottom"        # Place the legend at the bottom
+)
+
+# Print the final combined plot
+print(final_plot)
+
+# Save the combined plot
+ggsave(paste0(path_to_plots, 'index_ranges/soil/index_range_soil.png'),
+       final_plot, width = 15, height = 6, dpi = 300)
+
+
+
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
+##############################################################################
 
 
 ###########################
