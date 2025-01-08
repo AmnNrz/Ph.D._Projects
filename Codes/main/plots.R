@@ -96,7 +96,6 @@ dry_df <- df %>% dplyr::filter(RWC == 0)
 df_to_plot <- dry_df %>% dplyr::filter(age == "fresh")
 base_size = 14
 
-
 # Define custom colors (one for each crop)
 custom_colors <- c("Canola" = "#fcca46", "Garbanzo Beans" = "#233d4d", "Peas" = "#fe7f2d", 
                    "Wheat" = "#619b8a", "Wheat Pritchett" = "#a1c181")  
@@ -481,7 +480,7 @@ df_boundaries
 
 df <- df_boundaries
 df$boundary_index <- round(df$boundary_index, 3)
-index_names <- unique(df$index_name)
+index_names <- c("NDTI", "CAI", "SINDRI")
 
 # for(idx in index_names) {
 #   
@@ -597,15 +596,6 @@ index_names <- unique(df$index_name)
 # }
 # 
 # 
-
-
-
-
-
-
-
-
-
 
 
 
@@ -742,7 +732,7 @@ final_plot <- ggarrange(
 print(final_plot)
 
 # Save the combined plot
-ggsave(paste0(path_to_plots, 'index_ranges/fresh/index_range_plot.png'),
+ggsave(paste0(path_to_plots, 'index_ranges/fresh/index_range_fresh.png'),
        final_plot, width = 15, height = 6, dpi = 300)
 
 
@@ -1129,7 +1119,6 @@ df_boundaries <- df_models %>%
   ) %>%
   ungroup()
 
-
 df_boundaries
 # # This data frame has columns: crop, index_name, intercept, slope, threshold, boundary_index
 # write.csv(df_boundaries, file = paste0(path_to_plots, "df_index_boundaries.csv"), row.names = FALSE)
@@ -1138,7 +1127,7 @@ df_boundaries
 
 df <- df_boundaries
 df$boundary_index <- round(df$boundary_index, 3)
-index_names <- unique(df$index_name)
+index_names <- c("NDTI", "CAI", "SINDRI")
 
 
 
@@ -1274,7 +1263,7 @@ final_plot <- ggarrange(
 print(final_plot)
 
 # Save the combined plot
-ggsave(paste0(path_to_plots, 'index_ranges/age/index_range_plot.png'),
+ggsave(paste0(path_to_plots, 'index_ranges/age/index_range_age.png'),
        final_plot, width = 15, height = 6, dpi = 300)
 
 ##############################################################################
@@ -1674,11 +1663,10 @@ df_boundaries <- df_models %>%
 
 df <- df_boundaries
 df$boundary_index <- round(df$boundary_index, 3)
-index_names <- unique(df$index_name)
+index_names <- c("NDTI", "CAI", "SINDRI")
 
 
-
-library(ggbreak)
+library(ggplot2)
 
 # Initialize an empty list to store individual plots
 plot_list <- list()
@@ -1732,8 +1720,9 @@ for (idx in index_names) {
         y = (sub_ymin + sub_ymax) / 2,
         label = round(xmin, 4)
       ),
-      size = 2.7, 
-      hjust = 1
+      size = 3, 
+      hjust = 1,
+      # position = position_nudge(x = 0.5)
     ) +
     geom_text(
       aes(
@@ -1741,19 +1730,15 @@ for (idx in index_names) {
         y = (sub_ymin + sub_ymax) / 2,
         label = round(xmax, 4)
       ),
-      size = 2.7,
-      hjust = 0
+      size = 3,
+      hjust = 0,
+      # position = position_nudge(x = 0.5)
     ) +
     geom_hline(yintercept = c(0.15, 0.3, 0.75, 1), color = "black", linetype = "dashed", size = 0.8) +
     # scale_y_continuous(
     #   breaks = c(0, 0.15, 0.3, 0.75, 1),
     #   limits = c(0, 1)
     # ) +
-    scale_y_break(
-      breaks = c(0.15, 0.3),  # Define breakpoints at 0.15 and 0.3
-      scale = c(2, 2, 0.8),   # Relative heights of segments: [0-0.15], [0.15-0.3], [0.3-1]
-      ticklabels = c(0, 0.15, 0.3, 0.75, 1)  # Custom tick labels
-    ) +
     scale_x_continuous(
       breaks = sort(unique(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))),
       limits = range(na.omit(c(df_intervals_sub$xmin, df_intervals_sub$xmax)))
@@ -1788,11 +1773,9 @@ for (idx in index_names) {
       strip.text = element_text(size = 12)  # For facet strip text if used
       
     )
-  
   # Add the plot to the list
   plot_list[[idx]] <- p
 }
-
 # Use ggpubr::ggarrange() to arrange the plots and keep a single shared legend
 final_plot <- ggarrange(
   plotlist = plot_list,
@@ -1807,7 +1790,6 @@ print(final_plot)
 # Save the combined plot
 ggsave(paste0(path_to_plots, 'index_ranges/soil/index_range_soil.png'),
        final_plot, width = 15, height = 6, dpi = 300)
-
 
 
 ##############################################################################
