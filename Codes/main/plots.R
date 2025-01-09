@@ -9,18 +9,18 @@ library(gridExtra)
 library(stringr)
 
 
-path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                       'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
-# path_to_data <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/',
+# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
 #                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
+path_to_data <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
+                       'Soil_Residue_Spectroscopy/Data/00/')
 
 
-path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
-# path_to_plots <- paste0('/home/amnnrz/OneDrive - a.norouzikandelati/Ph.D/',
-#                         'Projects/Soil_Residue_Spectroscopy/Plots/01/')
+# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+#                         'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
+path_to_plots <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
+                        'Soil_Residue_Spectroscopy/Plots/final_plots/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = paste0(path_to_data, "crp_sl_index_fr/"), pattern = "\\.csv$", full.names = FALSE)
@@ -1835,9 +1835,24 @@ fit_on_dry_wheat_Athena <- function(data) {
 }
 
 
+# Perform interpolation using reframe()
+df_interpolated <- df %>%
+  group_by(index_name, RWC, mix) %>%  # Group by index_name, RWC, and mix
+  reframe(
+    Fraction_Residue_Cover_interp = seq(min(Fraction_Residue_Cover), max(Fraction_Residue_Cover), length.out = 100),
+    index_interp = approx(Fraction_Residue_Cover, index, xout = seq(min(Fraction_Residue_Cover), max(Fraction_Residue_Cover), length.out = 100))$y,
+    crop = first(crop),
+    soil = first(soil),
+    age = first(age)
+  )
+
+df_interpolated <- df_interpolated %>% 
+  rename(Fraction_Residue_Cover = Fraction_Residue_Cover_interp,
+         index = index_interp)
+
 
 # Filter for fresh crops
-fresh_df <- df %>% dplyr::filter(age == "fresh")
+fresh_df <- df_interpolated %>% dplyr::filter(age == "fresh")
 
 fresh_df_Athena <- fresh_df %>% 
   dplyr::filter(soil == "Athena")
@@ -1850,13 +1865,34 @@ results <- fresh_df_Athena %>%
 results_fr <-  results
 results_fr$act_fr <- results_fr$Fraction_Residue_Cover
 results_fr$pred_fr <- results_fr$Predicted_Fraction_Residue_Cover
-results_fr$fr_ae <- abs(results_fr$Predicted_Fraction_Residue_Cover - results_fr$Fraction_Residue_Cover)
+results_fr$fr_ab <- abs(results_fr$Predicted_Fraction_Residue_Cover - results_fr$Fraction_Residue_Cover)
 
 
-# Perform min-max normalization for each index_name group
-results_fr <- results_fr %>%
-  group_by(index_name) %>%
-  mutate(index_normalized = (index - min(index)) / (max(index) - min(index)))
+df <- results_fr
+df <- df %>% dplyr::filter(RWC == 0)
+# Ensure index_name is a factor with the desired ordering
+df$index_name <- factor(df$index_name, levels = c("NDTI", "CAI", "SINDRI"))
+
+# Plot
+ggplot(df, aes(x = index, y = fr_ab, color = crop)) +
+  geom_line() +
+  geom_point() +
+  facet_wrap(~ index_name, 
+             ncol = 3,          # put all 3 index_name facets in one row
+             scales = "free_x"  # let each facet adjust its own X-scale if needed
+  ) +
+  labs(
+    x = "Index values",
+    y = "Mean Absolute Bias"
+  ) +
+  theme_bw(base_size = 14)
+
+
+
+
+
+
+
 
 # Create the fr_range column
 results_fr <- results_fr %>%
