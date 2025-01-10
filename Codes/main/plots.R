@@ -10,18 +10,18 @@ library(stringr)
 library(ggpubr)
 
 
-# path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-#                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
-path_to_data <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
-                       'Soil_Residue_Spectroscopy/Data/00/')
+path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                       'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+                       'Ph.D/Projects/Soil_Residue_Spectroscopy/Data/00/')
+# path_to_data <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
+#                        'Soil_Residue_Spectroscopy/Data/00/')
 
 
-# path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
-#                         'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
-#                         'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
-path_to_plots <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
-                        'Soil_Residue_Spectroscopy/Plots/final_plots/')
+path_to_plots <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
+                        'OneDrive-WashingtonStateUniversity(email.wsu.edu)/',
+                        'Ph.D/Projects/Soil_Residue_Spectroscopy/Plots/final_plots/')
+# path_to_plots <- paste0('/home/amin-norouzi/OneDrive/Ph.D/Projects/',
+#                         'Soil_Residue_Spectroscopy/Plots/final_plots/')
 
 # Get a list of all .csv files in the directory
 csv_files <- list.files(path = paste0(path_to_data, "crp_sl_index_fr/"), pattern = "\\.csv$", full.names = FALSE)
@@ -1965,7 +1965,6 @@ ggsave(paste0(path_to_plots, 'mab/by_crops.png'),
 #####################
 #####################
 
-
 # Perform interpolation using reframe()
 df_interpolated <- df %>%
   group_by(index_name, RWC, mix) %>%  # Group by index_name, RWC, and mix
@@ -2097,7 +2096,7 @@ results_fr <- results_fr %>%
 error_summary <- results_fr %>%
   group_by(index_name, soil, RWC, crop, fr_range_4groups) %>%
   summarise(
-    mae = mean(fr_ae)
+    mae = mean(fr_ab)
   )
 
 df_to_plot <- error_summary
@@ -2233,7 +2232,7 @@ for (sl in unique(df_to_plot$soil)) {
                  "Garbanzo Beans" = "Garbanzo Beans",
                  "Peas" = "Peas",
                  "Canola" = "Canola")) +
-    labs(x = "RWC", y = "MAE") +
+    labs(x = "RWC", y = "Mean Absolute Bias") +
     ylim(0, 1) +
     coord_fixed(ratio = 6) +
     theme_minimal() +
@@ -2324,7 +2323,7 @@ for (sl in unique(df_to_plot$soil)) {
                  "Garbanzo Beans" = "Garbanzo Beans",
                  "Peas" = "Peas",
                  "Canola" = "Canola")) +
-    labs(x = "RWC", y = "MAE") +
+    labs(x = "RWC", y = "Mean Absolute Bias") +
     ylim(0, 1) +
     coord_fixed(ratio = 6) +
     theme_minimal() +
