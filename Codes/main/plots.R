@@ -7,6 +7,7 @@ library(scales)
 library(broom)
 library(gridExtra)
 library(stringr)
+library(ggpubr)
 
 
 # path_to_data <- paste0('/Users/aminnorouzi/Library/CloudStorage/',
@@ -1801,7 +1802,7 @@ ggsave(paste0(path_to_plots, 'index_ranges/soil/index_range_soil.png'),
 
 
 ###########################
-#       Plot bias across RWC by crop
+#       Plot bias by crops
 ###########################
 
 fit_on_dry_wheat_Athena <- function(data) {
@@ -1851,8 +1852,8 @@ df_interpolated <- df_interpolated %>%
          index = index_interp)
 
 
-# Filter for fresh crops
-fresh_df <- df_interpolated %>% dplyr::filter(age == "fresh")
+# # Filter for fresh crops
+# fresh_df <- df_interpolated %>% dplyr::filter(age == "fresh")
 
 fresh_df_Athena <- fresh_df %>% 
   dplyr::filter(soil == "Athena")
@@ -1868,32 +1869,216 @@ results_fr$pred_fr <- results_fr$Predicted_Fraction_Residue_Cover
 results_fr$fr_ab <- abs(results_fr$Predicted_Fraction_Residue_Cover - results_fr$Fraction_Residue_Cover)
 
 
-df <- results_fr
-df <- df %>% dplyr::filter(RWC == 0)
+df_to_plot <- results_fr
+df_to_plot <- df_to_plot %>% dplyr::filter(RWC == 0)
 # Ensure index_name is a factor with the desired ordering
-df$index_name <- factor(df$index_name, levels = c("NDTI", "CAI", "SINDRI"))
+df_to_plot$index_name <- factor(df_to_plot$index_name, levels = c("NDTI", "CAI", "SINDRI"))
 
-# Plot
-ggplot(df, aes(x = index, y = fr_ab, color = crop)) +
-  geom_line() +
-  geom_point() +
-  facet_wrap(~ index_name, 
-             ncol = 3,          # put all 3 index_name facets in one row
-             scales = "free_x"  # let each facet adjust its own X-scale if needed
-  ) +
-  labs(
-    x = "Index values",
-    y = "Mean Absolute Bias"
-  ) +
-  theme_bw(base_size = 14)
+# Define the crops to keep
+crops_to_keep <- c("Canola", "Garbanzo Beans", "Peas", "Weathered Canola", 
+                   "Weathered Wheat", "Wheat Norwest Duet")
 
+# Filter the dataframe for the specified crops
+df_to_plot <- df_to_plot[df_to_plot$crop %in% crops_to_keep, ]
 
+# Rename "Wheat Norwest Duet" to "wheat"
+df_to_plot$crop <- ifelse(df_to_plot$crop == "Wheat Norwest Duet", "Wheat", df_to_plot$crop)
 
-
-
+# Reorder the levels of 'crop' as desired
+df_to_plot$crop <- factor(
+  df_to_plot$crop, levels = c(
+    "Canola", "Weathered Canola", "Wheat",
+    "Weathered Wheat", "Garbanzo Beans",
+    "Peas"))
 
 
+# Get unique index names
+index_names <- c("NDTI", "CAI", "SINDRI")
 
+# Initialize an empty list to store the plots
+plot_list <- list()
+
+# Loop through each index_name
+for (idx in index_names) {
+  
+  # Subset the data for the current index_name
+  sub_df <- df_to_plot[df_to_plot$index_name == idx, ]
+  
+  # Create the ggplot
+  p <- ggplot(sub_df, aes(x = index, y = fr_ab, color = crop)) +
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    scale_color_manual(
+      values = c(
+        "Canola" = "#63ccb7", 
+        "Weathered Canola" = "#fe7f2d",
+        "Wheat" = "#06293c",
+        "Weathered Wheat" = "#606c38", 
+        "Garbanzo Beans" = "#06728e",
+        "Peas" = "#ff5643"
+      )
+    ) +
+    labs(
+      x = idx,
+      y = "Mean Absolute Bias",
+      color = "Crop Types"
+      # No direct title so we can place index_name with annotate()
+    ) +
+    theme_minimal(base_size = 14) +
+    theme(
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray80"),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 12),
+      legend.position = "bottom",
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      plot.title = element_text(size = 12, face = "bold", hjust = 0.5) # Center title
+    ) 
+  
+  # Add the plot to the list
+  plot_list[[idx]] <- p
+}
+
+# Arrange the plots with a common legend at the bottom
+final_plot <- ggarrange(
+  plotlist = plot_list,
+  ncol = 3,                # e.g., 3 columns; adjust as needed
+  common.legend = TRUE,
+  legend = "bottom"
+)
+
+# Print the final combined plot
+print(final_plot)
+
+# Save the combined plot
+ggsave(paste0(path_to_plots, 'mab/by_crops.png'),
+       final_plot, width = 15, height = 6, dpi = 300)
+
+
+
+
+
+#####################
+#####################
+# Across soils
+#####################
+#####################
+
+
+# Perform interpolation using reframe()
+df_interpolated <- df %>%
+  group_by(index_name, RWC, mix) %>%  # Group by index_name, RWC, and mix
+  reframe(
+    Fraction_Residue_Cover_interp = seq(min(Fraction_Residue_Cover), max(Fraction_Residue_Cover), length.out = 100),
+    index_interp = approx(Fraction_Residue_Cover, index, xout = seq(min(Fraction_Residue_Cover), max(Fraction_Residue_Cover), length.out = 100))$y,
+    crop = first(crop),
+    soil = first(soil),
+    age = first(age)
+  )
+
+df_interpolated <- df_interpolated %>% 
+  rename(Fraction_Residue_Cover = Fraction_Residue_Cover_interp,
+         index = index_interp)
+
+# Fit on driest wheat on Athena
+results <- df_interpolated %>%
+  group_by(index_name) %>%
+  group_modify(~ fit_on_dry_wheat_Athena(.x))
+
+
+results_fr <-  results
+results_fr$act_fr <- results_fr$Fraction_Residue_Cover
+results_fr$pred_fr <- results_fr$Predicted_Fraction_Residue_Cover
+results_fr$fr_ab <- abs(results_fr$Predicted_Fraction_Residue_Cover - results_fr$Fraction_Residue_Cover)
+
+
+df_to_plot <- results_fr
+df_to_plot <- df_to_plot %>% dplyr::filter(RWC == 0)
+# Ensure index_name is a factor with the desired ordering
+df_to_plot$index_name <- factor(df_to_plot$index_name, levels = c("NDTI", "CAI", "SINDRI"))
+
+# Define the crops to keep
+crops_to_keep <- c("Wheat Norwest Duet")
+
+# Filter the dataframe for the specified crops
+df_to_plot <- df_to_plot[df_to_plot$crop %in% crops_to_keep, ]
+
+# Rename "Wheat Norwest Duet" to "wheat"
+df_to_plot$crop <- ifelse(df_to_plot$crop == "Wheat Norwest Duet", "Wheat", filtered_df$crop)
+
+
+# Get unique index names
+index_names <- c("NDTI", "CAI", "SINDRI")
+# Initialize an empty list to store the plots
+plot_list <- list()
+
+# Loop through each index_name
+for (idx in index_names) {
+  
+  # Subset the data for the current index_name
+  sub_df <- df_to_plot[df_to_plot$index_name == idx, ]
+  
+  # Create the ggplot
+  p <- ggplot(sub_df, aes(x = index, y = fr_ab, color = soil)) +
+    geom_line(size = 1) +
+    geom_point(size = 2) +
+    scale_color_manual(
+      values = c(
+        "Athena" = "#582f0e", "Bagdad" = "#7f4f24", "Benwy"= "#936639",
+        "Broadax"= "#a68a64", "Endicott"= "#b6ad90", "Lance"= "#c2c5aa",
+        "Mondovi 1" = "#a4ac86", "Mondovi 2" = "#656d4a", "Oxy" = "#414833",
+        "Palouse" = "#333d29", "Ritzville" = "#774936", "Shano" =  "#580c1f"
+      )
+    ) +
+    labs(
+      x = idx,
+      y = "Mean Absolute Bias",
+      color = "Crop Types"
+      # No direct title so we can place index_name with annotate()
+    ) +
+    theme_minimal(base_size = 14) +
+    theme(
+      panel.grid.minor = element_blank(),
+      panel.grid.major = element_line(color = "gray80"),
+      axis.text = element_text(size = 12),
+      axis.title = element_text(size = 12),
+      legend.position = "bottom",
+      legend.title = element_text(size = 12),
+      legend.text = element_text(size = 12),
+      plot.title = element_text(size = 12, face = "bold", hjust = 0.5) # Center title
+    ) 
+  
+  # Add the plot to the list
+  plot_list[[idx]] <- p
+}
+
+# Arrange the plots with a common legend at the bottom
+final_plot <- ggarrange(
+  plotlist = plot_list,
+  ncol = 3,                # e.g., 3 columns; adjust as needed
+  common.legend = TRUE,
+  legend = "bottom"
+)
+
+# Print the final combined plot
+print(final_plot)
+
+# Save the combined plot
+ggsave(paste0(path_to_plots, 'mab/by_soils.png'),
+       final_plot, width = 15, height = 6, dpi = 300)
+
+
+
+
+
+
+
+
+###############################################################
+###############################################################
+###############################################################
+###############################################################
 # Create the fr_range column
 results_fr <- results_fr %>%
   mutate(fr_range_4groups = cut(act_fr,
